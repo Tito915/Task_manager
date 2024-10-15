@@ -5,7 +5,8 @@ from datetime import datetime
 
 def load_tasks():
     try:
-        with open(r"C:\Users\tito\OneDrive\Documentos\curso\pythoncurso\Gerenciamento_Tarefas\tasks.json", "r", encoding='utf-8') as file:
+        # Alterado para usar um caminho relativo
+        with open("tasks.json", "r", encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
         return []
