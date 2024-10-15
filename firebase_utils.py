@@ -16,19 +16,27 @@ logger = logging.getLogger(__name__)
 def initialize_firebase():
     if not firebase_admin._apps:
         try:
-            # Tenta usar as credenciais do Streamlit Cloud
-            cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
-        except FileNotFoundError:
-            # Se não encontrar, usa o arquivo local
-            cred_path = os.path.join(os.path.dirname(__file__), "gerenciador-de-tarefas-mbv-firebase-adminsdk-2c48r-b6204911e1.json")
-            with open(cred_path) as f:
-                cred_dict = json.load(f)
-        
-        cred = credentials.Certificate(cred_dict)
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
-            'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
-        })
+            # Verifica se estamos no Streamlit Cloud
+            if 'FIREBASE_CREDENTIALS' in st.secrets:
+                cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
+                cred = credentials.Certificate(cred_dict)
+                logger.info("Usando credenciais do Streamlit Cloud")
+            else:
+                # Se não estiver no Streamlit Cloud, usa o arquivo local
+                cred_path = os.path.join(os.path.dirname(__file__), "gerenciador-de-tarefas-mbv-firebase-adminsdk-2c48r-b6204911e1.json")
+                with open(cred_path) as f:
+                    cred_dict = json.load(f)
+                cred = credentials.Certificate(cred_dict)
+                logger.info("Usando credenciais do arquivo local")
+
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
+                'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
+            })
+            logger.info("Firebase inicializado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao inicializar Firebase: {str(e)}")
+            raise
 
     return firebase_admin.get_app()
 
