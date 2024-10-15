@@ -19,40 +19,7 @@ from utils import load_tasks
 def show_main_content():
     st.sidebar.title("Menu")
 
-    # Adicionando CSS para o fundo
-    """
-    st.markdown(
-        f'''
-        <style>
-        .stApp {{
-            background-image: url('file://{background_image_path}');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            height: 100vh;  /* Altura total da janela */
-            color: white;  /* Cor do texto */
-        }}
-        </style>
-        ''',
-        unsafe_allow_html=True
-    )
-    """
-
-    # Exibir imagem do usuário em tamanho reduzido
-    # user_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/user_icon.png"
-
-    # Verificar se o usuário tem uma foto personalizada
-    """
-    user_photo_path = f"\\Servidor\\c\\sallesapp\\user\\{st.session_state.user['nome'].replace(' ', '_')}.png"  # Nome do arquivo baseado no nome do usuário
-    if os.path.exists(user_photo_path):
-        user_icon = Image.open(user_photo_path)
-    else:
-        user_icon = Image.open(user_icon_path)
-    
-    st.sidebar.image(user_icon, use_column_width=False, width=int(user_icon.width * 0.4))
-    """
-
-    # Mostrar o nome do usuário
+        # Mostrar o nome do usuário
     first_name = st.session_state.user['nome'].split()[0]
     st.sidebar.success(f"Seja bem-vindo: {first_name}")
 
