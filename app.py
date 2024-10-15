@@ -11,17 +11,18 @@ from login import login
 from utils import load_tasks
 
 # Define o caminho para salvar a imagem do usuário
-user_image_path = "\\Servidor\\c\\sallesapp\\user"
+# user_image_path = "\\Servidor\\c\\sallesapp\\user"
 
 # Caminho da imagem de fundo
-background_image_path = "\\Servidor\\c\\sallesapp\\image\\wallpaper.jpg"
+# background_image_path = "\\Servidor\\c\\sallesapp\\image\\wallpaper.jpg"
 
 def show_main_content():
     st.sidebar.title("Menu")
 
     # Adicionando CSS para o fundo
+    """
     st.markdown(
-        f"""
+        f'''
         <style>
         .stApp {{
             background-image: url('file://{background_image_path}');
@@ -32,14 +33,16 @@ def show_main_content():
             color: white;  /* Cor do texto */
         }}
         </style>
-        """,
+        ''',
         unsafe_allow_html=True
     )
+    """
 
     # Exibir imagem do usuário em tamanho reduzido
-    user_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/user_icon.png"
+    # user_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/user_icon.png"
 
     # Verificar se o usuário tem uma foto personalizada
+    """
     user_photo_path = f"\\Servidor\\c\\sallesapp\\user\\{st.session_state.user['nome'].replace(' ', '_')}.png"  # Nome do arquivo baseado no nome do usuário
     if os.path.exists(user_photo_path):
         user_icon = Image.open(user_photo_path)
@@ -47,6 +50,7 @@ def show_main_content():
         user_icon = Image.open(user_icon_path)
     
     st.sidebar.image(user_icon, use_column_width=False, width=int(user_icon.width * 0.4))
+    """
 
     # Mostrar o nome do usuário
     first_name = st.session_state.user['nome'].split()[0]
@@ -57,17 +61,19 @@ def show_main_content():
     num_tasks = 3  # Exemplo: substituir pela lógica real
 
     # Exibir ícones com números de pendências
-    approval_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Aprovação.png"
-    alert_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Alerta.png"
+    # approval_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Aprovação.png"
+    # alert_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Alerta.png"
 
     col1, col2 = st.sidebar.columns([1, 1])
     with col1:
-        st.image(approval_icon_path, width=30)
+        # st.image(approval_icon_path, width=30)
+        st.write("🔔")  # Emoji como substituto para o ícone
         if num_approvals > 0:
             st.markdown(f"<a href='#aprovar-tarefas' style='text-decoration:none; color:red;'>{num_approvals}</a>", unsafe_allow_html=True)
 
     with col2:
-        st.image(alert_icon_path, width=30)
+        # st.image(alert_icon_path, width=30)
+        st.write("⚠️")  # Emoji como substituto para o ícone
         if num_tasks > 0:
             st.markdown(f"<a href='#executar-tarefas' style='text-decoration:none; color:red;'>{num_tasks}</a>", unsafe_allow_html=True)
 
