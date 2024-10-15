@@ -1,0 +1,68 @@
+[
+    {
+        "titulo": "Last Test Fire",
+        "descricao": "Last test",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o"
+        ],
+        "Departamento": "Presidente, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "fire PDF",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "FIRE EXCEL",
+                "membro": "Peter Sebasti\u00c3\u0192\u00c2\u00a3o",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data In\u00c3\u0192\u00c2\u00adcio": "2024-10-11",
+        "Hora In\u00c3\u0192\u00c2\u00adcio": "16:09:00",
+        "Hora Fim": "16:09:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de Aprova\u00c3\u0192\u00c2\u00a7\u00c3\u0192\u00c2\u00a3o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o": "Pendente"
+        },
+        "tempo_previsto_inicio": "16:09:00",
+        "tempo_previsto_fim": "16:09:00",
+        "Anexos de Conclus\u00c3\u0192\u00c2\u00a3o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 27,
+        "status_execucao": "Conclu\u00eddo",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "Status de Aprova\u00c3\u00a7\u00c3\u00a3o": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o": "Pendente"
+        },
+        "Status de Aprova\u00e7\u00e3o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o": "Aprovada"
+        },
+        "Execu\u00e7\u00e3o Membros": {
+            "Tito Nafitali N Dos Santos": "Conclu\u00eddo",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o": "Conclu\u00eddo"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/Last_Test_Fire/Tito_Nafitali_N_Dos_Santos/2024-10-11_18-01-27_BOLETO_SASCAR.pdf",
+            "Peter Sebasti\u00c3\u0192\u00c2\u00a3o": "Projeto1/Last_Test_Fire/Peter_Sebasti\u00c3\u0192\u00c2_o/2024-10-11_18-02-58_Loja_Plano_de_contas.xlsx"
+        },
+        "comentario_execucao": "Execu\u00e7\u00e3o",
+        "tempo_execucao": "0:02:04.109664",
+        "ultima_execucao": "2024-10-11T18:02:59.797312"
+    }
+]

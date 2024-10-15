@@ -1,0 +1,52 @@
+task_manager/
+│
+├── app.py
+├── home_page.py
+├── create_task.py
+├── manage_tasks.py
+└── utils.py
+└── member_registration.py
+└──Task_manager.txt
+└──tasks.json
+└──user_manager.py
+└──users.json
+└──utils.py
+
+Aqui está a descrição atualizada do projeto "Task Manager" com as novas funcionalidades de aprovação e execução de tarefas:Estrutura do Projetotask_manager/: Diretório raiz do projeto que contém todos os arquivos e módulos necessários para o funcionamento da aplicação.
+
+app.py: O ponto de entrada principal da aplicação. Este arquivo inicializa a interface do usuário, gerencia o fluxo de login e navegação entre as diferentes páginas do aplicativo, como a home, criação de tarefas, gerenciamento de tarefas, registro de membros, aprovação de tarefas e execução de tarefas.
+
+
+home_page.py: Contém a lógica e a interface para a página inicial do aplicativo, fornecendo uma visão geral das funcionalidades e informações relevantes para o usuário.
+
+
+create_task.py: Responsável pela interface e lógica para a criação de novas tarefas. Permite que os usuários atribuam tarefas a membros cadastrados, selecionando-os pelo primeiro nome.
+
+
+manage_tasks.py: Fornece funcionalidades para gerenciar tarefas existentes, permitindo visualização, edição e exclusão de tarefas conforme necessário.
+
+
+member_registration.py: Módulo dedicado ao registro de novos membros na equipe. Inclui funcionalidades para adicionar e armazenar informações dos membros no sistema.
+
+
+approve_tasks.py: Contém a interface e a lógica para o processo de aprovação de tarefas, permitindo que os membros da equipe aprovem ou rejeitem tarefas pendentes.
+
+
+execute_tasks.py: Responsável pela interface e lógica para a execução de tarefas aprovadas, permitindo que os membros executem as tarefas e anexem documentos necessários.
+
+
+Task_manager.txt: Um arquivo de texto que pode conter documentação ou notas relacionadas ao projeto, como requisitos, decisões de design ou instruções de uso.
+
+
+tasks.json: Arquivo JSON que armazena os dados das tarefas criadas, incluindo detalhes como nome da tarefa, descrição, membro responsável, status de aprovação e status de execução.
+
+
+user_manager.py: Gerencia as operações relacionadas aos usuários, incluindo autenticação (login), carregamento de dados de usuários e funções auxiliares para manipulação de dados de usuários.
+
+
+users.json: Arquivo JSON que contém os dados dos usuários cadastrados, como nome, email, senha e função na equipe.
+
+
+utils.py: Contém funções utilitárias que são usadas em vários módulos do projeto para evitar duplicação de código e facilitar a manutenção.
+
+Descrição do ProjetoO Task Manager é uma solução de gerenciamento de tarefas projetada para facilitar a organização e o acompanhamento das atividades de uma equipe. Com funcionalidades de login seguro, registro de membros, criação, aprovação e execução de tarefas, a aplicação permite que os usuários interajam com uma interface amigável para manter o controle sobre suas responsabilidades e prazos. O uso de um sistema de autenticação garante que apenas usuários autorizados possam acessar e modificar dados sensíveis, enquanto a estrutura modular do código promove a escalabilidade e a manutenção eficiente do projeto. As novas funcionalidades de aprovação e execução de tarefas garantem um fluxo de trabalho colaborativo e eficiente dentro da equipe.

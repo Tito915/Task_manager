@@ -1,0 +1,1498 @@
+[
+    {
+        "titulo": "Teste 2 -  Teste de execuÃƒÂ§ÃƒÂ£o",
+        "descricao": "Esse teste de execuÃƒÂ§ÃƒÂ£o ÃƒÂ© para construÃƒÂ§ÃƒÂ£o do gerenciador de tarefas, um visualizador mais organizado.",
+        "Membros": [
+            "Peter SebastiÃƒÂ£o",
+            "Agata Sofia Felix Ferreira Nunes",
+            "Natalia Bernardo Lima"
+        ],
+        "Departamento": "Presidente, Financeiro",
+        "Etiqueta": "Urgente",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro teste  - Presidente",
+                "horario": "09:00:00",
+                "membro": "Peter SebastiÃƒÂ£o",
+                "exige_anexo": true,
+                "data_inicio": "2024-09-26",
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "SÃƒÂ³ deve executar quando tarefa 1 tiver sido feita",
+                "horario": "09:00:00",
+                "membro": "Agata Sofia Felix Ferreira Nunes",
+                "exige_anexo": true,
+                "data_inicio": "2024-09-26",
+                "dependencias": [
+                    1
+                ]
+            },
+            "3": {
+                "descricao": "Teste tarefa 3",
+                "horario": "09:00:00",
+                "membro": "Natalia Bernardo Lima",
+                "exige_anexo": false,
+                "data_inicio": "2024-09-26",
+                "dependencias": [
+                    2
+                ]
+            }
+        },
+        "Data InÃƒÂ­cio": "2024-09-26",
+        "Hora InÃƒÂ­cio": "16:12:00",
+        "Hora Fim": "16:12:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃƒÂ§ÃƒÂ£o": {
+            "Peter SebastiÃƒÂ£o": "Pendente",
+            "Agata Sofia Felix Ferreira Nunes": "Pendente",
+            "Natalia Bernardo Lima": "Pendente"
+        },
+        "tempo_previsto_inicio": "16:12:00",
+        "tempo_previsto_fim": "16:12:00",
+        "Anexos de ConclusÃƒÂ£o": [],
+        "criado_por": "TITO N NOGUEIRA DOS SANTOS",
+        "id": 3,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "comentario_execucao": "Teste",
+        "tempo_execucao": "4 days, 17:22:54.424283",
+        "Status de AprovaÃ§Ã£o": {
+            "Peter SebastiÃƒÂ£o": "Aprovada",
+            "Agata Sofia Felix Ferreira Nunes": "Aprovada",
+            "Natalia Bernardo Lima": "Aprovada"
+        },
+        "ExecuÃ§Ã£o Membros": {
+            "Peter SebastiÃƒÂ£o": "ConcluÃ­do",
+            "Agata Sofia Felix Ferreira Nunes": "ConcluÃ­do",
+            "Natalia Bernardo Lima": "ConcluÃ­do"
+        },
+        "ultima_execucao": "2024-10-08T08:21:30.418868",
+        "caminho_arquivo": "\\Servidor\\c\\sallesapp\\Teste 2 -  Teste de execuÃƒÂ§ÃƒÂ£o\\2024-10-08_2021-03-25.png",
+        "Status de Aprovação": {
+            "Peter SebastiÃƒÂ£o": "Pendente",
+            "Agata Sofia Felix Ferreira Nunes": "Pendente",
+            "Natalia Bernardo Lima": "Pendente"
+        }
+    },
+    {
+        "titulo": "Baixa PGTO fornecedor",
+        "descricao": "Ãƒâ€° uma atividade onde ÃƒÂ© feito um levantamento das pendÃƒÂªncias junto ao fornecedor, feito pagamento e baixa no sistema. Tarefa diÃƒÂ¡ria ÃƒÂ© para ser a partir das 07 horas e encerrar ÃƒÂ s 17 horas, no mesmo dia do pagamento.",
+        "Membros": [
+            "Junior Alves",
+            "Agata Sofia Felix Ferreira Nunes"
+        ],
+        "Departamento": "Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Listagem de DDA e realizaÃƒÂ§ÃƒÂ£o de pagamento",
+                "horario": "09:00:00",
+                "membro": "Junior Alves",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-01",
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Realizar Baixas no sistema",
+                "horario": "14:30:00",
+                "membro": "Agata Sofia Felix Ferreira Nunes",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-01",
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃƒÂ­cio": "2024-10-01",
+        "Hora InÃƒÂ­cio": "16:35:00",
+        "Hora Fim": "16:35:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃƒÂ§ÃƒÂ£o": {
+            "Junior Alves": "Pendente",
+            "Agata Sofia Felix Ferreira Nunes": "Pendente"
+        },
+        "tempo_previsto_inicio": "16:35:00",
+        "tempo_previsto_fim": "16:35:00",
+        "Anexos de ConclusÃƒÂ£o": [],
+        "criado_por": "TITO N NOGUEIRA DOS SANTOS",
+        "id": 4,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "comentario_execucao": "",
+        "tempo_execucao": null,
+        "Status de AprovaÃ§Ã£o": {
+            "Junior Alves": "Aprovada",
+            "Agata Sofia Felix Ferreira Nunes": "Aprovada"
+        },
+        "tempo_inicio": "2024-10-08T16:22:09.316195",
+        "ExecuÃ§Ã£o Membros": {
+            "Junior Alves": "ConcluÃ­do",
+            "Agata Sofia Felix Ferreira Nunes": "NÃ£o ConcluÃ­do"
+        },
+        "Status de Aprovação": {
+            "Junior Alves": "Pendente",
+            "Agata Sofia Felix Ferreira Nunes": "Pendente"
+        }
+    },
+    {
+        "titulo": "ConferÃƒÂªncias de extratos CRÃƒâ€°DITO/DÃƒâ€°BITO",
+        "descricao": "ConciliaÃƒÂ§ÃƒÂ£o bancÃƒÂ¡ria entre extrato e sistema.",
+        "Membros": [
+            "Natalia Bernardo Lima",
+            "Patricia Maria da Silvia Pires",
+            "Peter SebastiÃƒÂ£o",
+            "Junior Alves"
+        ],
+        "Departamento": "Presidente, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Tirar os extratos bancÃƒÂ¡rios",
+                "horario": "08:00:00",
+                "membro": "Junior Alves",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-01",
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "ConferÃƒÂªncia do que foi lanÃƒÂ§ado",
+                "horario": "09:00:00",
+                "membro": "Natalia Bernardo Lima",
+                "exige_anexo": false,
+                "data_inicio": "2024-10-01",
+                "dependencias": [
+                    1
+                ]
+            },
+            "3": {
+                "descricao": "Conferir atividades Natalia e Agata",
+                "horario": "15:00:00",
+                "membro": "Patricia Maria da Silvia Pires",
+                "exige_anexo": false,
+                "data_inicio": "2024-10-01",
+                "dependencias": [
+                    1,
+                    2
+                ]
+            },
+            "4": {
+                "descricao": "ValidaÃƒÂ§ÃƒÂ£o Final",
+                "horario": "18:00:00",
+                "membro": "Peter SebastiÃƒÂ£o",
+                "exige_anexo": false,
+                "data_inicio": "2024-10-01",
+                "dependencias": [
+                    3
+                ]
+            }
+        },
+        "Data InÃƒÂ­cio": "2024-10-01",
+        "Hora InÃƒÂ­cio": "07:30:00",
+        "Hora Fim": "18:00:00",
+        "Data Fim": null,
+        "status": "Em AprovaÃ§Ã£o",
+        "Status de AprovaÃƒÂ§ÃƒÂ£o": {
+            "Natalia Bernardo Lima": "Pendente",
+            "Patricia Maria da Silvia Pires": "Pendente",
+            "Peter SebastiÃƒÂ£o": "Pendente",
+            "Junior Alves": "Pendente"
+        },
+        "tempo_previsto_inicio": "07:30:00",
+        "tempo_previsto_fim": "18:00:00",
+        "Anexos de ConclusÃƒÂ£o": [],
+        "criado_por": "TITO N NOGUEIRA DOS SANTOS",
+        "id": 5,
+        "status_execucao": "NÃƒÂ£o Iniciada",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "comentario_execucao": "",
+        "tempo_execucao": null,
+        "caminho_arquivo": null,
+        "Status de AprovaÃ§Ã£o": {
+            "Natalia Bernardo Lima": "Aprovada",
+            "Patricia Maria da Silvia Pires": "Pendente",
+            "Peter SebastiÃƒÂ£o": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "Status de Aprovação": {
+            "Natalia Bernardo Lima": "Pendente",
+            "Patricia Maria da Silvia Pires": "Pendente",
+            "Peter SebastiÃƒÂ£o": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "Conferencia de DDA",
+        "descricao": "A funÃ§Ã£o da tarefa",
+        "Membros": [
+            "Peter SebastiÃ£o",
+            "Tito Nafitali N Dos Santos"
+        ],
+        "Departamento": "Desenvolvedor, Presidente",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Tirar o DDA",
+                "horario": "09:00:00",
+                "membro": "Peter SebastiÃ£o",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-03",
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Baixa dos pagamentos",
+                "horario": "09:15:00",
+                "membro": "Tito Nafitali N Dos Santos",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-03",
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-03",
+        "Hora InÃ­cio": "20:14:00",
+        "Hora Fim": "20:14:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Peter SebastiÃ£o": "Aprovada",
+            "Tito Nafitali N Dos Santos": "Aprovada"
+        },
+        "tempo_previsto_inicio": "20:14:00",
+        "tempo_previsto_fim": "20:14:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 6,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "tempo_inicio": "2024-10-03T20:18:48.130120",
+        "ExecuÃ§Ã£o Membros": {
+            "Peter SebastiÃ£o": "ConcluÃ­do",
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do"
+        },
+        "Status de Aprovação": {
+            "Peter SebastiÃ£o": "Pendente",
+            "Tito Nafitali N Dos Santos": "Pendente"
+        }
+    },
+    {
+        "titulo": "Funcionamento de Anexo",
+        "descricao": "ExecuÃ§Ã£o de teste para que abra o anexo nas atividades",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Anexo 1 teste de execuÃ§Ã£o",
+                "horario": "11:00:00",
+                "membro": "Tito Nafitali N Dos Santos",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-04",
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Anexo 2 texto para abrir e salvar",
+                "horario": "09:00:00",
+                "membro": "Junior Alves",
+                "exige_anexo": true,
+                "data_inicio": "2024-10-04",
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-04",
+        "Hora InÃ­cio": "09:52:00",
+        "Hora Fim": "09:52:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:52:00",
+        "tempo_previsto_fim": "09:52:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 7,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "Tenho que adicionar o botÃ£o para aberta do anexo 1",
+        "tempo_execucao": "0:01:57.050798",
+        "ultima_execucao": "2024-10-04T14:20:59.549451",
+        "caminho_arquivo": "\\Servidor\\c\\sallesapp\\Funcionamento de Anexo\\2024-10-04_2021-05-15.png",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "Anexo Teste",
+        "descricao": "Verificar  se estÃ¡ exigindo anexo e abrindo na execuÃ§Ã£o",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Peter SebastiÃ£o"
+        ],
+        "Departamento": "Presidente, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro Teste",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "12:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Segundo teste, abertura de anexo",
+                "membro": "Peter SebastiÃ£o",
+                "horario": "14:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-08",
+        "Hora InÃ­cio": "09:30:00",
+        "Hora Fim": "17:30:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Peter SebastiÃ£o": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:30:00",
+        "tempo_previsto_fim": "17:30:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 8,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Peter SebastiÃ£o": "ConcluÃ­do"
+        },
+        "comentario_execucao": "NÃ£o abriu o anexo, mas preciso saber se vai salvar.",
+        "tempo_execucao": "0:03:15.729791",
+        "ultima_execucao": "2024-10-08T08:22:00.255247",
+        "caminho_arquivo": "\\Servidor\\c\\sallesapp\\Anexo Teste\\2024-10-08_2021-07-31.png",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Peter SebastiÃ£o": "Pendente"
+        }
+    },
+    {
+        "titulo": "MBV - teste",
+        "descricao": "Teste de execuÃ§Ã£o de anexo",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Peter SebastiÃ£o"
+        ],
+        "Departamento": "Presidente, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro Anexo",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "13:15:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Segundo Anexo",
+                "membro": "Peter SebastiÃ£o",
+                "horario": "15:15:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-08",
+        "Hora InÃ­cio": "09:11:00",
+        "Hora Fim": "18:00:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Peter SebastiÃ£o": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:11:00",
+        "tempo_previsto_fim": "18:00:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 9,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Peter SebastiÃ£o": "ConcluÃ­do"
+        },
+        "comentario_execucao": "Abriu o anexo quero saber se salva agora",
+        "tempo_execucao": "0:01:28.999282",
+        "ultima_execucao": "2024-10-08T09:15:55.026349",
+        "caminho_arquivo": "\\\\servidor\\C\\sallesapp\\MBV - teste\\DescriÃ§Ã£o da tarefa 9\\DescriÃ§Ã£o da tarefa 9_2024-10-08.png",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Peter SebastiÃ£o": "Pendente"
+        }
+    },
+    {
+        "titulo": "MBV 2 - Segundo teste de execuÃ§Ã£o",
+        "descricao": "MBV teste de anexo",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Peter SebastiÃ£o"
+        ],
+        "Departamento": "Presidente, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro anexo ",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "11:30:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Segundo Anexo",
+                "membro": "Peter SebastiÃ£o",
+                "horario": "16:45:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-08",
+        "Hora InÃ­cio": "09:25:00",
+        "Hora Fim": "09:25:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Peter SebastiÃ£o": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:25:00",
+        "tempo_previsto_fim": "09:25:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 10,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "tempo_inicio": "2024-10-08T09:28:18.958281",
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Peter SebastiÃ£o": "ConcluÃ­do"
+        },
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Peter SebastiÃ£o": "Pendente"
+        }
+    },
+    {
+        "titulo": "Gerenciador de Tarefas - Final",
+        "descricao": "Teste final para execuÃ§Ã£o",
+        "Membros": [
+            "Junior Alves",
+            "Natalia Bernardo Lima",
+            "Agata Sofia Felix Ferreira Nunes"
+        ],
+        "Departamento": "Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro Anexo de teste",
+                "membro": "Junior Alves",
+                "horario": "10:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Segundo teste Anexo 2",
+                "membro": "Natalia Bernardo Lima",
+                "horario": "11:30:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            },
+            "3": {
+                "descricao": "Tarefa 3 - Leitura do ultimo anexo",
+                "membro": "Agata Sofia Felix Ferreira Nunes",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    2
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-08",
+        "Hora InÃ­cio": "07:15:00",
+        "Hora Fim": "18:15:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Junior Alves": "Aprovada",
+            "Natalia Bernardo Lima": "Aprovada",
+            "Agata Sofia Felix Ferreira Nunes": "Aprovada"
+        },
+        "tempo_previsto_inicio": "07:15:00",
+        "tempo_previsto_fim": "18:15:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Peter SebastiÃ£o",
+        "id": 11,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "tempo_inicio": "2024-10-08T15:26:09.950750",
+        "ExecuÃ§Ã£o Membros": {
+            "Junior Alves": "ConcluÃ­do",
+            "Natalia Bernardo Lima": "ConcluÃ­do",
+            "Agata Sofia Felix Ferreira Nunes": "NÃ£o ConcluÃ­do"
+        },
+        "Status de Aprovação": {
+            "Junior Alves": "Pendente",
+            "Natalia Bernardo Lima": "Pendente",
+            "Agata Sofia Felix Ferreira Nunes": "Pendente"
+        }
+    },
+    {
+        "titulo": "Gerenciamento TASK  - Final",
+        "descricao": "Teste de Anexo",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Teste de anexo 1",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Anexo 2",
+                "membro": "Junior Alves",
+                "horario": "10:45:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-08",
+        "Hora InÃ­cio": "07:30:00",
+        "Hora Fim": "16:17:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "07:30:00",
+        "tempo_previsto_fim": "16:17:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 12,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "tempo_inicio": "2024-10-08T16:20:51.637553",
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "SHAREPOINT TESTE ANEXO",
+        "descricao": "Teste de execuÃ§Ã£o para salvar o anexo",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "salvar o primeiro anexo em pdf",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "salvar arquivo em excel",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-10",
+        "Hora InÃ­cio": "09:58:00",
+        "Hora Fim": "09:58:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:58:00",
+        "tempo_previsto_fim": "09:58:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 13,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "2 anexo para salvar arquivo",
+        "tempo_execucao": "0:01:16.315384",
+        "ultima_execucao": "2024-10-10T10:01:42.276089",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "SHAREpoint 2",
+        "descricao": "teste de anexo",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Anexo pdf",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "salvo planilha",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-10",
+        "Hora InÃ­cio": "10:03:00",
+        "Hora Fim": "10:03:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "10:03:00",
+        "tempo_previsto_fim": "10:03:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Junior Alves",
+        "id": 14,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "teste segundo arquivo a ser salvo",
+        "tempo_execucao": "0:01:55.220723",
+        "ultima_execucao": "2024-10-10T10:12:12.697875",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "sharepoint Teste 3",
+        "descricao": "Teste salvar arquivo PDF 3",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Salvar PDF",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Salvar excel",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-10",
+        "Hora InÃ­cio": "10:21:00",
+        "Hora Fim": "10:21:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "10:21:00",
+        "tempo_previsto_fim": "10:21:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 15,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "Salvar excel",
+        "tempo_execucao": "0:04:33.316647",
+        "ultima_execucao": "2024-10-10T10:28:27.653581",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "Firebase Teste",
+        "descricao": "Teste para salvar arquivo no firebase",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Primeiro Anexo de teste ",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "segundo arquivo de teste",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "08:06:00",
+        "Hora Fim": "08:06:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "08:06:00",
+        "tempo_previsto_fim": "08:06:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 16,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "Segundo teste para salvar arquivo",
+        "tempo_execucao": "0:01:16.740074",
+        "ultima_execucao": "2024-10-11T08:09:50.344803",
+        "caminho_arquivo": "Tarefa 16_2024-10-11_08-09-50.xlsx",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 3 TESTE",
+        "descricao": "3 ANEXO",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "FIREBASE3 PRIMEIRO ANEXO",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "FIREBASE3 SEGUNDO ANEXO",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "09:00:00",
+        "Hora Fim": "16:30:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:00:00",
+        "tempo_previsto_fim": "16:30:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 17,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "NAO APARECEU ANEXO DEPENDENCIA",
+        "tempo_execucao": "0:01:54.328959",
+        "ultima_execucao": "2024-10-11T08:51:17.730818",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 4 TESTE",
+        "descricao": "4 teste",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "4 teste FIREBASE PDF",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "4 TESTE FIREBASE EXCEL",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "09:15:00",
+        "Hora Fim": "09:15:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:15:00",
+        "tempo_previsto_fim": "09:15:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 18,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "comentario_execucao": "EXCEL",
+        "tempo_execucao": "0:01:05.699949",
+        "ultima_execucao": "2024-10-11T09:18:31.728506",
+        "arquivos_membros": {
+            "Junior Alves": "Projeto1/FIREBASE_4_TESTE/Junior_Alves/2024-10-11_09-18-32_Loja_Plano_de_contas.xlsx"
+        },
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 5 TESTE",
+        "descricao": "Teste 5",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "pdf 5",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "excel5",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "09:34:00",
+        "Hora Fim": "09:34:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:34:00",
+        "tempo_previsto_fim": "09:34:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 19,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_5_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_09-36-59_NOTA_FISCAL_SASCAR.pdf",
+            "Junior Alves": "Projeto1/FIREBASE_5_TESTE/Junior_Alves/2024-10-11_09-37-53_Frota_Plano_de_contas.xlsx"
+        },
+        "comentario_execucao": "teste 5",
+        "tempo_execucao": "0:01:16.662605",
+        "ultima_execucao": "2024-10-11T09:37:54.920262",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 6 TESTE",
+        "descricao": "Teste 5",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "pdf 6",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "excel 6",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "09:58:00",
+        "Hora Fim": "09:58:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "09:58:00",
+        "tempo_previsto_fim": "09:58:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 20,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_6_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_10-00-35_GOVERNO_DO_ESTADO_DO_PARA_.pdf",
+            "Junior Alves": "Projeto1/FIREBASE_6_TESTE/Junior_Alves/2024-10-11_10-01-00_Entrada_madeireira.xlsx"
+        },
+        "comentario_execucao": "excel",
+        "tempo_execucao": "0:00:44.918081",
+        "ultima_execucao": "2024-10-11T10:01:01.680458",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 7 TESTE",
+        "descricao": "teste 7",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "pdf 7",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "excel 7",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "10:37:00",
+        "Hora Fim": "10:37:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "10:37:00",
+        "tempo_previsto_fim": "10:37:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 21,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Junior Alves": "Projeto1/FIREBASE_7_TESTE/Junior_Alves/2024-10-11_10-40-47_posicao_debito_devolucao.csv",
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_7_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_10-41-21_data.csv"
+        },
+        "comentario_execucao": "teste",
+        "tempo_execucao": "0:02:15.294360",
+        "ultima_execucao": "2024-10-11T10:41:23.089455",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 8 TESTE",
+        "descricao": "teste 8",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "teste 8",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "excel 8",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "10:53:00",
+        "Hora Fim": "10:53:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "10:53:00",
+        "tempo_previsto_fim": "10:53:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 22,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_8_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_10-55-56_BOLETO_SASCAR.pdf",
+            "Junior Alves": "Projeto1/FIREBASE_8_TESTE/Junior_Alves/2024-10-11_10-57-16_dre_modelo.PNG"
+        },
+        "comentario_execucao": "teste 8",
+        "tempo_execucao": "0:01:39.223783",
+        "ultima_execucao": "2024-10-11T10:57:17.012811",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 9 TESTE",
+        "descricao": "",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "teste 9",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "teste 9 excel",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "11:05:00",
+        "Hora Fim": "11:05:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "11:05:00",
+        "tempo_previsto_fim": "11:05:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 23,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_9_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_11-07-27_Erivan_Sine.pdf",
+            "Junior Alves": "Projeto1/FIREBASE_9_TESTE/Junior_Alves/2024-10-11_11-08-40_Produtos_madeireira.xlsx"
+        },
+        "comentario_execucao": "teste 9",
+        "tempo_execucao": "0:01:33.712214",
+        "ultima_execucao": "2024-10-11T11:08:42.139589",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "FIREBASE 10 TESTE",
+        "descricao": "teste 10",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Financeiro, Desenvolvedor",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "teste 10",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "10 teste",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "11:14:00",
+        "Hora Fim": "11:14:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "11:14:00",
+        "tempo_previsto_fim": "11:14:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 24,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/FIREBASE_10_TESTE/Tito_Nafitali_N_Dos_Santos/2024-10-11_11-17-01_NOTA_FISCAL_SASCAR.pdf",
+            "Junior Alves": "Projeto1/FIREBASE_10_TESTE/Junior_Alves/2024-10-11_13-28-11_FATURA_DETALHADA_SACAR_PDF.pdf"
+        },
+        "comentario_execucao": "Teste 10",
+        "tempo_execucao": "2:11:34.186305",
+        "ultima_execucao": "2024-10-11T13:28:12.402553",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "Banco de Dados teste 11",
+        "descricao": "Teste para banco de dados",
+        "Membros": [
+            "Tito Nafitali N Dos Santos",
+            "Junior Alves"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "Pdf",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "Excel ",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "13:38:00",
+        "Hora Fim": "13:38:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Tito Nafitali N Dos Santos": "Aprovada",
+            "Junior Alves": "Aprovada"
+        },
+        "tempo_previsto_inicio": "13:38:00",
+        "tempo_previsto_fim": "13:38:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Tito Nafitali N Dos Santos",
+        "id": 25,
+        "status_execucao": "ConcluÃ­do",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "ExecuÃ§Ã£o Membros": {
+            "Tito Nafitali N Dos Santos": "ConcluÃ­do",
+            "Junior Alves": "ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Tito Nafitali N Dos Santos": "Projeto1/Banco_de_Dados_teste_11/Tito_Nafitali_N_Dos_Santos/2024-10-11_13-40-47_NOTA_FISCAL_SASCAR.pdf",
+            "Junior Alves": "Projeto1/Banco_de_Dados_teste_11/Junior_Alves/2024-10-11_15-41-06_GOVERNO_DO_ESTADO_DO_PARA_.pdf"
+        },
+        "comentario_execucao": "teste ",
+        "tempo_execucao": "2:00:42.037059",
+        "ultima_execucao": "2024-10-11T15:41:07.840729",
+        "Status de Aprovação": {
+            "Tito Nafitali N Dos Santos": "Pendente",
+            "Junior Alves": "Pendente"
+        }
+    },
+    {
+        "titulo": "Ultimo teste fire",
+        "descricao": "teste",
+        "Membros": [
+            "Junior Alves",
+            "Tito Nafitali N Dos Santos"
+        ],
+        "Departamento": "Desenvolvedor, Financeiro",
+        "Etiqueta": "Normal",
+        "Task List": {
+            "1": {
+                "descricao": "firePDF",
+                "membro": "Junior Alves",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": []
+            },
+            "2": {
+                "descricao": "fireExcel",
+                "membro": "Tito Nafitali N Dos Santos",
+                "horario": "09:00:00",
+                "exige_anexo": true,
+                "dependencias": [
+                    1
+                ]
+            }
+        },
+        "Data InÃ­cio": "2024-10-11",
+        "Hora InÃ­cio": "15:41:00",
+        "Hora Fim": "15:41:00",
+        "Data Fim": null,
+        "status": "Aprovada",
+        "Status de AprovaÃ§Ã£o": {
+            "Junior Alves": "Aprovada",
+            "Tito Nafitali N Dos Santos": "Aprovada"
+        },
+        "tempo_previsto_inicio": "15:41:00",
+        "tempo_previsto_fim": "15:41:00",
+        "Anexos de ConclusÃ£o": [],
+        "criado_por": "Junior Alves",
+        "id": 26,
+        "status_execucao": "Em Andamento",
+        "dependencias": [],
+        "tempo_real_inicio": null,
+        "tempo_real_fim": null,
+        "atraso": null,
+        "tempo_inicio": "2024-10-11T15:43:05.009755",
+        "ExecuÃ§Ã£o Membros": {
+            "Junior Alves": "ConcluÃ­do",
+            "Tito Nafitali N Dos Santos": "NÃ£o ConcluÃ­do"
+        },
+        "arquivos_membros": {
+            "Junior Alves": "Projeto1/Ultimo_teste_fire/Junior_Alves/2024-10-11_15-43-19_NOTA_FISCAL_SASCAR.pdf"
+        },
+        "Status de Aprovação": {
+            "Junior Alves": "Pendente",
+            "Tito Nafitali N Dos Santos": "Pendente"
+        }
+    }
+]
