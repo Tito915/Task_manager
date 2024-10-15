@@ -5,21 +5,41 @@ from firebase_admin import credentials, db, storage
 import os
 from datetime import datetime
 import logging
+import json
+import streamlit as st
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Inicializar o Firebase
-cred = credentials.Certificate(r"C:\Users\tito\OneDrive\Documentos\curso\pythoncurso\Gerenciamento_Tarefas\gerenciador-de-tarefas-mbv-firebase-adminsdk-2c48r-b6204911e1.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
-    'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
-})
+def initialize_firebase():
+    if not firebase_admin._apps:
+        try:
+            # Tenta usar as credenciais do Streamlit Cloud
+            cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
+        except FileNotFoundError:
+            # Se não encontrar, usa o arquivo local
+            cred_path = os.path.join(os.path.dirname(__file__), "gerenciador-de-tarefas-mbv-firebase-adminsdk-2c48r-b6204911e1.json")
+            with open(cred_path) as f:
+                cred_dict = json.load(f)
+        
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
+            'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
+        })
+
+    return firebase_admin.get_app()
+
+# Inicializa o Firebase
+app = initialize_firebase()
 
 # Obter referências para o banco de dados e storage
 db_ref = db.reference()
 bucket = storage.bucket()
+
+# O resto das funções permanece o mesmo
 
 def validar_conexao():
     try:
@@ -99,6 +119,22 @@ def criar_pasta(caminho_pasta):
         logger.error(f"Erro ao criar pasta {caminho_pasta}: {str(e)}")
         raise  # Re-lança a exceção para ser capturada no nível superior
 
+def upload_profile_picture(user_id, image_file):
+    bucket = storage.bucket()
+    blob = bucket.blob(f"profile_pictures/{user_id}.jpg")
+    blob.upload_from_file(image_file)
+    blob.make_public()
+    return blob.public_url
+
+def update_user_profile_picture(user_id, picture_url):
+    ref = db.reference(f'users/{user_id}')
+    ref.update({'profile_picture': picture_url})
+
+def get_user_profile_picture(user_id):
+    ref = db.reference(f'users/{user_id}')
+    user_data = ref.get()
+    return user_data.get('profile_picture', None)
+
 # Exemplo de uso:
 if __name__ == "__main__":
     logger.info("Iniciando o script...")
@@ -131,19 +167,3 @@ if __name__ == "__main__":
         logger.error("Falha na validação da conexão. Verifique as credenciais e tente novamente.")
 
     logger.info("Script finalizado.")
-    
-def upload_profile_picture(user_id, image_file):
-    bucket = storage.bucket()
-    blob = bucket.blob(f"profile_pictures/{user_id}.jpg")
-    blob.upload_from_file(image_file)
-    blob.make_public()
-    return blob.public_url
-
-def update_user_profile_picture(user_id, picture_url):
-    ref = db.reference(f'users/{user_id}')
-    ref.update({'profile_picture': picture_url})
-
-def get_user_profile_picture(user_id):
-    ref = db.reference(f'users/{user_id}')
-    user_data = ref.get()
-    return user_data.get('profile_picture', None)
