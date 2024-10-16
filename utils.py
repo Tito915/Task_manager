@@ -47,6 +47,17 @@ def initialize_firebase():
 
     return firebase_admin.get_app()
 
+def validar_conexao():
+    try:
+        # Tenta acessar o banco de dados para verificar a conexão
+        ref = db.reference('/')
+        ref.get()
+        logger.info("Conexão com Firebase validada com sucesso")
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao validar conexão com Firebase: {str(e)}")
+        return False
+
 def load_tasks():
     try:
         with open(DATA_FILE, 'r') as file:

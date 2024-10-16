@@ -1,6 +1,13 @@
 import streamlit as st
+import sys
+from pathlib import Path
+import os
+
+# Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager", layout="wide")
-from utils import load_tasks,initialize_firebase, validar_conexao
+
+# Importações locais
+from utils import load_tasks, initialize_firebase, validar_conexao
 from home_page import home_page
 from create_task import create_task
 from manage_tasks import manage_tasks
@@ -8,11 +15,8 @@ from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
-import os
 
-# Importações do Sales App
-import sys
-from pathlib import Path
+# Configuração do caminho para o Sales App
 sales_app_path = Path(__file__).parent / 'sales_app'
 sys.path.append(str(sales_app_path))
 
@@ -25,13 +29,17 @@ try:
         st.error("Falha ao conectar com o Firebase.")
 except Exception as e:
     st.error(f"Erro ao inicializar Firebase: {str(e)}")
-    
+
 def show_main_content():
     st.sidebar.title("Menu")
 
     # Mostrar o nome do usuário
-    first_name = st.session_state.user['nome'].split()[0]
-    st.sidebar.success(f"Seja bem-vindo: {first_name}")
+    if 'user' in st.session_state and st.session_state.user:
+        first_name = st.session_state.user['nome'].split()[0]
+        st.sidebar.success(f"Seja bem-vindo: {first_name}")
+    else:
+        st.sidebar.warning("Usuário não autenticado")
+        return
 
     # Menu suspenso para seleção de ambiente
     ambiente = st.sidebar.selectbox("Selecione o Ambiente", ["Task Manager", "Sales App"])
@@ -68,18 +76,23 @@ def show_main_content():
             ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Configurações"]
         )
 
-        if sales_menu == "Visão Geral":
-            from sales_app.pages.visao_geral import main as visao_geral_main
-            visao_geral_main()
-        elif sales_menu == "Metas de Vendas":
-            from sales_app.pages.metas_vendas import main as metas_vendas_main
-            metas_vendas_main()
-        elif sales_menu == "Controle Fiscal":
-            from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
-            ctrl_fiscal_main()
-        elif sales_menu == "Configurações":
-            from sales_app.pages.configuracoes import main as configuracoes_main
-            configuracoes_main()
+        try:
+            if sales_menu == "Visão Geral":
+                from sales_app.pages.visao_geral import main as visao_geral_main
+                visao_geral_main()
+            elif sales_menu == "Metas de Vendas":
+                from sales_app.pages.metas_vendas import main as metas_vendas_main
+                metas_vendas_main()
+            elif sales_menu == "Controle Fiscal":
+                from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
+                ctrl_fiscal_main()
+            elif sales_menu == "Configurações":
+                from sales_app.pages.configuracoes import main as configuracoes_main
+                configuracoes_main()
+        except ImportError as e:
+            st.error(f"Erro ao importar módulo do Sales App: {str(e)}")
+        except Exception as e:
+            st.error(f"Erro ao executar função do Sales App: {str(e)}")
 
 def main():
     if 'user' not in st.session_state:
