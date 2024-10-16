@@ -10,9 +10,11 @@ from PIL import Image
 from login import login
 from utils import load_tasks
 
-
-# Importe as funções necessárias do Sales App
-from sales_app import visao_geral, metas_vendas, ctrl_fiscal, adicao_remocao_vendas, configuracoes
+# Importações do Sales App
+import sys
+from pathlib import Path
+sales_app_path = Path(__file__).parent / 'sales_app'
+sys.path.append(str(sales_app_path))
 
 def show_main_content():
     st.sidebar.title("Menu")
@@ -60,15 +62,15 @@ def show_main_content():
         menu = st.sidebar.radio("Navegação Sales App", ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"])
 
         if menu == "Visão Geral":
-            visao_geral()
+            import sales_app.pages.visao_geral
         elif menu == "Metas de Vendas":
-            metas_vendas()
+            import sales_app.pages.metas_vendas
         elif menu == "Controle Fiscal":
-            ctrl_fiscal()
+            import sales_app.pages.ctrl_fiscal
         elif menu == "Adição e Remoção de Vendas":
-            adicao_remocao_vendas()
+            import sales_app.pages.adicao_remocao_vendas
         elif menu == "Configurações":
-            configuracoes()
+            import sales_app.pages.configuracoes
 
 def main():
     if 'user' not in st.session_state:
