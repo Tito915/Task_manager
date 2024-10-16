@@ -23,53 +23,51 @@ def show_main_content():
     first_name = st.session_state.user['nome'].split()[0]
     st.sidebar.success(f"Seja bem-vindo: {first_name}")
 
-    # Seleção de ambiente
-    ambiente = st.sidebar.radio("Selecione o Ambiente", ["Task Manager", "Sales App"])
+    # Menu suspenso para seleção de ambiente
+    ambiente = st.sidebar.selectbox("Selecione o Ambiente", ["Task Manager", "Sales App"])
 
     if ambiente == "Task Manager":
-        # Exibir ícones com números de pendências
-        col1, col2 = st.sidebar.columns([1, 1])
-        with col1:
-            st.write("🔔")
-            st.write("Aprovações: 2")  # Substitua por lógica real
+        # Submenu para Task Manager
+        task_menu = st.sidebar.selectbox(
+            "Navegação Task Manager",
+            ["Home", "Tarefas", "Gerenciamento de Tarefas", "Cadastrar Membro", "Aprovar Tarefas", "Executar Tarefas", "Downloads"]
+        )
 
-        with col2:
-            st.write("⚠️")
-            st.write("Tarefas: 3")  # Substitua por lógica real
-
-        menu = st.sidebar.radio("Navegação", ["Home", "Tarefas", "Gerenciamento de Tarefas", "Cadastrar Membro", "Aprovar Tarefas", "Executar Tarefas", "Downloads"])
-
-        if menu == "Home":
+        if task_menu == "Home":
             home_page()
-        elif menu == "Tarefas":
+        elif task_menu == "Tarefas":
             create_task()
-        elif menu == "Gerenciamento de Tarefas":
+        elif task_menu == "Gerenciamento de Tarefas":
             manage_tasks()
-        elif menu == "Cadastrar Membro":
+        elif task_menu == "Cadastrar Membro":
             if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente']:
                 cadastrar_membro(st.session_state.user)
             else:
                 st.error("Você não tem permissão para cadastrar membros.")
-        elif menu == "Aprovar Tarefas":
+        elif task_menu == "Aprovar Tarefas":
             aprovar_tarefas(st.session_state.user['nome'])
-        elif menu == "Executar Tarefas":
+        elif task_menu == "Executar Tarefas":
             executar_tarefas(st.session_state.user['nome'])
-        elif menu == "Downloads":
+        elif task_menu == "Downloads":
             todas_tarefas = load_tasks()
             exibir_downloads(todas_tarefas, st.session_state.user['nome'])
 
     elif ambiente == "Sales App":
-        menu = st.sidebar.radio("Navegação Sales App", ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"])
+        # Submenu para Sales App
+        sales_menu = st.sidebar.selectbox(
+            "Navegação Sales App",
+            ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"]
+        )
 
-        if menu == "Visão Geral":
+        if sales_menu == "Visão Geral":
             import sales_app.pages.visao_geral
-        elif menu == "Metas de Vendas":
+        elif sales_menu == "Metas de Vendas":
             import sales_app.pages.metas_vendas
-        elif menu == "Controle Fiscal":
+        elif sales_menu == "Controle Fiscal":
             import sales_app.pages.ctrl_fiscal
-        elif menu == "Adição e Remoção de Vendas":
+        elif sales_menu == "Adição e Remoção de Vendas":
             import sales_app.pages.adicao_remocao_vendas
-        elif menu == "Configurações":
+        elif sales_menu == "Configurações":
             import sales_app.pages.configuracoes
 
 def main():
