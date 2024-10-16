@@ -6,7 +6,6 @@ from manage_tasks import manage_tasks
 from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
-from PIL import Image
 from login import login
 from utils import load_tasks
 
@@ -53,22 +52,26 @@ def show_main_content():
             exibir_downloads(todas_tarefas, st.session_state.user['nome'])
 
     elif ambiente == "Sales App":
-        # Submenu para Sales App
         sales_menu = st.sidebar.selectbox(
             "Navegação Sales App",
             ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"]
         )
 
         if sales_menu == "Visão Geral":
-            import sales_app.pages.visao_geral
+            from sales_app.pages import visao_geral
+            visao_geral.main()  # Assumindo que existe uma função main() no arquivo visao_geral.py
         elif sales_menu == "Metas de Vendas":
-            import sales_app.pages.metas_vendas
+            from sales_app.pages import metas_vendas
+            metas_vendas.main()
         elif sales_menu == "Controle Fiscal":
-            import sales_app.pages.ctrl_fiscal
+            from sales_app.pages import ctrl_fiscal
+            ctrl_fiscal.main()
         elif sales_menu == "Adição e Remoção de Vendas":
-            import sales_app.pages.adicao_remocao_vendas
+            from sales_app.pages import adicao_remocao_vendas
+            adicao_remocao_vendas.main()
         elif sales_menu == "Configurações":
-            import sales_app.pages.configuracoes
+            from sales_app.pages import configuracoes
+            configuracoes.main()
 
 def main():
     if 'user' not in st.session_state:
