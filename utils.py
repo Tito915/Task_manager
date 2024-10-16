@@ -1,11 +1,51 @@
+import streamlit as st
+import firebase_admin
+from firebase_admin import credentials, db, storage
 import json
 import os
 from datetime import datetime
 from user_manager import load_users
+import logging
 
 # Caminho para os arquivos JSON
 DATA_FILE = 'tasks.json'
 DELETED_TASKS_FILE = 'deleted_tasks.json'
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def initialize_firebase():
+    if not firebase_admin._apps:
+        try:
+            if 'FIREBASE_CREDENTIALS' in st.secrets:
+                logger.info("Usando credenciais do Streamlit Cloud")
+                cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
+                if isinstance(cred_dict, dict):
+                    logger.info("cred_dict é um dicionário")
+                    cred = credentials.Certificate(cred_dict)
+                elif isinstance(cred_dict, str):
+                    logger.info("cred_dict é uma string, tentando parse para JSON")
+                    try:
+                        cred = credentials.Certificate(json.loads(cred_dict))
+                    except json.JSONDecodeError:
+                        logger.error("Falha ao decodificar JSON das credenciais")
+                        raise ValueError("Credenciais inválidas: não é um JSON válido")
+                else:
+                    logger.error(f"Tipo inesperado para FIREBASE_CREDENTIALS: {type(cred_dict)}")
+                    raise ValueError("Formato de credenciais inválido")
+            else:
+                raise ValueError("Nenhuma credencial válida encontrada")
+
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
+                'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
+            })
+            logger.info("Firebase inicializado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao inicializar Firebase: {str(e)}")
+            raise
+
+    return firebase_admin.get_app()
 
 def load_tasks():
     try:

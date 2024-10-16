@@ -1,5 +1,6 @@
-import os
 import streamlit as st
+st.set_page_config(page_title="Task Manager", layout="wide")
+from utils import load_tasks,initialize_firebase, validar_conexao
 from home_page import home_page
 from create_task import create_task
 from manage_tasks import manage_tasks
@@ -7,7 +8,7 @@ from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
-from utils import load_tasks
+import os
 
 # Importações do Sales App
 import sys
@@ -15,6 +16,16 @@ from pathlib import Path
 sales_app_path = Path(__file__).parent / 'sales_app'
 sys.path.append(str(sales_app_path))
 
+# Inicializar Firebase
+try:
+    initialize_firebase()
+    if validar_conexao():
+        st.success("Conexão com Firebase estabelecida com sucesso!")
+    else:
+        st.error("Falha ao conectar com o Firebase.")
+except Exception as e:
+    st.error(f"Erro ao inicializar Firebase: {str(e)}")
+    
 def show_main_content():
     st.sidebar.title("Menu")
 
