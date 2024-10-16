@@ -54,24 +54,21 @@ def show_main_content():
     elif ambiente == "Sales App":
         sales_menu = st.sidebar.selectbox(
             "Navegação Sales App",
-            ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"]
+            ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Configurações"]
         )
 
         if sales_menu == "Visão Geral":
-            from sales_app.pages import visao_geral
-            visao_geral.main()  # Assumindo que existe uma função main() no arquivo visao_geral.py
+            from sales_app.pages.visao_geral import main as visao_geral_main
+            visao_geral_main()
         elif sales_menu == "Metas de Vendas":
-            from sales_app.pages import metas_vendas
-            metas_vendas.main()
+            from sales_app.pages.metas_vendas import main as metas_vendas_main
+            metas_vendas_main()
         elif sales_menu == "Controle Fiscal":
-            from sales_app.pages import ctrl_fiscal
-            ctrl_fiscal.main()
-        elif sales_menu == "Adição e Remoção de Vendas":
-            from sales_app.pages import adicao_remocao_vendas
-            adicao_remocao_vendas.main()
+            from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
+            ctrl_fiscal_main()
         elif sales_menu == "Configurações":
-            from sales_app.pages import configuracoes
-            configuracoes.main()
+            from sales_app.pages.configuracoes import main as configuracoes_main
+            configuracoes_main()
 
 def main():
     if 'user' not in st.session_state:
