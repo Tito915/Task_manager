@@ -10,67 +10,72 @@ from PIL import Image
 from login import login
 from utils import load_tasks
 
-# Define o caminho para salvar a imagem do usuário
-# user_image_path = "\\Servidor\\c\\sallesapp\\user"
 
-# Caminho da imagem de fundo
-# background_image_path = "\\Servidor\\c\\sallesapp\\image\\wallpaper.jpg"
+# Importe as funções necessárias do Sales App
+from sales_app import visao_geral, metas_vendas, ctrl_fiscal, adicao_remocao_vendas, configuracoes
 
 def show_main_content():
     st.sidebar.title("Menu")
 
-        # Mostrar o nome do usuário
+    # Mostrar o nome do usuário
     first_name = st.session_state.user['nome'].split()[0]
     st.sidebar.success(f"Seja bem-vindo: {first_name}")
 
-    # Verificar pendências para aprovação e tarefas para executar
-    num_approvals = 2  # Exemplo: substituir pela lógica real
-    num_tasks = 3  # Exemplo: substituir pela lógica real
+    # Seleção de ambiente
+    ambiente = st.sidebar.radio("Selecione o Ambiente", ["Task Manager", "Sales App"])
 
-    # Exibir ícones com números de pendências
-    # approval_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Aprovação.png"
-    # alert_icon_path = "C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas/imagens/Alerta.png"
+    if ambiente == "Task Manager":
+        # Exibir ícones com números de pendências
+        col1, col2 = st.sidebar.columns([1, 1])
+        with col1:
+            st.write("🔔")
+            st.write("Aprovações: 2")  # Substitua por lógica real
 
-    col1, col2 = st.sidebar.columns([1, 1])
-    with col1:
-        # st.image(approval_icon_path, width=30)
-        st.write("🔔")  # Emoji como substituto para o ícone
-        if num_approvals > 0:
-            st.markdown(f"<a href='#aprovar-tarefas' style='text-decoration:none; color:red;'>{num_approvals}</a>", unsafe_allow_html=True)
+        with col2:
+            st.write("⚠️")
+            st.write("Tarefas: 3")  # Substitua por lógica real
 
-    with col2:
-        # st.image(alert_icon_path, width=30)
-        st.write("⚠️")  # Emoji como substituto para o ícone
-        if num_tasks > 0:
-            st.markdown(f"<a href='#executar-tarefas' style='text-decoration:none; color:red;'>{num_tasks}</a>", unsafe_allow_html=True)
+        menu = st.sidebar.radio("Navegação", ["Home", "Tarefas", "Gerenciamento de Tarefas", "Cadastrar Membro", "Aprovar Tarefas", "Executar Tarefas", "Downloads"])
 
-    menu = st.sidebar.radio("Navegação", ["Home", "Tarefas", "Gerenciamento de Tarefas", "Cadastrar Membro", "Aprovar Tarefas", "Executar Tarefas", "Downloads"])
+        if menu == "Home":
+            home_page()
+        elif menu == "Tarefas":
+            create_task()
+        elif menu == "Gerenciamento de Tarefas":
+            manage_tasks()
+        elif menu == "Cadastrar Membro":
+            if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente']:
+                cadastrar_membro(st.session_state.user)
+            else:
+                st.error("Você não tem permissão para cadastrar membros.")
+        elif menu == "Aprovar Tarefas":
+            aprovar_tarefas(st.session_state.user['nome'])
+        elif menu == "Executar Tarefas":
+            executar_tarefas(st.session_state.user['nome'])
+        elif menu == "Downloads":
+            todas_tarefas = load_tasks()
+            exibir_downloads(todas_tarefas, st.session_state.user['nome'])
 
-    if menu == "Home":
-        home_page()
-    elif menu == "Tarefas":
-        create_task()
-    elif menu == "Gerenciamento de Tarefas":
-        manage_tasks()
-    elif menu == "Cadastrar Membro":
-        if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente']:
-            cadastrar_membro(st.session_state.user)
-        else:
-            st.error("Você não tem permissão para cadastrar membros.")
-    elif menu == "Aprovar Tarefas":
-        aprovar_tarefas(st.session_state.user['nome'])
-    elif menu == "Executar Tarefas":
-        executar_tarefas(st.session_state.user['nome'])
-    elif menu == "Downloads":
-        todas_tarefas = load_tasks()
-        exibir_downloads(todas_tarefas, st.session_state.user['nome'])
+    elif ambiente == "Sales App":
+        menu = st.sidebar.radio("Navegação Sales App", ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Adição e Remoção de Vendas", "Configurações"])
+
+        if menu == "Visão Geral":
+            visao_geral()
+        elif menu == "Metas de Vendas":
+            metas_vendas()
+        elif menu == "Controle Fiscal":
+            ctrl_fiscal()
+        elif menu == "Adição e Remoção de Vendas":
+            adicao_remocao_vendas()
+        elif menu == "Configurações":
+            configuracoes()
 
 def main():
     if 'user' not in st.session_state:
         st.session_state.user = None
     
     if st.session_state.user is None:
-        login()  # Chamando a função de login importada de login.py
+        login()
     else:
         show_main_content()
 
