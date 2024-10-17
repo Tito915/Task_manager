@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import json
+import plotly.express as px
 from datetime import datetime
 
 def load_tasks():
@@ -64,7 +65,8 @@ def home_page():
     if not df_tarefas.empty and 'status_execucao' in df_tarefas.columns:
         status_counts = df_tarefas['status_execucao'].value_counts()
         st.subheader("Distribuição de Status das Tarefas")
-        st.bar_chart(status_counts)
+        fig_bar = px.bar(x=status_counts.index, y=status_counts.values)
+        st.plotly_chart(fig_bar)
     else:
         st.write("Não há dados suficientes para gerar o gráfico de status.")
 
@@ -74,7 +76,16 @@ def home_page():
             lambda x: sum(len([s for s in t.get('Execução Membros', {}).values() if s == "Retorno"]) for t in x.to_dict('records'))
         )
         st.subheader("Distribuição de Retornos por Departamento")
-        st.pie_chart(retornos_por_departamento)
+        
+        if not retornos_por_departamento.empty:
+            fig_pie = px.pie(
+                values=retornos_por_departamento.values,
+                names=retornos_por_departamento.index,
+                title='Distribuição de Retornos por Departamento'
+            )
+            st.plotly_chart(fig_pie)
+        else:
+            st.write("Não há dados suficientes para gerar o gráfico de retornos por departamento.")
 
     # Tabela com as últimas tarefas criadas
     if not df_tarefas.empty:
