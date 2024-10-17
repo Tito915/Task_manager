@@ -17,13 +17,18 @@ logger = logging.getLogger(__name__)
 def initialize_firebase():
     if not firebase_admin._apps:
         try:
-            if 'FIREBASE_CREDENTIALS' in st.secrets:
-                logger.info("Usando credenciais do Streamlit Cloud")
-                cred_dict = dict(st.secrets["FIREBASE_CREDENTIALS"])
-                cred = credentials.Certificate(cred_dict)
+            # Tenta obter as credenciais do ambiente (útil para desenvolvimento local)
+            cred_json = os.getenv('FIREBASE_CREDENTIALS')
+            
+            if cred_json:
+                cred_dict = json.loads(cred_json)
+            elif 'FIREBASE_CREDENTIALS' in st.secrets:
+                # Se não encontrar no ambiente, tenta obter do Streamlit Secrets
+                cred_dict = json.loads(st.secrets["FIREBASE_CREDENTIALS"])
             else:
                 raise ValueError("Nenhuma credencial válida encontrada")
 
+            cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred, {
                 'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
                 'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
