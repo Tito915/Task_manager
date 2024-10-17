@@ -30,6 +30,13 @@ try:
 except Exception as e:
     st.error(f"Erro ao inicializar Firebase: {str(e)}")
 
+def count_pending_tasks(user_name):
+    tasks = load_tasks()
+    approval_count = sum(1 for task in tasks if task.get('status') == 'Pendente' and user_name in task.get('Membros', []))
+    return_count = sum(1 for task in tasks if task.get('status_execucao') == 'Aguardando Correção' and user_name in task.get('Membros', []))
+    execution_count = sum(1 for task in tasks if task.get('status_execucao') == 'Não Iniciada' and user_name in task.get('Membros', []))
+    return approval_count, return_count, execution_count
+
 def show_main_content():
     st.sidebar.title("Menu")
 
@@ -37,6 +44,17 @@ def show_main_content():
     if 'user' in st.session_state and st.session_state.user:
         first_name = st.session_state.user['nome'].split()[0]
         st.sidebar.success(f"Seja bem-vindo: {first_name}")
+
+        # Contar tarefas pendentes
+        approval_count, return_count, execution_count = count_pending_tasks(st.session_state.user['nome'])
+
+        # Exibir notificações
+        st.sidebar.markdown("### Notificações")
+        col1, col2, col3 = st.sidebar.columns(3)
+        col1.metric("Aprovações", approval_count, delta_color="inverse")
+        col2.metric("Retornos", return_count, delta_color="inverse")
+        col3.metric("Execuções", execution_count, delta_color="inverse")
+
     else:
         st.sidebar.warning("Usuário não autenticado")
         return
@@ -45,55 +63,43 @@ def show_main_content():
     ambiente = st.sidebar.selectbox("Selecione o Ambiente", ["Task Manager", "Sales App"])
 
     if ambiente == "Task Manager":
-        # Submenu para Task Manager
-        task_menu = st.sidebar.selectbox(
-            "Navegação Task Manager",
-            ["Home", "Tarefas", "Gerenciamento de Tarefas", "Cadastrar Membro", "Aprovar Tarefas", "Executar Tarefas", "Downloads"]
-        )
-
-        if task_menu == "Home":
+        st.sidebar.subheader("Navegação Task Manager")
+        
+        if st.sidebar.button("Home"):
             home_page()
-        elif task_menu == "Tarefas":
+        if st.sidebar.button("Tarefas"):
             create_task()
-        elif task_menu == "Gerenciamento de Tarefas":
+        if st.sidebar.button("Gerenciamento de Tarefas"):
             manage_tasks()
-        elif task_menu == "Cadastrar Membro":
+        if st.sidebar.button("Cadastrar Membro"):
             if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente']:
                 cadastrar_membro(st.session_state.user)
             else:
                 st.error("Você não tem permissão para cadastrar membros.")
-        elif task_menu == "Aprovar Tarefas":
+        if st.sidebar.button("Aprovar Tarefas"):
             aprovar_tarefas(st.session_state.user['nome'])
-        elif task_menu == "Executar Tarefas":
+        if st.sidebar.button("Executar Tarefas"):
             executar_tarefas(st.session_state.user['nome'])
-        elif task_menu == "Downloads":
+        if st.sidebar.button("Downloads"):
             todas_tarefas = load_tasks()
             exibir_downloads(todas_tarefas, st.session_state.user['nome'])
 
     elif ambiente == "Sales App":
-        sales_menu = st.sidebar.selectbox(
-            "Navegação Sales App",
-            ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Configurações"]
-        )
-
-        try:
-            if sales_menu == "Visão Geral":
-                from sales_app.pages.visao_geral import main as visao_geral_main
-                visao_geral_main()
-            elif sales_menu == "Metas de Vendas":
-                from sales_app.pages.metas_vendas import main as metas_vendas_main
-                metas_vendas_main()
-            elif sales_menu == "Controle Fiscal":
-                from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
-                ctrl_fiscal_main()
-            elif sales_menu == "Configurações":
-                from sales_app.pages.configuracoes import main as configuracoes_main
-                configuracoes_main()
-        except ImportError as e:
-            st.error(f"Erro ao importar módulo do Sales App: {str(e)}")
-        except Exception as e:
-            st.error(f"Erro ao executar função do Sales App: {str(e)}")
-
+        st.sidebar.subheader("Navegação Sales App")
+        
+        if st.sidebar.button("Visão Geral"):
+            from sales_app.pages.visao_geral import main as visao_geral_main
+            visao_geral_main()
+        if st.sidebar.button("Metas de Vendas"):
+            from sales_app.pages.metas_vendas import main as metas_vendas_main
+            metas_vendas_main()
+        if st.sidebar.button("Controle Fiscal"):
+            from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
+            ctrl_fiscal_main()
+        if st.sidebar.button("Configurações"):
+            from sales_app.pages.configuracoes import main as configuracoes_main
+            configuracoes_main()
+            ge
 def main():
     if 'user' not in st.session_state:
         st.session_state.user = None

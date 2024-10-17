@@ -2,7 +2,7 @@ import streamlit as st
 import logging
 import firebase_admin
 import tempfile
-from utils import load_tasks, save_tasks, update_task_by_id
+from utils import load_tasks, save_tasks, update_task_by_id, add_task
 from datetime import datetime, timedelta
 import os
 import time
@@ -81,6 +81,21 @@ def executar_tarefas(usuario_logado):
 
     for index, tarefa in tarefas_disponiveis:
         exibir_tarefa(index, tarefa, usuario_logado, tarefas)
+
+def criar_sub_tarefa_correcao(tarefa_original, membro_solicitante, comentario):
+    sub_tarefa = {
+        "titulo": f"Correção: {tarefa_original['titulo']}",
+        "descricao": f"Correção solicitada por {membro_solicitante}. Comentário: {comentario}",
+        "status": "Aprovada",  # Aprovada automaticamente para agilizar o processo
+        "status_execucao": "Não Iniciada",
+        "Membros": [tarefa_original['Membros'][0]],  # Atribui ao primeiro membro da tarefa original
+        "tarefa_pai_id": tarefa_original['id'],
+        "prioridade": "Alta",
+        "data_criacao": datetime.now().isoformat(),
+        "Opção diária": False
+    }
+    novo_id = add_task(sub_tarefa)
+    return novo_id
         
 def baixar_arquivo(caminho_arquivo):
     try:
@@ -163,12 +178,17 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
             if st.button("Salvar Progresso Pessoal", key=f"salvar_progresso_{index}"):
                 nome_completo = next((membro for membro in tarefa['Membros'] if membro.split()[0] == usuario_logado.split()[0]), None)
                 if nome_completo:
-                    tarefa['Execução Membros'][nome_completo] = status_membro
+                    if status_membro == "Retorno":
+                        sub_tarefa_id = criar_sub_tarefa_correcao(tarefa, nome_completo, comentario)
+                        st.success(f"Sub-tarefa de correção criada com ID: {sub_tarefa_id}")
+                        tarefa['status_execucao'] = "Aguardando Correção"
+                    else:
+                        tarefa['Execução Membros'][nome_completo] = status_membro
                     
                     if 'comentarios_execucao' not in tarefa:
                         tarefa['comentarios_execucao'] = {}
                     tarefa['comentarios_execucao'][nome_completo] = comentario
-                    
+                                        
                     if uploaded_file is not None:
                         nome_pasta_tarefa = sanitize_filename(tarefa.get('titulo', f'tarefa_{index}'))
                         nome_subpasta = sanitize_filename(nome_completo)
@@ -198,23 +218,24 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
                     update_task_by_id(tarefa)
                     st.success(f"Progresso salvo para {nome_completo}.")
                     
-                    todos_concluidos = all(status == "Concluído" for status in tarefa['Execução Membros'].values())
-                    if todos_concluidos:
-                        tarefa["status_execucao"] = "Concluído"
-                        
-                        tempo_final = datetime.now()
-                        tempo_total = tempo_final - tempo_inicio
-                        tarefa['tempo_execucao'] = str(tempo_total)
-                        tarefa['ultima_execucao'] = datetime.now().isoformat()
-                        del tarefa['tempo_inicio']
+                    if status_membro != "Retorno":
+                        todos_concluidos = all(status == "Concluído" for status in tarefa['Execução Membros'].values())
+                        if todos_concluidos:
+                            tarefa["status_execucao"] = "Concluído"
+                            
+                            tempo_final = datetime.now()
+                            tempo_total = tempo_final - tempo_inicio
+                            tarefa['tempo_execucao'] = str(tempo_total)
+                            tarefa['ultima_execucao'] = datetime.now().isoformat()
+                            del tarefa['tempo_inicio']
 
-                        update_task_by_id(tarefa)
-                        st.success(f"Tarefa '{nome_tarefa}' finalizada com sucesso.")
+                            update_task_by_id(tarefa)
+                            st.success(f"Tarefa '{nome_tarefa}' finalizada com sucesso.")
                     
                     st.rerun()
                 else:
                     st.error("Erro ao encontrar seu nome na lista de membros.")
-
+                    
             st.write("Status atual dos membros:")
             for membro, status in tarefa['Execução Membros'].items():
                 st.write(f"- {membro}: {status}")

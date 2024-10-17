@@ -55,12 +55,12 @@ def manage_tasks():
     tasks = load_tasks()
     
     # Abas
-    tab1, tab2 = st.tabs(["Visão Geral", "Área do Desenvolvedor"])
+    tab1, tab2, tab3 = st.tabs(["Visão Geral", "Sub-tarefas de Correção", "Área do Desenvolvedor"])
     
     with tab1:
         # Filtros
         st.subheader("Filtros")
-        status_filter = st.multiselect("Filtrar por Status", ["Não Iniciada", "Em Andamento", "Concluído"])
+        status_filter = st.multiselect("Filtrar por Status", ["Não Iniciada", "Em Andamento", "Concluído", "Aguardando Correção"])
 
         # Quadro de Tarefas
         st.subheader("Controle de Tarefas")
@@ -101,6 +101,11 @@ def manage_tasks():
                     color: white;
                     font-weight: bold;
                 }
+                .status-aguardando-correcao {
+                    background-color: orange;
+                    color: white;
+                    font-weight: bold;
+                }
                 .initials-circle {
                     background-color: #007bff;
                     color: white;
@@ -119,6 +124,7 @@ def manage_tasks():
                     <th>Tarefas</th>
                     <th>Criador da tarefa</th>
                     <th>Status</th>
+                    <th>Retornos</th>
                 </tr>
             """
             
@@ -126,13 +132,23 @@ def manage_tasks():
                 title = task.get('titulo', 'Sem título')
                 creator = get_initials(task.get('criado_por', 'Desconhecido'))
                 status = task.get('status_execucao', 'Não Iniciada')
-                status_class = 'status-nao-iniciada' if status == 'Não Iniciada' else 'status-concluido' if status == 'Concluído' else ''
+                retornos = len([s for s in task.get('Execução Membros', {}).values() if s == "Retorno"])
+                
+                if status == 'Aguardando Correção':
+                    status_class = 'status-aguardando-correcao'
+                elif status == 'Não Iniciada':
+                    status_class = 'status-nao-iniciada'
+                elif status == 'Concluído':
+                    status_class = 'status-concluido'
+                else:
+                    status_class = ''
                 
                 html_content += f"""
                 <tr>
                     <td>{title}</td>
                     <td><div class="initials-circle">{creator}</div></td>
                     <td class="{status_class}">{status}</td>
+                    <td>{retornos}</td>
                 </tr>
                 """
             
@@ -160,9 +176,16 @@ def manage_tasks():
                         "Descrição": [task.get('descricao', 'Não especificada')],
                         "Status Tarefa": [task.get('status_execucao', 'Não Iniciada')],
                         "Etiqueta": [task.get('Etiqueta', 'Não especificada')],
-                        "Cronograma": [f"{task.get('Data Início', 'N/A')} - {task.get('Data Fim', 'N/A')}"]
+                        "Cronograma": [f"{task.get('Data Início', 'N/A')} - {task.get('Data Fim', 'N/A')}"],
+                        "Retornos": [len([s for s in task.get('Execução Membros', {}).values() if s == "Retorno"])]
                     })
-                    st.table(details_df.T)  # Transpor o DataFrame para exibir como desejado
+                    st.table(details_df.T)
+
+                    # Exibir comentários de execução
+                    if task.get('comentarios_execucao'):
+                        st.subheader("Comentários de Execução")
+                        for membro, comentario in task['comentarios_execucao'].items():
+                            st.text(f"{membro}: {comentario}")
                 else:
                     st.write("Tarefa não encontrada.")
             else:
@@ -171,6 +194,20 @@ def manage_tasks():
             st.write("Nenhuma tarefa encontrada.")
 
     with tab2:
+        st.subheader("Sub-tarefas de Correção")
+        sub_tasks = [task for task in tasks if task.get('tarefa_pai_id')]
+        
+        if sub_tasks:
+            for sub_task in sub_tasks:
+                st.write(f"Sub-tarefa: {sub_task.get('titulo', 'Sem título')} (ID: {sub_task.get('id', 'N/A')})")
+                st.write(f"Tarefa pai ID: {sub_task.get('tarefa_pai_id', 'N/A')}")
+                st.write(f"Status: {sub_task.get('status_execucao', 'Não Iniciada')}")
+                st.write(f"Descrição: {sub_task.get('descricao', 'Não especificada')}")
+                st.write("---")
+        else:
+            st.write("Nenhuma sub-tarefa de correção encontrada.")
+
+    with tab3:
         if user_role == 'Desenvolvedor':
             st.subheader("Área do Desenvolvedor")
             
