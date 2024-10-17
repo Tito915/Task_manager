@@ -15,6 +15,7 @@ DELETED_TASKS_FILE = 'deleted_tasks.json'
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+@st.cache_resource
 def initialize_firebase():
     if not firebase_admin._apps:
         try:
@@ -49,6 +50,7 @@ def initialize_firebase():
 
     return firebase_admin.get_app()
 
+@st.cache_resource
 def validar_conexao():
     try:
         # Tenta acessar o banco de dados para verificar a conexão
