@@ -87,19 +87,23 @@ def show_main_content():
 
     elif ambiente == "Sales App":
         st.sidebar.subheader("Navegação Sales App")
-        
-        if st.sidebar.button("Visão Geral"):
-            from sales_app.pages.visao_geral import main as visao_geral_main
-            visao_geral_main()
-        if st.sidebar.button("Metas de Vendas"):
-            from sales_app.pages.metas_vendas import main as metas_vendas_main
-            metas_vendas_main()
-        if st.sidebar.button("Controle Fiscal"):
-            from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
-            ctrl_fiscal_main()
-        if st.sidebar.button("Configurações"):
-            from sales_app.pages.configuracoes import main as configuracoes_main
-            configuracoes_main()
+    
+        def load_sales_app_page(page_name):
+            try:
+                module = __import__(f'sales_app.pages.{page_name}', fromlist=['main'])
+                main_func = getattr(module, 'main')
+                main_func()
+            except Exception as e:
+                st.error(f"Erro ao carregar a página {page_name}: {str(e)}")
+
+    if st.sidebar.button("Visão Geral"):
+        load_sales_app_page('visao_geral')
+    if st.sidebar.button("Metas de Vendas"):
+        load_sales_app_page('metas_vendas')
+    if st.sidebar.button("Controle Fiscal"):
+        load_sales_app_page('ctrl_fiscal')
+    if st.sidebar.button("Configurações"):
+        load_sales_app_page('configuracoes')
             
 def main():
     if 'user' not in st.session_state:

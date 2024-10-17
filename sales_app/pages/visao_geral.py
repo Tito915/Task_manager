@@ -1,17 +1,18 @@
-import sys
-from pathlib import Path
-import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
-from datetime import datetime
-
-# Adicionar o diretório 'pages' ao caminho do sistema
-sys.path.append(str(Path(__file__).resolve().parent))
-
-from Verificador import calcular_receitas  # Importar a função do Verificador.py
-
 def main():
+    import sys
+    from pathlib import Path
+    import streamlit as st
+    import plotly.express as px
+    import plotly.graph_objects as go
+    import pandas as pd
+    from datetime import datetime
+
+    # Adicionar o diretório 'pages' ao caminho do sistema
+    sys.path.append(str(Path(__file__).resolve().parent))
+
+    from Verificador import calcular_receitas  # Importar a função do Verificador.py
+
+
     st.title("Dashboard de Faturamento")
 
     # Obter o mês e o ano atuais
