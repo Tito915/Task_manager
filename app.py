@@ -1,10 +1,11 @@
 import streamlit as st
-import sys
-from pathlib import Path
-import os
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager", layout="wide")
+
+import sys
+from pathlib import Path
+import os
 
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao
