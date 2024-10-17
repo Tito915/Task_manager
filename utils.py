@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import credentials, db, storage
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from user_manager import load_users
 import logging
 
@@ -43,17 +43,19 @@ def initialize_firebase():
                 'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
                 'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
             })
-            logger.info("Firebase inicializado com sucesso")
+            # Inicializar o bucket de armazenamento
+            bucket = storage.bucket()
+                        
+            logger.info("Firebase e Storage bucket inicializados com sucesso")
         except Exception as e:
-            logger.error(f"Erro ao inicializar Firebase: {str(e)}")
+            logger.error(f"Erro ao inicializar Firebase ou Storage bucket: {str(e)}")
             raise
 
     return firebase_admin.get_app()
 
-@st.cache_resource
+@st.cache_resource(ttl=timedelta(hours=2))
 def validar_conexao():
     try:
-        # Tenta acessar o banco de dados para verificar a conexão
         ref = db.reference('/')
         ref.get()
         logger.info("Conexão com Firebase validada com sucesso")

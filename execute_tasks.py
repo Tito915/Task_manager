@@ -1,10 +1,17 @@
 import streamlit as st
+import logging
+import firebase_admin
 import tempfile
 from utils import load_tasks, save_tasks, update_task_by_id
 from datetime import datetime, timedelta
 import os
 import time
 from firebase_utils import salvar_arquivo, baixar_arquivo, criar_pasta, sanitize_filename
+from firebase_admin import storage
+
+# Configuração do logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def resetar_tarefas_diarias(tarefas):
     hoje = datetime.now().date()
@@ -74,7 +81,16 @@ def executar_tarefas(usuario_logado):
 
     for index, tarefa in tarefas_disponiveis:
         exibir_tarefa(index, tarefa, usuario_logado, tarefas)
-
+        
+def baixar_arquivo(caminho_arquivo):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob(caminho_arquivo)
+        return blob.download_as_bytes()
+    except Exception as e:
+        logger.error(f"Erro ao baixar arquivo: {str(e)}")
+        return None
+    
 def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
     nome_tarefa = tarefa.get('titulo') or tarefa.get('nome') or f"Tarefa {tarefa.get('id', 'sem ID')}"
     
@@ -103,26 +119,24 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
             st.write(f"Informações da tarefa dependente (ID: {dep_id}):")
             if dep_tarefa.get("arquivos_membros"):
                 for membro, caminho_arquivo in dep_tarefa["arquivos_membros"].items():
-                    try:
-                        arquivo_buffer = baixar_arquivo(caminho_arquivo)
-                        file_contents = arquivo_buffer.getvalue()
+                    arquivo_buffer = baixar_arquivo(caminho_arquivo)
+                    if arquivo_buffer:
                         nome_arquivo = os.path.basename(caminho_arquivo)
-                        
                         st.download_button(
                             label=f"Baixar arquivo de {membro} (Tarefa {dep_id})",
-                            data=file_contents,
+                            data=arquivo_buffer,
                             file_name=nome_arquivo,
                             mime="application/octet-stream",
                             key=f"download_{dep_id}_{membro}"
                         )
-                    except Exception as e:
-                        st.error(f"Erro ao processar o arquivo da tarefa dependente: {str(e)}")
+                    else:
+                        st.warning(f"Não foi possível carregar o arquivo de {membro} (Tarefa {dep_id})")
             
             if dep_tarefa.get("comentarios_execucao"):
                 st.write("Comentários da execução:")
                 for membro, comentario in dep_tarefa["comentarios_execucao"].items():
                     st.text(f"{membro}: {comentario}")
-
+                    
     with st.expander("Detalhes da Execução"):
         if tarefa.get("status_execucao") != "Em Andamento":
             if st.button("Iniciar Tarefa", key=f"start_{index}"):
@@ -210,23 +224,21 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
                 for membro, comentario in tarefa['comentarios_execucao'].items():
                     st.text(f"{membro}: {comentario}")
 
-            if tarefa.get('arquivos_membros'):
-                st.write("Arquivos anexados:")
-                for membro, caminho_arquivo in tarefa['arquivos_membros'].items():
-                    try:
-                        arquivo_buffer = baixar_arquivo(caminho_arquivo)
-                        file_contents = arquivo_buffer.getvalue()
-                        nome_arquivo = os.path.basename(caminho_arquivo)
-                        
-                        st.download_button(
-                            label=f"Baixar arquivo de {membro}",
-                            data=file_contents,
-                            file_name=nome_arquivo,
-                            mime="application/octet-stream",
-                            key=f"download_{tarefa['id']}_{membro}"
-                        )
-                    except Exception as e:
-                        st.error(f"Erro ao processar o arquivo: {str(e)}")
+        if tarefa.get('arquivos_membros'):
+            st.write("Arquivos anexados:")
+            for membro, caminho_arquivo in tarefa['arquivos_membros'].items():
+                arquivo_buffer = baixar_arquivo(caminho_arquivo)
+                if arquivo_buffer:
+                    nome_arquivo = os.path.basename(caminho_arquivo)
+                    st.download_button(
+                        label=f"Baixar arquivo de {membro}",
+                        data=arquivo_buffer,
+                        file_name=nome_arquivo,
+                        mime="application/octet-stream",
+                        key=f"download_{tarefa['id']}_{membro}"
+                    )
+                else:
+                    st.warning(f"Não foi possível carregar o arquivo de {membro}")
 
             if tarefa["status_execucao"] != "Concluído":
                 st.warning("A tarefa será finalizada automaticamente quando todos os membros concluírem suas partes.")
