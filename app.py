@@ -99,7 +99,7 @@ def show_main_content():
         if st.sidebar.button("Configurações"):
             from sales_app.pages.configuracoes import main as configuracoes_main
             configuracoes_main()
-            ge
+            
 def main():
     if 'user' not in st.session_state:
         st.session_state.user = None
