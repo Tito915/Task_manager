@@ -19,16 +19,8 @@ def initialize_firebase():
         try:
             if 'FIREBASE_CREDENTIALS' in st.secrets:
                 logger.info("Usando credenciais do Streamlit Cloud")
-                cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
-                if isinstance(cred_dict, dict):
-                    logger.info("cred_dict é um dicionário")
-                    cred = credentials.Certificate(dict(cred_dict))
-                elif isinstance(cred_dict, (str, streamlit.runtime.secrets.AttrDict)):
-                    logger.info("cred_dict é uma string ou AttrDict, convertendo para dicionário")
-                    cred = credentials.Certificate(dict(cred_dict))
-                else:
-                    logger.error(f"Tipo inesperado para FIREBASE_CREDENTIALS: {type(cred_dict)}")
-                    raise ValueError("Formato de credenciais inválido")
+                cred_dict = dict(st.secrets["FIREBASE_CREDENTIALS"])
+                cred = credentials.Certificate(cred_dict)
             else:
                 raise ValueError("Nenhuma credencial válida encontrada")
 
