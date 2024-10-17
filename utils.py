@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.runtime.secrets import AttrDict
 import firebase_admin
 from firebase_admin import credentials, db, storage
 import json
@@ -24,9 +25,17 @@ def initialize_firebase():
                 cred_dict = json.loads(cred_json)
             elif 'FIREBASE_CREDENTIALS' in st.secrets:
                 # Se não encontrar no ambiente, tenta obter do Streamlit Secrets
-                cred_dict = json.loads(st.secrets["FIREBASE_CREDENTIALS"])
+                cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
+                if isinstance(cred_dict, AttrDict):
+                    cred_dict = dict(cred_dict)
+                elif isinstance(cred_dict, str):
+                    cred_dict = json.loads(cred_dict)
             else:
                 raise ValueError("Nenhuma credencial válida encontrada")
+
+            # Verifica se o dicionário tem a estrutura correta
+            if "type" not in cred_dict or cred_dict["type"] != "service_account":
+                raise ValueError("Credenciais inválidas: 'type' deve ser 'service_account'")
 
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred, {
