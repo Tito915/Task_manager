@@ -96,26 +96,32 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
     if dependencias_pendentes:
         st.warning(f"Esta tarefa depende da conclusão das seguintes tarefas: {', '.join(map(str, dependencias_pendentes))}")
 
-    # Exibir anexos das tarefas dependentes
+    # Exibir anexos e comentários das tarefas dependentes
     for dep_id in tarefa.get("dependencias", []):
         dep_tarefa = next((t for t in todas_tarefas if t.get("id") == dep_id), None)
-        if dep_tarefa and dep_tarefa.get("arquivos_membros"):
-            st.write(f"Anexos da tarefa dependente (ID: {dep_id}):")
-            for membro, caminho_arquivo in dep_tarefa["arquivos_membros"].items():
-                try:
-                    arquivo_buffer = baixar_arquivo(caminho_arquivo)
-                    file_contents = arquivo_buffer.getvalue()
-                    nome_arquivo = os.path.basename(caminho_arquivo)
-                    
-                    st.download_button(
-                        label=f"Baixar arquivo de {membro} (Tarefa {dep_id})",
-                        data=file_contents,
-                        file_name=nome_arquivo,
-                        mime="application/octet-stream",
-                        key=f"download_{dep_id}_{membro}"
-                    )
-                except Exception as e:
-                    st.error(f"Erro ao processar o arquivo da tarefa dependente: {str(e)}")
+        if dep_tarefa:
+            st.write(f"Informações da tarefa dependente (ID: {dep_id}):")
+            if dep_tarefa.get("arquivos_membros"):
+                for membro, caminho_arquivo in dep_tarefa["arquivos_membros"].items():
+                    try:
+                        arquivo_buffer = baixar_arquivo(caminho_arquivo)
+                        file_contents = arquivo_buffer.getvalue()
+                        nome_arquivo = os.path.basename(caminho_arquivo)
+                        
+                        st.download_button(
+                            label=f"Baixar arquivo de {membro} (Tarefa {dep_id})",
+                            data=file_contents,
+                            file_name=nome_arquivo,
+                            mime="application/octet-stream",
+                            key=f"download_{dep_id}_{membro}"
+                        )
+                    except Exception as e:
+                        st.error(f"Erro ao processar o arquivo da tarefa dependente: {str(e)}")
+            
+            if dep_tarefa.get("comentarios_execucao"):
+                st.write("Comentários da execução:")
+                for membro, comentario in dep_tarefa["comentarios_execucao"].items():
+                    st.text(f"{membro}: {comentario}")
 
     with st.expander("Detalhes da Execução"):
         if tarefa.get("status_execucao") != "Em Andamento":
@@ -144,6 +150,10 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
                 nome_completo = next((membro for membro in tarefa['Membros'] if membro.split()[0] == usuario_logado.split()[0]), None)
                 if nome_completo:
                     tarefa['Execução Membros'][nome_completo] = status_membro
+                    
+                    if 'comentarios_execucao' not in tarefa:
+                        tarefa['comentarios_execucao'] = {}
+                    tarefa['comentarios_execucao'][nome_completo] = comentario
                     
                     if uploaded_file is not None:
                         nome_pasta_tarefa = sanitize_filename(tarefa.get('titulo', f'tarefa_{index}'))
@@ -177,7 +187,6 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
                     todos_concluidos = all(status == "Concluído" for status in tarefa['Execução Membros'].values())
                     if todos_concluidos:
                         tarefa["status_execucao"] = "Concluído"
-                        tarefa["comentario_execucao"] = comentario
                         
                         tempo_final = datetime.now()
                         tempo_total = tempo_final - tempo_inicio
@@ -196,6 +205,29 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
             for membro, status in tarefa['Execução Membros'].items():
                 st.write(f"- {membro}: {status}")
 
+            if tarefa.get('comentarios_execucao'):
+                st.write("Comentários dos membros:")
+                for membro, comentario in tarefa['comentarios_execucao'].items():
+                    st.text(f"{membro}: {comentario}")
+
+            if tarefa.get('arquivos_membros'):
+                st.write("Arquivos anexados:")
+                for membro, caminho_arquivo in tarefa['arquivos_membros'].items():
+                    try:
+                        arquivo_buffer = baixar_arquivo(caminho_arquivo)
+                        file_contents = arquivo_buffer.getvalue()
+                        nome_arquivo = os.path.basename(caminho_arquivo)
+                        
+                        st.download_button(
+                            label=f"Baixar arquivo de {membro}",
+                            data=file_contents,
+                            file_name=nome_arquivo,
+                            mime="application/octet-stream",
+                            key=f"download_{tarefa['id']}_{membro}"
+                        )
+                    except Exception as e:
+                        st.error(f"Erro ao processar o arquivo: {str(e)}")
+
             if tarefa["status_execucao"] != "Concluído":
                 st.warning("A tarefa será finalizada automaticamente quando todos os membros concluírem suas partes.")
                 membros_pendentes = [membro for membro, status in tarefa['Execução Membros'].items() if status != "Concluído"]
@@ -205,16 +237,14 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
 def exibir_downloads(todas_tarefas, usuario_logado):
     st.header("Downloads de Arquivos")
 
-    # Filtrar tarefas que têm arquivos anexados, estão pendentes e atribuídas ao usuário logado
     tarefas_relevantes = [
         t for t in todas_tarefas 
         if t.get("arquivos_membros") and 
-           t.get("status_execucao") != "Concluído" and 
            any(usuario_logado.split()[0] == membro.split()[0] for membro in t.get("Membros", []))
     ]
 
     if not tarefas_relevantes:
-        st.info("Não há arquivos disponíveis para download nas suas tarefas pendentes.")
+        st.info("Não há arquivos disponíveis para download nas suas tarefas.")
         return
 
     for tarefa in tarefas_relevantes:
@@ -222,24 +252,27 @@ def exibir_downloads(todas_tarefas, usuario_logado):
         st.subheader(f"Tarefa: {titulo_tarefa} (ID: {tarefa.get('id', 'N/A')})")
         
         for membro, caminho_arquivo in tarefa["arquivos_membros"].items():
-            # Mostrar apenas os arquivos dos outros membros (não do usuário logado)
-            if membro.split()[0] != usuario_logado.split()[0]:
-                st.write(f"Arquivo de {membro}:")
-                try:
-                    arquivo_buffer = baixar_arquivo(caminho_arquivo)
-                    file_contents = arquivo_buffer.getvalue()
-                    nome_arquivo = os.path.basename(caminho_arquivo)
-                    
-                    st.download_button(
-                        label=f"Baixar arquivo de {membro}",
-                        data=file_contents,
-                        file_name=nome_arquivo,
-                        mime="application/octet-stream",
-                        key=f"download_{tarefa['id']}_{membro}"
-                    )
-                except Exception as e:
-                    st.error(f"Erro ao processar o arquivo: {str(e)}")
-                    st.exception(e)
+            st.write(f"Arquivo de {membro}:")
+            try:
+                arquivo_buffer = baixar_arquivo(caminho_arquivo)
+                file_contents = arquivo_buffer.getvalue()
+                nome_arquivo = os.path.basename(caminho_arquivo)
+                
+                st.download_button(
+                    label=f"Baixar arquivo de {membro}",
+                    data=file_contents,
+                    file_name=nome_arquivo,
+                    mime="application/octet-stream",
+                    key=f"download_{tarefa['id']}_{membro}"
+                )
+            except Exception as e:
+                st.error(f"Erro ao processar o arquivo: {str(e)}")
+                st.exception(e)
+        
+        if tarefa.get('comentarios_execucao'):
+            st.write("Comentários dos membros:")
+            for membro, comentario in tarefa['comentarios_execucao'].items():
+                st.text(f"{membro}: {comentario}")
         
         st.write("---")  # Separador entre tarefas
 
