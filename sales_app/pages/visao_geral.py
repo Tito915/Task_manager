@@ -12,9 +12,6 @@ sys.path.append(str(Path(__file__).resolve().parent))
 from Verificador import calcular_receitas  # Importar a função do Verificador.py
 
 def main():
-    # Configuração da página
-    st.set_page_config(layout="wide")
-
     st.title("Dashboard de Faturamento")
 
     # Obter o mês e o ano atuais
