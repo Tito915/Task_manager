@@ -9,10 +9,10 @@ from datetime import datetime
 def check_environment():
     return st.session_state.get('ambiente', 'Task Manager')
 
-def main(ambiente):
+def main():
+    ambiente = check_environment()
     if ambiente != "Sales App":
-        st.error("Esta página só está disponível no ambiente Sales App.")
-        return
+        return  # Sai da função se não estiver no ambiente Sales App
 
     # Adicionar o diretório pai ao caminho do sistema
     sys.path.append(str(Path(__file__).resolve().parent.parent))

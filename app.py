@@ -1,11 +1,10 @@
 import streamlit as st
+import sys
+from pathlib import Path
+import importlib
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager", layout="wide")
-
-import sys
-from pathlib import Path
-import os
 
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao
@@ -37,6 +36,14 @@ def count_pending_tasks(user_name):
     return_count = sum(1 for task in tasks if task.get('status_execucao') == 'Aguardando Correção' and user_name in task.get('Membros', []))
     execution_count = sum(1 for task in tasks if task.get('status_execucao') == 'Não Iniciada' and user_name in task.get('Membros', []))
     return approval_count, return_count, execution_count
+
+def load_sales_app_page(page_name):
+    try:
+        module = importlib.import_module(f'sales_app.pages.{page_name}')
+        if hasattr(module, 'main'):
+            module.main()
+    except ImportError:
+        st.error(f"Não foi possível carregar a página {page_name}")
 
 def show_main_content():
     st.sidebar.title("Menu")
@@ -89,23 +96,15 @@ def show_main_content():
     elif ambiente == "Sales App":
         st.sidebar.subheader("Navegação Sales App")
     
-        def load_sales_app_page(page_name):
-            try:
-                module = __import__(f'sales_app.pages.{page_name}', fromlist=['main'])
-                main_func = getattr(module, 'main')
-                main_func()
-            except Exception as e:
-                st.error(f"Erro ao carregar a página {page_name}: {str(e)}")
+        if st.sidebar.button("Visão Geral"):
+            load_sales_app_page('visao_geral')
+        if st.sidebar.button("Metas de Vendas"):
+            load_sales_app_page('metas_vendas')
+        if st.sidebar.button("Controle Fiscal"):
+            load_sales_app_page('ctrl_fiscal')
+        if st.sidebar.button("Configurações"):
+            load_sales_app_page('configuracoes')
 
-    if st.sidebar.button("Visão Geral"):
-        load_sales_app_page('visao_geral')
-    if st.sidebar.button("Metas de Vendas"):
-        load_sales_app_page('metas_vendas')
-    if st.sidebar.button("Controle Fiscal"):
-        load_sales_app_page('ctrl_fiscal')
-    if st.sidebar.button("Configurações"):
-        load_sales_app_page('configuracoes')
-            
 def main():
     if 'user' not in st.session_state:
         st.session_state.user = None
