@@ -5,27 +5,34 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-# Adicionar o diretório 'pages' ao caminho do sistema
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+def check_environment():
+    return st.session_state.get('ambiente', 'Task Manager')
 
-from Dados_Controle_Ctrl_Fiscal import obter_faturamento_anual_todos, obter_faturamento_mensal_todos, obter_faturamento_por_natureza, obter_entradas_mensais
+def main(ambiente):
+    if ambiente != "Sales App":
+        st.error("Esta página só está disponível no ambiente Sales App.")
+        return
 
-# Função para carregar dados com tratamento de erros
-def carregar_dados():
-    try:
-        faturamento_anual = obter_faturamento_anual_todos()
-        faturamento_mensal = obter_faturamento_mensal_todos()
-        entradas_mensais = obter_entradas_mensais()
-        
-        faturamento_anual = [(int(ano), float(valor)) for ano, valor in faturamento_anual]
-        faturamento_mensal = [(int(ano), int(mes), float(valor)) for ano, mes, valor in faturamento_mensal]
-       
-        return faturamento_anual, faturamento_mensal, entradas_mensais
-    except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
-        return None, None, None
+    # Adicionar o diretório 'pages' ao caminho do sistema
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-def main():
+    from Dados_Controle_Ctrl_Fiscal import obter_faturamento_anual_todos, obter_faturamento_mensal_todos, obter_faturamento_por_natureza, obter_entradas_mensais
+
+    # Função para carregar dados com tratamento de erros
+    def carregar_dados():
+        try:
+            faturamento_anual = obter_faturamento_anual_todos()
+            faturamento_mensal = obter_faturamento_mensal_todos()
+            entradas_mensais = obter_entradas_mensais()
+            
+            faturamento_anual = [(int(ano), float(valor)) for ano, valor in faturamento_anual]
+            faturamento_mensal = [(int(ano), int(mes), float(valor)) for ano, mes, valor in faturamento_mensal]
+           
+            return faturamento_anual, faturamento_mensal, entradas_mensais
+        except Exception as e:
+            st.error(f"Erro ao carregar dados: {e}")
+            return None, None, None
+
     # Configuração da página
     st.set_page_config(layout="wide")
 
@@ -184,4 +191,5 @@ def main():
         st.error("Os dados não foram carregados corretamente.")
 
 if __name__ == "__main__":
-    main()
+    ambiente = check_environment()
+    main(ambiente)

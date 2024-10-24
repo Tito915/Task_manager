@@ -4,49 +4,55 @@ import plotly.graph_objects as go
 import pandas as pd
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
 from datetime import datetime
 
-def create_metric_card(title, value, subtitle=None, percentage=None):
-    percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
-    html = f"""
-    <div style="
-        background-color: #ffffff;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-        height: 100px;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    ">
-        <h3 style="color: #333; font-size: 14px; margin-bottom: 5px;">{title}</h3>
-        <p style="color: #0066cc; font-size: 24px; font-weight: bold; margin: 0;">{value} {percentage_html}</p>
-        {f'<p style="color: #666; font-size: 12px; margin-top: 5px;">{subtitle}</p>' if subtitle else ''}
-    </div>
-    """
-    return st.markdown(html, unsafe_allow_html=True)
+def check_environment():
+    return st.session_state.get('ambiente', 'Task Manager')
 
-@st.cache_data
-def load_vendedores():
-    return obter_vendedores()
+def main(ambiente):
+    if ambiente != "Sales App":
+        st.error("Esta página só está disponível no ambiente Sales App.")
+        return
 
-@st.cache_data
-def load_faturamento(ano, mes=None, dia=None):
-    fat_bruto = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia)
-    fld = calcular_fld(ano=ano, mes=mes, dia=dia)
-    return fat_bruto, fld
+    # Adicionar o diretório pai ao caminho do sistema
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
 
-@st.cache_data
-def load_vendas_diarias(ano, mes, vendedores):
-    return obter_vendas_diarias(ano=ano, mes=mes, vendedores=vendedores)
+    def create_metric_card(title, value, subtitle=None, percentage=None):
+        percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
+        html = f"""
+        <div style="
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            height: 100px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        ">
+            <h3 style="color: #333; font-size: 14px; margin-bottom: 5px;">{title}</h3>
+            <p style="color: #0066cc; font-size: 24px; font-weight: bold; margin: 0;">{value} {percentage_html}</p>
+            {f'<p style="color: #666; font-size: 12px; margin-top: 5px;">{subtitle}</p>' if subtitle else ''}
+        </div>
+        """
+        return st.markdown(html, unsafe_allow_html=True)
 
-@st.cache_data
-def load_maiores_faturamentos(ano, mes, limite):
-    return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
+    @st.cache_data
+    def load_vendedores():
+        return obter_vendedores()
 
-def main():
-    # Configuração da página
-    st.set_page_config(layout="wide")
+    @st.cache_data
+    def load_faturamento(ano, mes=None, dia=None):
+        fat_bruto = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia)
+        fld = calcular_fld(ano=ano, mes=mes, dia=dia)
+        return fat_bruto, fld
+
+    @st.cache_data
+    def load_vendas_diarias(ano, mes, vendedores):
+        return obter_vendas_diarias(ano=ano, mes=mes, vendedores=vendedores)
+
+    @st.cache_data
+    def load_maiores_faturamentos(ano, mes, limite):
+        return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
 
     # Título da página
     st.title("Metas de Vendas")
@@ -212,4 +218,5 @@ def main():
         st.warning("Não há dados de FLD por vendedor para o período selecionado.")
 
 if __name__ == "__main__":
-    main()
+    ambiente = check_environment()
+    main(ambiente)

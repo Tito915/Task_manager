@@ -62,6 +62,7 @@ def show_main_content():
 
     # Menu suspenso para seleção de ambiente
     ambiente = st.sidebar.selectbox("Selecione o Ambiente", ["Task Manager", "Sales App"])
+    st.session_state['ambiente'] = ambiente
 
     if ambiente == "Task Manager":
         st.sidebar.subheader("Navegação Task Manager")
