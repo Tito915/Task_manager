@@ -1,26 +1,19 @@
 import streamlit as st
+import sys
+from pathlib import Path
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+from datetime import datetime
+from Verificador import calcular_receitas  # Importar a função do Verificador.py
+
 def check_environment():
+    # Retorna o ambiente atual, padrão é 'Task Manager'
     return st.session_state.get('ambiente', 'Task Manager')
 
-def main():
-    ambiente = check_environment()
+def main(ambiente):
     if ambiente != "Sales App":
         return  # Sai da função se não estiver no ambiente Sales App
-    
-    import sys
-    from pathlib import Path
-    import plotly.express as px
-    import plotly.graph_objects as go
-    import pandas as pd
-    from datetime import datetime
-    
-
-
-    # Adicionar o diretório 'pages' ao caminho do sistema
-    sys.path.append(str(Path(__file__).resolve().parent))
-
-    from Verificador import calcular_receitas  # Importar a função do Verificador.py
-
 
     st.title("Dashboard de Faturamento")
 
@@ -52,9 +45,39 @@ def main():
      faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
 
     # Filtrar os tickets por mês e ano selecionados
+    tickets_filtrados = filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado)
+
+    # Exibir cartões de Receita Operacional e Quantidade de Pedidos
+    exibir_cartoes_receita_pedidos(col1, col2, receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos)
+
+    # Exibir tickets no lado direito
+    exibir_tickets(col3, tickets_filtrados)
+
+    # Criar DataFrame para o gráfico de linha
+    df_faturamento_7_dias = pd.DataFrame({
+        'Data': [data for data, _ in faturamento_ultimos_sete_dias],
+        'Faturamento': [faturamento for _, faturamento in faturamento_ultimos_sete_dias]
+    })
+
+    # Gráfico de linha do faturamento dos últimos 7 dias
+    exibir_grafico_faturamento_7_dias(df_faturamento_7_dias)
+
+    # Gráfico de funil para distribuição de clientes por faixa de valor
+    exibir_grafico_funnel(distribuicao_clientes)
+
+    # Atualizar dados para os gráficos de pizza
+    metas = {
+        "Meta Anual": (7.41, receita_anual / 1_000_000),  # Convertendo para milhões
+        "Meta Mensal": (0.609, receita_mensal / 1_000_000),  # Convertendo para milhões
+        "Meta Diária": (0.0275, receita_diaria / 1_000_000)  # Convertendo para milhões
+    }
+
+    # Gráficos de pizza
+    exibir_graficos_pizza(metas)
+
+def filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado):
     if mes_selecionado == "Todos":
         if ano_selecionado == "Todos":
-            # Agregar por ano
             tickets_anuais = {}
             for ano, mes, maximo, medio, minimo in tickets_por_mes_ano:
                 if ano not in tickets_anuais:
@@ -64,12 +87,10 @@ def main():
                 tickets_anuais[ano]['min'].append(minimo)
             tickets_filtrados = [(ano, max(tickets_anuais[ano]['max']), sum(tickets_anuais[ano]['med']) / len(tickets_anuais[ano]['med']), min(tickets_anuais[ano]['min'])) for ano in sorted(tickets_anuais.keys())]
         else:
-            # Agregar por ano específico
             tickets_filtrados = [(ano, maximo, medio, minimo) for ano, mes, maximo, medio, minimo in tickets_por_mes_ano if ano == int(ano_selecionado)]
     else:
         mes_selecionado = int(mes_selecionado)
         if ano_selecionado == "Todos":
-            # Agregar por ano
             tickets_anuais = {}
             for ano, mes, maximo, medio, minimo in tickets_por_mes_ano:
                 if mes == mes_selecionado:
@@ -81,8 +102,9 @@ def main():
             tickets_filtrados = [(ano, max(tickets_anuais[ano]['max']), sum(tickets_anuais[ano]['med']) / len(tickets_anuais[ano]['med']), min(tickets_anuais[ano]['min'])) for ano in sorted(tickets_anuais.keys())]
         else:
             tickets_filtrados = [(ano, mes, maximo, medio, minimo) for ano, mes, maximo, medio, minimo in tickets_por_mes_ano if ano == int(ano_selecionado) and mes == mes_selecionado]
+    return tickets_filtrados
 
-    # Exibir cartões de Receita Operacional e Quantidade de Pedidos
+def exibir_cartoes_receita_pedidos(col1, col2, receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos):
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -101,7 +123,7 @@ def main():
             f"<span style='color:green; font-size:20px;'>Anterior: {qtde_pedidos_anterior} Pedidos, Diferença: {diferenca_pedidos} Pedidos, Crescimento: {crescimento_pedidos:.2f}%</span>",
             unsafe_allow_html=True)
 
-    # Exibir tickets no lado direito
+def exibir_tickets(col3, tickets_filtrados):
     with col3:
         st.markdown("## Tickets por Ano")
         for ano, maximo, medio, minimo in tickets_filtrados:
@@ -110,19 +132,13 @@ def main():
             st.markdown(f"<span style='color:yellow; font-size:20px;'>Ticket Médio: R$ {medio:.2f}</span>", unsafe_allow_html=True)
             st.markdown(f"<span style='color:red; font-size:20px;'>Ticket Mínimo: R$ {minimo:.2f}</span>", unsafe_allow_html=True)
 
-    # Criar DataFrame para o gráfico de linha
-    df_faturamento_7_dias = pd.DataFrame({
-        'Data': [data for data, _ in faturamento_ultimos_sete_dias],
-        'Faturamento': [faturamento for _, faturamento in faturamento_ultimos_sete_dias]
-    })
-
-    # Gráfico de linha do faturamento dos últimos 7 dias
+def exibir_grafico_faturamento_7_dias(df_faturamento_7_dias):
     fig_line = px.line(df_faturamento_7_dias, x='Data', y='Faturamento', labels={'Faturamento': 'Faturamento (Mil)'}, title='Faturamento dos Últimos 7 Dias')
     fig_line.update_traces(line=dict(color='royalblue'))
     st.markdown("## Faturamento dos Últimos 7 Dias")
     st.plotly_chart(fig_line, use_container_width=True)
 
-    # Gráfico de funil para distribuição de clientes por faixa de valor
+def exibir_grafico_funnel(distribuicao_clientes):
     labels = [faixa for _, faixa in distribuicao_clientes]
     values = [count for count, _ in distribuicao_clientes]
 
@@ -134,14 +150,7 @@ def main():
     st.markdown("## Distribuição de Clientes por Faixa de Valor de Pedido")
     st.plotly_chart(fig_funnel, use_container_width=True)
 
-    # Atualizar dados para os gráficos de pizza
-    metas = {
-        "Meta Anual": (7.41, receita_anual / 1_000_000),  # Convertendo para milhões
-        "Meta Mensal": (0.609, receita_mensal / 1_000_000),  # Convertendo para milhões
-        "Meta Diária": (0.0275, receita_diaria / 1_000_000)  # Convertendo para milhões
-    }
-
-    # Gráficos de pizza
+def exibir_graficos_pizza(metas):
     st.markdown("## Metas")
     col1, col2 = st.columns(2)
     for i, (meta, (valor_meta, valor_alcancado)) in enumerate(metas.items()):
