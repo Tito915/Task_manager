@@ -23,7 +23,7 @@ def tarefas_tab():
     membros_cadastrados = get_members_and_departments()
     nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]  # Apenas o primeiro nome
     primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
-    departamentos = {membro['nome'].split()[0]: membro['funcao'] for membro in membros_cadastrados}
+    departamentos = {membro['nome']: membro['funcao'] for membro in membros_cadastrados}
 
     # Usar st.form para envolver todo o conteúdo da criação de tarefas
     with st.form(key='create_task_form'):
@@ -43,8 +43,13 @@ def tarefas_tab():
             membros_selecionados = st.multiselect("Membros", nomes_membros, key="membros")
         
         with col2:
+            # Atualizar o campo de departamento dinamicamente
+            departamentos_selecionados = {
+                primeiro_nome_para_completo.get(membro, membro): departamentos.get(primeiro_nome_para_completo.get(membro, membro), "")
+                for membro in membros_selecionados
+            }
             departamento = st.text_input("Departamento", 
-                                         value=", ".join(set(departamentos.get(nome, "") for nome in membros_selecionados)), 
+                                         value=", ".join(set(departamentos_selecionados.values())),
                                          disabled=True, key="departamento")
         
         with col3:
@@ -62,7 +67,8 @@ def tarefas_tab():
                 descricao_tarefa = st.text_input(f"Descrição da Tarefa {i}", f"Descrição da tarefa {i}", key=f"descricao_{i}")
             
             with col2:
-                membro_tarefa = st.selectbox(f"Membro", membros_selecionados, key=f"membro_{i}")
+                # Certifique-se de que as opções de membros estão disponíveis para cada tarefa
+                membro_tarefa = st.selectbox(f"Membro para Tarefa {i}", membros_selecionados, key=f"membro_{i}")
 
             # Cria um expander para os detalhes adicionais
             with st.expander(f"Detalhes da Tarefa {i}", expanded=True):
@@ -130,7 +136,7 @@ def tarefas_tab():
 
     # Exibir tarefas criadas pelo usuário logado
     exibir_tarefas_criadas()
-
+    
 def confirmacao_pix_tab():
     st.header("Confirmação Pix")
     # Adicione aqui a lógica para a confirmação de Pix
