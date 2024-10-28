@@ -21,7 +21,7 @@ def tarefas_tab():
     
     # Carregar membros e departamentos a partir do arquivo JSON
     membros_cadastrados = get_members_and_departments()
-    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]  # Apenas o primeiro nome
+    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]
     primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
     departamentos = {membro['nome']: membro['funcao'] for membro in membros_cadastrados}
 
@@ -31,7 +31,19 @@ def tarefas_tab():
     if 'num_tarefas' not in st.session_state:
         st.session_state['num_tarefas'] = 1
 
-    # Usar st.form para envolver todo o conteúdo da criação de tarefas
+    # Mover o number_input para fora do formulário
+    num_tarefas = st.number_input(
+        "Número de Tarefas", 
+        min_value=1, 
+        max_value=10, 
+        step=1, 
+        value=st.session_state['num_tarefas']
+    )
+    
+    # Atualizar session_state fora do formulário
+    st.session_state['num_tarefas'] = num_tarefas
+
+    # Usar st.form para envolver o resto do conteúdo
     with st.form(key='create_task_form'):
         # Formulário para criar tarefas
         col1, col2 = st.columns([2, 1])
@@ -42,11 +54,11 @@ def tarefas_tab():
 
         descricao = st.text_area("Descrição da Tarefa", key="descricao")
 
-        # Três colunas iguais para Membros, Departamento e Número de Tarefas
-        col1, col2, col3 = st.columns(3)
+        # Três colunas iguais para Membros e Departamento
+        col1, col2 = st.columns(2)
         
         with col1:
-            st.session_state['membros_selecionados'] = st.multiselect(
+            membros_selecionados = st.multiselect(
                 "Membros", 
                 nomes_membros, 
                 default=st.session_state['membros_selecionados'],
@@ -54,15 +66,15 @@ def tarefas_tab():
             )
         
         with col2:
-            # Atualizar o campo de departamento dinamicamente
             departamentos_selecionados = {
                 primeiro_nome_para_completo.get(membro, membro): departamentos.get(primeiro_nome_para_completo.get(membro, membro), "")
-                for membro in st.session_state['membros_selecionados']
+                for membro in membros_selecionados
             }
             departamento = st.text_input("Departamento", 
-                                         value=", ".join(set(departamentos_selecionados.values())),
-                                         disabled=True, key="departamento")
-        
+                                       value=", ".join(set(departamentos_selecionados.values())),
+                                       disabled=True, 
+                                       key="departamento")
+       
         with col3:
             num_tarefas = st.number_input(
                 "Número de Tarefas", 
