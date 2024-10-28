@@ -32,16 +32,16 @@ def tarefas_tab():
         st.session_state['num_tarefas'] = 1
 
     # Mover o number_input para fora do formulário
-    num_tarefas = st.number_input(
-        "Número de Tarefas", 
-        min_value=1, 
-        max_value=10, 
-        step=1, 
-        value=st.session_state['num_tarefas']
-    )
-    
-    # Atualizar session_state fora do formulário
-    st.session_state['num_tarefas'] = num_tarefas
+    col1, col2, col3 = st.columns(3)
+    with col3:
+        num_tarefas = st.number_input(
+            "Número de Tarefas", 
+            min_value=1, 
+            max_value=10, 
+            step=1, 
+            value=st.session_state['num_tarefas']
+        )
+        st.session_state['num_tarefas'] = num_tarefas
 
     # Usar st.form para envolver o resto do conteúdo
     with st.form(key='create_task_form'):
@@ -54,8 +54,8 @@ def tarefas_tab():
 
         descricao = st.text_area("Descrição da Tarefa", key="descricao")
 
-        # Três colunas iguais para Membros e Departamento
-        col1, col2 = st.columns(2)
+        # Três colunas iguais para Membros, Departamento
+        col1, col2, col3 = st.columns(3)
         
         with col1:
             membros_selecionados = st.multiselect(
@@ -74,17 +74,6 @@ def tarefas_tab():
                                        value=", ".join(set(departamentos_selecionados.values())),
                                        disabled=True, 
                                        key="departamento")
-       
-        with col3:
-            num_tarefas = st.number_input(
-                "Número de Tarefas", 
-                min_value=1, 
-                max_value=10, 
-                step=1, 
-                value=st.session_state['num_tarefas'], 
-                key="num_tarefas"
-            )
-            st.session_state['num_tarefas'] = num_tarefas
 
         # Task List com novo layout
         task_list = {}
@@ -98,14 +87,13 @@ def tarefas_tab():
                 descricao_tarefa = st.text_input(f"Descrição da Tarefa {i}", f"Descrição da tarefa {i}", key=f"descricao_{i}")
             
             with col2:
-                # Certifique-se de que as opções de membros estão disponíveis para cada tarefa
                 membro_tarefa = st.selectbox(
                     f"Membro para Tarefa {i}", 
-                    st.session_state['membros_selecionados'], 
+                    membros_selecionados, 
                     key=f"membro_{i}"
                 )
 
-            # Cria um expander para os detalhes adicionais
+            # Expander para os detalhes adicionais
             with st.expander(f"Detalhes da Tarefa {i}", expanded=True):
                 col1, col2, col3 = st.columns(3)
                 
@@ -136,6 +124,7 @@ def tarefas_tab():
                 "dependencias": dependencias_tarefa
             }
 
+        # Campos de data e hora
         data_inicio = st.date_input("Data Início Geral", key="data_inicio_geral")
         hora_inicio = st.time_input("Hora Início Geral", key="hora_inicio_geral")
         hora_fim = st.time_input("Hora Fim Geral", key="hora_fim_geral")
@@ -143,6 +132,7 @@ def tarefas_tab():
         data_fim = st.date_input("Data Fim Geral", key="data_fim_geral") if not opcao_diaria else None
 
         submit_button = st.form_submit_button("Criar e Salvar Tarefa")
+
 
     if submit_button:
         if not titulo or not st.session_state['membros_selecionados']:
