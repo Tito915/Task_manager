@@ -25,6 +25,12 @@ def tarefas_tab():
     primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
     departamentos = {membro['nome']: membro['funcao'] for membro in membros_cadastrados}
 
+    # Inicializar o estado da sessão para membros e número de tarefas
+    if 'membros_selecionados' not in st.session_state:
+        st.session_state['membros_selecionados'] = []
+    if 'num_tarefas' not in st.session_state:
+        st.session_state['num_tarefas'] = 1
+
     # Usar st.form para envolver todo o conteúdo da criação de tarefas
     with st.form(key='create_task_form'):
         # Formulário para criar tarefas
@@ -40,25 +46,38 @@ def tarefas_tab():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            membros_selecionados = st.multiselect("Membros", nomes_membros, key="membros")
+            st.session_state['membros_selecionados'] = st.multiselect(
+                "Membros", 
+                nomes_membros, 
+                key="membros", 
+                on_change=lambda: st.experimental_rerun()
+            )
         
         with col2:
             # Atualizar o campo de departamento dinamicamente
             departamentos_selecionados = {
                 primeiro_nome_para_completo.get(membro, membro): departamentos.get(primeiro_nome_para_completo.get(membro, membro), "")
-                for membro in membros_selecionados
+                for membro in st.session_state['membros_selecionados']
             }
             departamento = st.text_input("Departamento", 
                                          value=", ".join(set(departamentos_selecionados.values())),
                                          disabled=True, key="departamento")
         
         with col3:
-            num_tarefas = st.number_input("Número de Tarefas", min_value=1, max_value=10, step=1, value=1, key="num_tarefas")
+            st.session_state['num_tarefas'] = st.number_input(
+                "Número de Tarefas", 
+                min_value=1, 
+                max_value=10, 
+                step=1, 
+                value=st.session_state['num_tarefas'], 
+                key="num_tarefas", 
+                on_change=lambda: st.experimental_rerun()
+            )
 
         # Task List com novo layout
         task_list = {}
         
-        for i in range(1, num_tarefas + 1):
+        for i in range(1, st.session_state['num_tarefas'] + 1):
             st.write(f"--- Tarefa {i} ---")
             
             col1, col2 = st.columns([3, 1])
@@ -68,7 +87,11 @@ def tarefas_tab():
             
             with col2:
                 # Certifique-se de que as opções de membros estão disponíveis para cada tarefa
-                membro_tarefa = st.selectbox(f"Membro para Tarefa {i}", membros_selecionados, key=f"membro_{i}")
+                membro_tarefa = st.selectbox(
+                    f"Membro para Tarefa {i}", 
+                    st.session_state['membros_selecionados'], 
+                    key=f"membro_{i}"
+                )
 
             # Cria um expander para os detalhes adicionais
             with st.expander(f"Detalhes da Tarefa {i}", expanded=True):
@@ -110,13 +133,13 @@ def tarefas_tab():
         submit_button = st.form_submit_button("Criar e Salvar Tarefa")
 
     if submit_button:
-        if not titulo or not membros_selecionados:
+        if not titulo or not st.session_state['membros_selecionados']:
             st.error("Por favor, preencha o título da tarefa e selecione pelo menos um membro.")
         else:
             task = {
                 "titulo": titulo,
                 "descricao": descricao,
-                "Membros": [primeiro_nome_para_completo.get(m, m) for m in membros_selecionados],
+                "Membros": [primeiro_nome_para_completo.get(m, m) for m in st.session_state['membros_selecionados']],
                 "Departamento": departamento,
                 "Etiqueta": etiqueta,
                 "Task List": task_list,
@@ -125,7 +148,7 @@ def tarefas_tab():
                 "Hora Fim": hora_fim.strftime('%H:%M:%S'),
                 "Data Fim": str(data_fim) if data_fim else None,
                 "status": "Pendente",
-                "Status de Aprovação": {membro: "Pendente" for membro in [primeiro_nome_para_completo.get(m, m) for m in membros_selecionados]},
+                "Status de Aprovação": {membro: "Pendente" for membro in [primeiro_nome_para_completo.get(m, m) for m in st.session_state['membros_selecionados']]},
                 "tempo_previsto_inicio": hora_inicio.isoformat(),
                 "tempo_previsto_fim": hora_fim.isoformat(),
                 "Anexos de Conclusão": [],
@@ -136,6 +159,8 @@ def tarefas_tab():
 
     # Exibir tarefas criadas pelo usuário logado
     exibir_tarefas_criadas()
+
+# Funções para as outras tabs
     
 def confirmacao_pix_tab():
     st.header("Confirmação Pix")
@@ -146,6 +171,33 @@ def consulta_cadastro_clientes_tab():
     st.header("Consulta de Cadastro Clientes")
     # Adicione aqui a lógica para a consulta de cadastro de clientes
     st.write("Funcionalidade de consulta de cadastro de clientes em desenvolvimento.")
+
+def exibir_tarefas_criadas():
+    if 'user' not in st.session_state:
+        st.warning("Você precisa fazer login para ver suas tarefas criadas.")
+        return
+
+    tarefas = load_tasks()
+    nome_usuario = st.session_state.user.get('nome', "")
+    tarefas_usuario = [t for t in tarefas if t.get('criado_por') == nome_usuario]
+    
+    if tarefas_usuario:
+        st.subheader("Tarefas Criadas")
+        
+        # Paginação
+        tarefas_por_pagina = 5
+        total_paginas = math.ceil(len(tarefas_usuario) / tarefas_por_pagina)
+        pagina_atual = st.selectbox("Página", range(1, total_paginas + 1), key="pagina_tarefas")
+        
+        inicio = (pagina_atual - 1) * tarefas_por_pagina
+        fim = inicio + tarefas_por_pagina
+        tarefas_pagina = tarefas_usuario[inicio:fim]
+        
+        for i, tarefa in enumerate(tarefas_pagina):
+            with st.expander(f"Tarefa: {tarefa.get('titulo', 'Sem título')}"):
+                exibir_detalhes_tarefa(tarefa)
+    else:
+        st.info("Você ainda não criou nenhuma tarefa.")
 
 def exibir_tarefas_criadas():
     if 'user' not in st.session_state:
