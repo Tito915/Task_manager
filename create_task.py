@@ -49,6 +49,7 @@ def tarefas_tab():
             st.session_state['membros_selecionados'] = st.multiselect(
                 "Membros", 
                 nomes_membros, 
+                default=st.session_state['membros_selecionados'],
                 key="membros"
             )
         
@@ -63,7 +64,7 @@ def tarefas_tab():
                                          disabled=True, key="departamento")
         
         with col3:
-            st.session_state['num_tarefas'] = st.number_input(
+            num_tarefas = st.number_input(
                 "Número de Tarefas", 
                 min_value=1, 
                 max_value=10, 
@@ -71,6 +72,7 @@ def tarefas_tab():
                 value=st.session_state['num_tarefas'], 
                 key="num_tarefas"
             )
+            st.session_state['num_tarefas'] = num_tarefas
 
         # Task List com novo layout
         task_list = {}
