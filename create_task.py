@@ -21,127 +21,100 @@ def tarefas_tab():
     
     # Carregar membros e departamentos a partir do arquivo JSON
     membros_cadastrados = get_members_and_departments()
-    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]
+    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]  # Apenas o primeiro nome
     primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
-    departamentos = {membro['nome']: membro['funcao'] for membro in membros_cadastrados}
+    departamentos = {membro['nome'].split()[0]: membro['funcao'] for membro in membros_cadastrados}
 
-    # Inicializar o estado da sessão para membros e número de tarefas
-    if 'membros_selecionados' not in st.session_state:
-        st.session_state['membros_selecionados'] = []
-    if 'num_tarefas' not in st.session_state:
-        st.session_state['num_tarefas'] = 1
+    # Formulário para criar tarefas
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        titulo = st.text_input("Título da Tarefa")
+    with col2:
+        etiqueta = st.selectbox("Etiqueta", ["Urgente", "Normal", "Baixa Prioridade"])
 
-    # Mover o number_input para fora do formulário
+    descricao = st.text_area("Descrição da Tarefa")
+
+    # Três colunas iguais para Membros, Departamento e Número de Tarefas
     col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        membros_selecionados = st.multiselect("Membros", nomes_membros)
+    
+    with col2:
+        departamento = st.text_input("Departamento", 
+                                     value=", ".join(set(departamentos.get(nome, "") for nome in membros_selecionados)), 
+                                     disabled=True)
+    
     with col3:
-        num_tarefas = st.number_input(
-            "Número de Tarefas", 
-            min_value=1, 
-            max_value=10, 
-            step=1, 
-            value=st.session_state['num_tarefas']
-        )
-        st.session_state['num_tarefas'] = num_tarefas
+        num_tarefas = st.number_input("Número de Tarefas", min_value=1, max_value=10, step=1, value=1, key="num_tarefas_input")
 
-    # Usar st.form para envolver o resto do conteúdo
-    with st.form(key='create_task_form'):
-        # Formulário para criar tarefas
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            titulo = st.text_input("Título da Tarefa", key="titulo")
-        with col2:
-            etiqueta = st.selectbox("Etiqueta", ["Urgente", "Normal", "Baixa Prioridade"], key="etiqueta")
-
-        descricao = st.text_area("Descrição da Tarefa", key="descricao")
-
-        # Três colunas iguais para Membros, Departamento
-        col1, col2, col3 = st.columns(3)
+    # Task List com novo layout
+    task_list = {}
+    
+    for i in range(1, num_tarefas + 1):
+        st.write(f"--- Tarefa {i} ---")
+        
+        col1, col2 = st.columns([3, 1])
         
         with col1:
-            membros_selecionados = st.multiselect(
-                "Membros", 
-                nomes_membros, 
-                default=st.session_state['membros_selecionados'],
-                key="membros"
-            )
+            descricao_tarefa = st.text_input(f"Descrição da Tarefa {i}", f"Descrição da tarefa {i}", key=f"descricao_{i}")
         
         with col2:
-            departamentos_selecionados = {
-                primeiro_nome_para_completo.get(membro, membro): departamentos.get(primeiro_nome_para_completo.get(membro, membro), "")
-                for membro in membros_selecionados
-            }
-            departamento = st.text_input("Departamento", 
-                                       value=", ".join(set(departamentos_selecionados.values())),
-                                       disabled=True, 
-                                       key="departamento")
+            membro_tarefa = st.selectbox(f"Membro", membros_selecionados, key=f"membro_{i}")
 
-        # Task List com novo layout
-        task_list = {}
-        
-        for i in range(1, st.session_state['num_tarefas'] + 1):
-            st.write(f"--- Tarefa {i} ---")
-            
-            col1, col2 = st.columns([3, 1])
+        # Inicializa o estado do expander se não existir
+        if f"expander_{i}" not in st.session_state:
+            st.session_state[f"expander_{i}"] = True
+
+        # Cria um expander para os detalhes adicionais
+        with st.expander(f"Detalhes da Tarefa {i}", expanded=st.session_state[f"expander_{i}"]):
+            col1, col2, col3 = st.columns(3)
             
             with col1:
-                descricao_tarefa = st.text_input(f"Descrição da Tarefa {i}", f"Descrição da tarefa {i}", key=f"descricao_{i}")
+                if i > 1:
+                    dependencias_tarefa = st.multiselect(
+                        f"Dependências",
+                        options=range(1, i),
+                        format_func=lambda x: f"Tarefa {x}",
+                        key=f"dependencias_{i}"
+                    )
+                else:
+                    st.write("Sem dependências")
+                    dependencias_tarefa = []
             
             with col2:
-                membro_tarefa = st.selectbox(
-                    f"Membro para Tarefa {i}", 
-                    membros_selecionados, 
-                    key=f"membro_{i}"
-                )
+                hora_prevista = st.time_input(f"Horário Limite", value=time(9, 0), key=f"hora_{i}")
+            
+            with col3:
+                exige_anexo = st.selectbox(f"Exige Anexo", ["Não", "Sim"], key=f"anexo_{i}")
 
-            # Expander para os detalhes adicionais
-            with st.expander(f"Detalhes da Tarefa {i}", expanded=True):
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    if i > 1:
-                        dependencias_tarefa = st.multiselect(
-                            f"Dependências",
-                            options=range(1, i),
-                            format_func=lambda x: f"Tarefa {x}",
-                            key=f"dependencias_{i}"
-                        )
-                    else:
-                        st.write("Sem dependências")
-                        dependencias_tarefa = []
-                
-                with col2:
-                    hora_prevista = st.time_input(f"Horário Limite", value=time(9, 0), key=f"hora_{i}")
-                
-                with col3:
-                    exige_anexo = st.selectbox(f"Exige Anexo", ["Não", "Sim"], key=f"anexo_{i}")
+            if st.button("OK", key=f"ok_{i}"):
+                st.session_state[f"expander_{i}"] = False
+                st.rerun()
 
-            # Armazena os dados da tarefa
-            task_list[i] = {
-                "descricao": descricao_tarefa,
-                "membro": primeiro_nome_para_completo.get(membro_tarefa, membro_tarefa),
-                "horario": hora_prevista.strftime('%H:%M:%S'),
-                "exige_anexo": exige_anexo == "Sim",
-                "dependencias": dependencias_tarefa
-            }
+        # Armazena os dados da tarefa
+        task_list[i] = {
+            "descricao": descricao_tarefa,
+            "membro": primeiro_nome_para_completo.get(membro_tarefa, membro_tarefa),
+            "horario": hora_prevista.strftime('%H:%M:%S'),
+            "exige_anexo": exige_anexo == "Sim",
+            "dependencias": dependencias_tarefa
+        }
 
-        # Campos de data e hora
-        data_inicio = st.date_input("Data Início Geral", key="data_inicio_geral")
-        hora_inicio = st.time_input("Hora Início Geral", key="hora_inicio_geral")
-        hora_fim = st.time_input("Hora Fim Geral", key="hora_fim_geral")
-        opcao_diaria = st.checkbox("Opção Diária", key="opcao_diaria")
-        data_fim = st.date_input("Data Fim Geral", key="data_fim_geral") if not opcao_diaria else None
+    data_inicio = st.date_input("Data Início Geral", key="data_inicio_geral")
+    hora_inicio = st.time_input("Hora Início Geral", key="hora_inicio_geral")
+    hora_fim = st.time_input("Hora Fim Geral", key="hora_fim_geral")
+    opcao_diaria = st.checkbox("Opção Diária", key="opcao_diaria")
+    data_fim = st.date_input("Data Fim Geral", key="data_fim_geral") if not opcao_diaria else None
 
-        submit_button = st.form_submit_button("Criar e Salvar Tarefa")
-
-
-    if submit_button:
-        if not titulo or not st.session_state['membros_selecionados']:
+    if st.button("Criar e Salvar Tarefa"):
+        if not titulo or not membros_selecionados:
             st.error("Por favor, preencha o título da tarefa e selecione pelo menos um membro.")
         else:
             task = {
                 "titulo": titulo,
                 "descricao": descricao,
-                "Membros": [primeiro_nome_para_completo.get(m, m) for m in st.session_state['membros_selecionados']],
+                "Membros": [primeiro_nome_para_completo.get(m, m) for m in membros_selecionados],
                 "Departamento": departamento,
                 "Etiqueta": etiqueta,
                 "Task List": task_list,
@@ -150,7 +123,7 @@ def tarefas_tab():
                 "Hora Fim": hora_fim.strftime('%H:%M:%S'),
                 "Data Fim": str(data_fim) if data_fim else None,
                 "status": "Pendente",
-                "Status de Aprovação": {membro: "Pendente" for membro in [primeiro_nome_para_completo.get(m, m) for m in st.session_state['membros_selecionados']]},
+                "Status de Aprovação": {membro: "Pendente" for membro in [primeiro_nome_para_completo.get(m, m) for m in membros_selecionados]},
                 "tempo_previsto_inicio": hora_inicio.isoformat(),
                 "tempo_previsto_fim": hora_fim.isoformat(),
                 "Anexos de Conclusão": [],
@@ -162,13 +135,14 @@ def tarefas_tab():
     # Exibir tarefas criadas pelo usuário logado
     exibir_tarefas_criadas()
 
-# Funções para as outras tabs
 def confirmacao_pix_tab():
     st.header("Confirmação Pix")
+    # Adicione aqui a lógica para a confirmação de Pix
     st.write("Funcionalidade de confirmação de Pix em desenvolvimento.")
 
 def consulta_cadastro_clientes_tab():
     st.header("Consulta de Cadastro Clientes")
+    # Adicione aqui a lógica para a consulta de cadastro de clientes
     st.write("Funcionalidade de consulta de cadastro de clientes em desenvolvimento.")
 
 def exibir_tarefas_criadas():
