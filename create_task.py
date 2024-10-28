@@ -49,8 +49,7 @@ def tarefas_tab():
             st.session_state['membros_selecionados'] = st.multiselect(
                 "Membros", 
                 nomes_membros, 
-                key="membros", 
-                on_change=lambda: st.experimental_rerun()
+                key="membros"
             )
         
         with col2:
@@ -70,8 +69,7 @@ def tarefas_tab():
                 max_value=10, 
                 step=1, 
                 value=st.session_state['num_tarefas'], 
-                key="num_tarefas", 
-                on_change=lambda: st.experimental_rerun()
+                key="num_tarefas"
             )
 
         # Task List com novo layout
@@ -161,43 +159,13 @@ def tarefas_tab():
     exibir_tarefas_criadas()
 
 # Funções para as outras tabs
-    
 def confirmacao_pix_tab():
     st.header("Confirmação Pix")
-    # Adicione aqui a lógica para a confirmação de Pix
     st.write("Funcionalidade de confirmação de Pix em desenvolvimento.")
 
 def consulta_cadastro_clientes_tab():
     st.header("Consulta de Cadastro Clientes")
-    # Adicione aqui a lógica para a consulta de cadastro de clientes
     st.write("Funcionalidade de consulta de cadastro de clientes em desenvolvimento.")
-
-def exibir_tarefas_criadas():
-    if 'user' not in st.session_state:
-        st.warning("Você precisa fazer login para ver suas tarefas criadas.")
-        return
-
-    tarefas = load_tasks()
-    nome_usuario = st.session_state.user.get('nome', "")
-    tarefas_usuario = [t for t in tarefas if t.get('criado_por') == nome_usuario]
-    
-    if tarefas_usuario:
-        st.subheader("Tarefas Criadas")
-        
-        # Paginação
-        tarefas_por_pagina = 5
-        total_paginas = math.ceil(len(tarefas_usuario) / tarefas_por_pagina)
-        pagina_atual = st.selectbox("Página", range(1, total_paginas + 1), key="pagina_tarefas")
-        
-        inicio = (pagina_atual - 1) * tarefas_por_pagina
-        fim = inicio + tarefas_por_pagina
-        tarefas_pagina = tarefas_usuario[inicio:fim]
-        
-        for i, tarefa in enumerate(tarefas_pagina):
-            with st.expander(f"Tarefa: {tarefa.get('titulo', 'Sem título')}"):
-                exibir_detalhes_tarefa(tarefa)
-    else:
-        st.info("Você ainda não criou nenhuma tarefa.")
 
 def exibir_tarefas_criadas():
     if 'user' not in st.session_state:
