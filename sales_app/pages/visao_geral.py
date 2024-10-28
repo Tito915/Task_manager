@@ -13,19 +13,27 @@ def check_environment():
 
 def main(ambiente):
     if ambiente != "Sales App":
-        return  # Sai da função se não estiver no ambiente Sales App
+        st.write("Ambiente não é Sales App, saindo da função.")
+        return
 
     st.title("Dashboard de Faturamento")
+    st.write("Carregando dados...")
 
-    # Obter o mês e o ano atuais
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
+    try:
+        resultados = calcular_receitas()
+        st.write("Dados carregados com sucesso.")
+    except Exception as e:
+        st.error(f"Erro ao calcular receitas: {e}")
+        return
 
-    # Obter dados calculados com base nos filtros (inicialmente sem filtros)
-    resultados = calcular_receitas()
-    (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
-     qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
-     faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
+    try:
+        (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
+         qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
+         faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
+        st.write("Dados foram descompactados com sucesso.")
+    except Exception as e:
+        st.error(f"Erro ao descompactar resultados: {e}")
+        return
 
     # Filtros de mês e ano
     st.sidebar.header("Filtros")

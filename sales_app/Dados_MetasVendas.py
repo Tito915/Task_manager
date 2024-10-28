@@ -1,26 +1,36 @@
+import sys
+from pathlib import Path
 import pandas as pd
 from datetime import datetime
 
-# Caminho para o arquivo Excel
-EXCEL_PATH = r'C:\Users\tito\OneDrive\Documentos\MBV\Madeireira\VENDAS\Power Bi\Fat_Ctrl\Faturamento_total.xlsx'
+# Adicione o diretório onde firebase_utils.py está localizado ao sys.path
+sys.path.append(str(Path("C:/Users/tito/OneDrive/Documentos/curso/pythoncurso/Gerenciamento_Tarefas")))
+
+from firebase_utils import bucket, logger, baixar_arquivo
 
 def carregar_dados():
-    """Carrega os dados do arquivo Excel."""
+    """Carrega os dados do arquivo Excel do Firebase Storage."""
+    caminho_arquivo = 'SallesApp/Faturamento_total.xlsx'
+    
     try:
-        df = pd.read_excel(EXCEL_PATH)
+        buffer = baixar_arquivo(caminho_arquivo)
+        if buffer is None:
+            logger.error("Não foi possível baixar o arquivo do Firebase.")
+            return None
+        
+        df = pd.read_excel(buffer)
         df.columns = df.columns.str.strip().str.lower()
         df['data'] = pd.to_datetime(df['data'])
         df['gru'] = df['gru'].astype(str).str.strip()
+        logger.info("Dados carregados com sucesso do Firebase.")
         return df
     except Exception as e:
-        print(f"Erro ao carregar dados: {e}")
+        logger.error(f"Erro ao carregar dados: {e}")
         return None
 
 def filtrar_faturamento_controle(df):
     """Filtra o DataFrame para excluir registros com GRU específicos."""
     return df[~df['gru'].isin(['21', '21.0', '021', '21,0'])]
-
-# O resto das funções permanece o mesmo
 
 def calcular_faturamento_bruto(ano=None, mes=None, dia=None, vendedor=None):
     """Calcula o Faturamento Bruto para o ano/mês/dia/vendedor especificado usando qtde e valor."""
@@ -41,7 +51,7 @@ def calcular_faturamento_bruto(ano=None, mes=None, dia=None, vendedor=None):
 
     faturamento_bruto = (df_filtrado['qtde'] * df_filtrado['valor']).sum()
 
-    print(f"Faturamento Bruto (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_bruto:,.2f}")
+    logger.info(f"Faturamento Bruto (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_bruto:,.2f}")
 
     return faturamento_bruto
 
@@ -64,7 +74,7 @@ def calcular_fld(ano=None, mes=None, dia=None, vendedor=None):
 
     faturamento_liquido = df_filtrado['valor total liquido'].sum()
 
-    print(f"Faturamento Líquido (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_liquido:,.2f}")
+    logger.info(f"Faturamento Líquido (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_liquido:,.2f}")
 
     return faturamento_liquido
 
@@ -74,18 +84,13 @@ def obter_vendedores():
     if df is None:
         return []
 
-    # Certifique-se de que a coluna 'vendedor' existe
     if 'vendedor' not in df.columns:
-        print("Coluna 'vendedor' não encontrada no DataFrame.")
+        logger.error("Coluna 'vendedor' não encontrada no DataFrame.")
         return []
 
-    # Obter vendedores únicos, removendo valores nulos ou vazios
     vendedores = df['vendedor'].dropna().unique()
-    
-    # Converter para lista e remover espaços em branco
     vendedores = [v.strip() for v in vendedores if isinstance(v, str)]
-    
-    return sorted(set(vendedores))  # Remover duplicatas e ordenar
+    return sorted(set(vendedores))
 
 def obter_vendas_diarias(ano=None, mes=None, vendedores=None):
     """Obtém vendas diárias para o ano/mês/vendedores especificados."""
