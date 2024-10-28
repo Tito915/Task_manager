@@ -5,54 +5,50 @@ import pandas as pd
 import sys
 from pathlib import Path
 from datetime import datetime
+from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
 
 def check_environment():
     return st.session_state.get('ambiente', 'Task Manager')
+
+def create_metric_card(title, value, subtitle=None, percentage=None):
+    percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
+    html = f"""
+    <div style="
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        height: 100px;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    ">
+        <h3 style="color: #333; font-size: 14px; margin-bottom: 5px;">{title}</h3>
+        <p style="color: #0066cc; font-size: 24px; font-weight: bold; margin: 0;">{value} {percentage_html}</p>
+        {f'<p style="color: #666; font-size: 12px; margin-top: 5px;">{subtitle}</p>' if subtitle else ''}
+    </div>
+    """
+    return st.markdown(html, unsafe_allow_html=True)
+
+@st.cache_data
+def load_faturamento(ano, mes=None, dia=None):
+    """Carrega o faturamento bruto e FLD para o ano, mês e dia especificados."""
+    fat_bruto = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia)
+    fld = calcular_fld(ano=ano, mes=mes, dia=dia)
+    return fat_bruto, fld
+
+@st.cache_data
+def load_vendas_diarias(ano, mes, vendedores):
+    """Carrega as vendas diárias para o ano, mês e vendedores especificados."""
+    return obter_vendas_diarias(ano=ano, mes=mes, vendedores=vendedores)
+
+@st.cache_data
+def load_maiores_faturamentos(ano, mes, limite):
+    """Carrega os maiores faturamentos de clientes para o ano, mês e limite especificados."""
+    return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
 
 def main():
     ambiente = check_environment()
     if ambiente != "Sales App":
         return  # Sai da função se não estiver no ambiente Sales App
-
-    # Adicionar o diretório pai ao caminho do sistema
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
-    from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
-
-    def create_metric_card(title, value, subtitle=None, percentage=None):
-        percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
-        html = f"""
-        <div style="
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            height: 100px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-        ">
-            <h3 style="color: #333; font-size: 14px; margin-bottom: 5px;">{title}</h3>
-            <p style="color: #0066cc; font-size: 24px; font-weight: bold; margin: 0;">{value} {percentage_html}</p>
-            {f'<p style="color: #666; font-size: 12px; margin-top: 5px;">{subtitle}</p>' if subtitle else ''}
-        </div>
-        """
-        return st.markdown(html, unsafe_allow_html=True)
-
-    @st.cache_data
-    def load_vendedores():
-        return obter_vendedores()
-
-    @st.cache_data
-    def load_faturamento(ano, mes=None, dia=None):
-        fat_bruto = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia)
-        fld = calcular_fld(ano=ano, mes=mes, dia=dia)
-        return fat_bruto, fld
-
-    @st.cache_data
-    def load_vendas_diarias(ano, mes, vendedores):
-        return obter_vendas_diarias(ano=ano, mes=mes, vendedores=vendedores)
-
-    @st.cache_data
-    def load_maiores_faturamentos(ano, mes, limite):
-        return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
 
     # Título da página
     st.title("Metas de Vendas")
@@ -67,7 +63,7 @@ def main():
     # Definir valores padrão
     ano_padrao = datetime.now().year
     mes_padrao = datetime.now().month
-    vendedores_padrao = ["Marcos","Penha"]
+    vendedores_padrao = ["Marcos", "Penha"]
 
     # Filtro de vendedores na barra lateral
     vendedor_selecionado = st.sidebar.multiselect("Selecione o Vendedor", todos_vendedores, default=vendedores_padrao)
@@ -83,34 +79,27 @@ def main():
     mes = None if mes_selecionado == "Todos" else int(mes_selecionado)
 
     # Calcular faturamento bruto e FLD para o ano atual
-    fat_bruto_anual = calcular_faturamento_bruto(ano=ano)
-    fld_anual = calcular_fld(ano=ano)
-
-    # Calcular faturamento bruto e FLD para o mês atual
-    fat_bruto_mensal = calcular_faturamento_bruto(ano=ano, mes=mes)
-    fld_mensal = calcular_fld(ano=ano, mes=mes)
-
-    # Calcular faturamento bruto e FLD para o dia atual
+    fat_bruto_anual, fld_anual = load_faturamento(ano)
+    fat_bruto_mensal, fld_mensal = load_faturamento(ano, mes)
     dia_atual = datetime.now().day
-    fat_bruto_diario = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia_atual)
-    fld_diario = calcular_fld(ano=ano, mes=mes, dia=dia_atual)
+    fat_bruto_diario, fld_diario = load_faturamento(ano, mes, dia_atual)
 
     # Cálculos para os cartões
-    percentual_desconto_anual = ((fat_bruto_anual - fld_anual) / fat_bruto_anual) * 100 if fat_bruto_anual and fat_bruto_anual != 0 else 0
-    percentual_desconto_mensal = ((fat_bruto_mensal - fld_mensal) / fat_bruto_mensal) * 100 if fat_bruto_mensal and fat_bruto_mensal != 0 else 0
-    percentual_desconto_diario = ((fat_bruto_diario - fld_diario) / fat_bruto_diario) * 100 if fat_bruto_diario and fat_bruto_diario != 0 else 0
+    percentual_desconto_anual = ((fat_bruto_anual - fld_anual) / fat_bruto_anual) * 100 if fat_bruto_anual else 0
+    percentual_desconto_mensal = ((fat_bruto_mensal - fld_mensal) / fat_bruto_mensal) * 100 if fat_bruto_mensal else 0
+    percentual_desconto_diario = ((fat_bruto_diario - fld_diario) / fat_bruto_diario) * 100 if fat_bruto_diario else 0
 
     budget_mensal = 609790  # 609,79 mil
     budget_anual = 7270000  # 7,27 milhões
     budget_diario = 27000  # 27 Mil
 
     diferenca_anual = budget_anual - fat_bruto_anual
-    previsao_mensal = (fat_bruto_mensal / budget_mensal) * 100 if budget_mensal and budget_mensal != 0 else 0
+    previsao_mensal = (fat_bruto_mensal / budget_mensal) * 100 if budget_mensal else 0
 
     # Cálculo dos percentuais de alcance da meta
-    percentual_fld_anual = (fld_anual / budget_anual) * 100 if budget_anual != 0 else 0
-    percentual_fld_mensal = (fld_mensal / budget_mensal) * 100 if budget_mensal != 0 else 0
-    percentual_fld_diario = (fld_diario / budget_diario) * 100 if budget_diario != 0 else 0
+    percentual_fld_anual = (fld_anual / budget_anual) * 100 if budget_anual else 0
+    percentual_fld_mensal = (fld_mensal / budget_mensal) * 100 if budget_mensal else 0
+    percentual_fld_diario = (fld_diario / budget_diario) * 100 if budget_diario else 0
 
     # Exibir cartões com informações
     st.markdown("### Faturamento Anual")
@@ -218,5 +207,4 @@ def main():
         st.warning("Não há dados de FLD por vendedor para o período selecionado.")
 
 if __name__ == "__main__":
-    ambiente = check_environment()
-    main(ambiente)
+    main()
