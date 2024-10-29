@@ -1,11 +1,9 @@
 import streamlit as st
-import sys
-from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
-from Verificador import calcular_receitas  # Importar a função do Verificador.py
+from Verificador import calcular_receitas  # Certifique-se de que esta função está correta
 
 def check_environment():
     # Retorna o ambiente atual, padrão é 'Task Manager'
@@ -16,7 +14,7 @@ def main(ambiente):
         st.write("Ambiente não é Sales App, saindo da função.")
         return
 
-    st.title("Dashboard de Faturamento")
+    st.title("Visão Geral do Faturamento")
     st.write("Carregando dados...")
 
     try:
@@ -56,10 +54,7 @@ def main(ambiente):
     tickets_filtrados = filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado)
 
     # Exibir cartões de Receita Operacional e Quantidade de Pedidos
-    exibir_cartoes_receita_pedidos(col1, col2, receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos)
-
-    # Exibir tickets no lado direito
-    exibir_tickets(col3, tickets_filtrados)
+    exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos)
 
     # Criar DataFrame para o gráfico de linha
     df_faturamento_7_dias = pd.DataFrame({
@@ -112,7 +107,7 @@ def filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado):
             tickets_filtrados = [(ano, mes, maximo, medio, minimo) for ano, mes, maximo, medio, minimo in tickets_por_mes_ano if ano == int(ano_selecionado) and mes == mes_selecionado]
     return tickets_filtrados
 
-def exibir_cartoes_receita_pedidos(col1, col2, receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos):
+def exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos):
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -130,15 +125,6 @@ def exibir_cartoes_receita_pedidos(col1, col2, receita_anual, receita_mensal, re
         st.markdown(
             f"<span style='color:green; font-size:20px;'>Anterior: {qtde_pedidos_anterior} Pedidos, Diferença: {diferenca_pedidos} Pedidos, Crescimento: {crescimento_pedidos:.2f}%</span>",
             unsafe_allow_html=True)
-
-def exibir_tickets(col3, tickets_filtrados):
-    with col3:
-        st.markdown("## Tickets por Ano")
-        for ano, maximo, medio, minimo in tickets_filtrados:
-            st.markdown(f"### Ano: {int(ano)}")
-            st.markdown(f"<span style='color:green; font-size:20px;'>Ticket Máximo: R$ {maximo:.2f}</span>", unsafe_allow_html=True)
-            st.markdown(f"<span style='color:yellow; font-size:20px;'>Ticket Médio: R$ {medio:.2f}</span>", unsafe_allow_html=True)
-            st.markdown(f"<span style='color:red; font-size:20px;'>Ticket Mínimo: R$ {minimo:.2f}</span>", unsafe_allow_html=True)
 
 def exibir_grafico_faturamento_7_dias(df_faturamento_7_dias):
     fig_line = px.line(df_faturamento_7_dias, x='Data', y='Faturamento', labels={'Faturamento': 'Faturamento (Mil)'}, title='Faturamento dos Últimos 7 Dias')
