@@ -84,7 +84,7 @@ def show_main_content():
     if ambiente == "Task Manager":
         task_manager_options = {
             "Home": home_page,
-            "Tarefas": create_task,
+            "Criar Tarefas": create_task,
             "Gerenciamento de Tarefas": manage_tasks,
             "Cadastrar Membro": lambda: cadastrar_membro(st.session_state.user) if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente'] else st.error("Sem permissão"),
             "Aprovar Tarefas": lambda: aprovar_tarefas(st.session_state.user['nome']),

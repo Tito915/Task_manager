@@ -117,41 +117,6 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
         st.warning("Esta tarefa está pendente de aprovação.")
         return
 
-    # Verificar dependências
-    dependencias_pendentes = []
-    for dep_id in tarefa.get("dependencias", []):
-        dep_tarefa = next((t for t in todas_tarefas if t.get("id") == dep_id), None)
-        if dep_tarefa and dep_tarefa.get("status_execucao") != "Concluído":
-            dependencias_pendentes.append(dep_id)
-
-    if dependencias_pendentes:
-        st.warning(f"Esta tarefa depende da conclusão das seguintes tarefas: {', '.join(map(str, dependencias_pendentes))}")
-
-    # Exibir anexos e comentários das tarefas dependentes
-    for dep_id in tarefa.get("dependencias", []):
-        dep_tarefa = next((t for t in todas_tarefas if t.get("id") == dep_id), None)
-        if dep_tarefa:
-            st.write(f"Informações da tarefa dependente (ID: {dep_id}):")
-            if dep_tarefa.get("arquivos_membros"):
-                for membro, caminho_arquivo in dep_tarefa["arquivos_membros"].items():
-                    arquivo_buffer = baixar_arquivo(caminho_arquivo)
-                    if arquivo_buffer:
-                        nome_arquivo = os.path.basename(caminho_arquivo)
-                        st.download_button(
-                            label=f"Baixar arquivo de {membro} (Tarefa {dep_id})",
-                            data=arquivo_buffer,
-                            file_name=nome_arquivo,
-                            mime="application/octet-stream",
-                            key=f"download_{dep_id}_{membro}"
-                        )
-                    else:
-                        st.warning(f"Não foi possível carregar o arquivo de {membro} (Tarefa {dep_id})")
-            
-            if dep_tarefa.get("comentarios_execucao"):
-                st.write("Comentários da execução:")
-                for membro, comentario in dep_tarefa["comentarios_execucao"].items():
-                    st.text(f"{membro}: {comentario}")
-                    
     with st.expander("Detalhes da Execução"):
         if tarefa.get("status_execucao") != "Em Andamento":
             if st.button("Iniciar Tarefa", key=f"start_{index}"):
@@ -194,6 +159,7 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
                         nome_subpasta = sanitize_filename(nome_completo)
                         
                         try:
+                            # Criar pastas para a tarefa e para o membro
                             criar_pasta(f"Projeto1/{nome_pasta_tarefa}")
                             criar_pasta(f"Projeto1/{nome_pasta_tarefa}/{nome_subpasta}")
                             

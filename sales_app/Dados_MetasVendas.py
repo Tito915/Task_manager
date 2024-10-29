@@ -23,6 +23,8 @@ def carregar_dados():
         df['data'] = pd.to_datetime(df['data'])
         df['gru'] = df['gru'].astype(str).str.strip()
         logger.info("Dados carregados com sucesso do Firebase.")
+        print("Dados carregados:")
+        print(df.head())  # Mostra as primeiras linhas do DataFrame
         return df
     except Exception as e:
         logger.error(f"Erro ao carregar dados: {e}")
@@ -30,7 +32,9 @@ def carregar_dados():
 
 def filtrar_faturamento_controle(df):
     """Filtra o DataFrame para excluir registros com GRU específicos."""
-    return df[~df['gru'].isin(['21', '21.0', '021', '21,0'])]
+    filtrado = df[~df['gru'].isin(['21', '21.0', '021', '21,0'])]
+    print(f"Registros após filtro GRU: {len(filtrado)}")
+    return filtrado
 
 def calcular_faturamento_bruto(ano=None, mes=None, dia=None, vendedor=None):
     """Calcula o Faturamento Bruto para o ano/mês/dia/vendedor especificado usando qtde e valor."""
@@ -52,6 +56,7 @@ def calcular_faturamento_bruto(ano=None, mes=None, dia=None, vendedor=None):
     faturamento_bruto = (df_filtrado['qtde'] * df_filtrado['valor']).sum()
 
     logger.info(f"Faturamento Bruto (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_bruto:,.2f}")
+    print(f"Faturamento Bruto calculado: R$ {faturamento_bruto:,.2f}")
 
     return faturamento_bruto
 
@@ -75,6 +80,7 @@ def calcular_fld(ano=None, mes=None, dia=None, vendedor=None):
     faturamento_liquido = df_filtrado['valor total liquido'].sum()
 
     logger.info(f"Faturamento Líquido (Ano: {ano}, Mês: {mes}, Dia: {dia}, Vendedor: {vendedor}): R$ {faturamento_liquido:,.2f}")
+    print(f"Faturamento Líquido calculado: R$ {faturamento_liquido:,.2f}")
 
     return faturamento_liquido
 
@@ -90,6 +96,7 @@ def obter_vendedores():
 
     vendedores = df['vendedor'].dropna().unique()
     vendedores = [v.strip() for v in vendedores if isinstance(v, str)]
+    print(f"Vendedores únicos encontrados: {vendedores}")
     return sorted(set(vendedores))
 
 def obter_vendas_diarias(ano=None, mes=None, vendedores=None):
@@ -111,6 +118,8 @@ def obter_vendas_diarias(ano=None, mes=None, vendedores=None):
     vendas_diarias.columns = ['data', 'vendedor', 'vendas_diarias']
     vendas_diarias = vendas_diarias.sort_values(['data', 'vendedor'])
 
+    print("Vendas diárias calculadas:")
+    print(vendas_diarias.head())
     return vendas_diarias.values.tolist()
 
 def obter_maiores_faturamentos(ano=None, mes=None, limite=20):
@@ -128,4 +137,14 @@ def obter_maiores_faturamentos(ano=None, mes=None, limite=20):
 
     maiores_faturamentos = df_filtrado.groupby('razao')['valor total liquido'].sum().sort_values(ascending=False).head(limite)
     
+    print("Maiores faturamentos:")
+    print(maiores_faturamentos)
     return list(maiores_faturamentos.items())
+
+# Exemplo de execução para verificar os prints
+if __name__ == "__main__":
+    calcular_faturamento_bruto(ano=2024)
+    calcular_fld(ano=2024)
+    obter_vendedores()
+    obter_vendas_diarias(ano=2024)
+    obter_maiores_faturamentos(ano=2024)

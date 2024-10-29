@@ -93,21 +93,11 @@ def manage_tasks():
     tasks = load_tasks()
     
     # Renderizar a matriz de status das tarefas
-    render_task_status_matrix(tasks)
+    if tasks:
+        render_task_status_matrix(tasks)
+    else:
+        st.warning("Nenhuma tarefa encontrada para exibir na matriz.")
 
-def manage_tasks():
-    st.header("Gerenciamento de Tarefas")
-    
-    if 'user' not in st.session_state:
-        st.error("Você precisa estar logado para acessar esta página.")
-        return
-    
-    user = st.session_state.user
-    user_role = get_user_role(user)
-    can_edit = user_role in ['Desenvolvedor', 'Presidente']
-    
-    tasks = load_tasks()
-    
     # Abas
     tab1, tab2, tab3 = st.tabs(["Visão Geral", "Sub-tarefas de Correção", "Área do Desenvolvedor"])
     
