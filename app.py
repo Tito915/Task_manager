@@ -56,6 +56,10 @@ def load_sales_app_page(page_name):
     except Exception as e:
         st.error(f"Ocorreu um erro ao executar a página {page_name}: {e}")
 
+def normalize_ambiente(ambiente):
+    # Remove espaços e converte para minúsculas
+    return ambiente.replace(" ", "").lower()
+
 def show_main_content():
     st.sidebar.title("Menu")
 
@@ -84,7 +88,10 @@ def show_main_content():
         key='ambiente_select'
     )
 
-    if ambiente == "Task Manager":
+    # Normaliza o ambiente selecionado
+    ambiente_normalizado = normalize_ambiente(ambiente)
+
+    if ambiente_normalizado == "taskmanager":
         task_manager_options = {
             "Home": home_page,
             "Criar Tarefas": create_task,
@@ -103,7 +110,7 @@ def show_main_content():
 
         task_manager_options[selected_option]()
 
-    elif ambiente == "Sales App":
+    elif ambiente_normalizado == "salesapp":
         sales_app_options = {
             "Visão Geral": 'visao_geral',
             "Metas de Vendas": 'metas_vendas',
