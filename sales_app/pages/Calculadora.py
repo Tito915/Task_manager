@@ -103,3 +103,10 @@ def run_calculator():
     if 'parcelas_detalhes' in st.session_state:
         for detalhe in st.session_state['parcelas_detalhes']:
             st.write(detalhe)
+            
+def main(ambiente):
+    if ambiente == "Sales App":
+        # Código específico para Sales App
+        st.write("Executando no ambiente Sales App")
+    else:
+        st.write("Outro ambiente")

@@ -8,7 +8,7 @@ from datetime import datetime
 def check_environment():
     return st.session_state.get('ambiente', 'Task Manager')
 
-def main():
+def main(ambiente):
     ambiente = check_environment()
     if ambiente != "Sales App":
         return  # Sai da função se não estiver no ambiente Sales App

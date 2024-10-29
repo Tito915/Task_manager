@@ -2,15 +2,15 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-import sys
-from pathlib import Path
 from datetime import datetime
 from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
 
 def check_environment():
+    # Retorna o ambiente atual da sessão
     return st.session_state.get('ambiente', 'Task Manager')
 
 def create_metric_card(title, value, subtitle=None, percentage=None):
+    # Cria um cartão de métrica estilizado
     percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
     html = f"""
     <div style="
@@ -30,23 +30,23 @@ def create_metric_card(title, value, subtitle=None, percentage=None):
 
 @st.cache_data
 def load_faturamento(ano, mes=None, dia=None):
-    """Carrega o faturamento bruto e FLD para o ano, mês e dia especificados."""
+    # Carrega o faturamento bruto e FLD para o ano, mês e dia especificados
     fat_bruto = calcular_faturamento_bruto(ano=ano, mes=mes, dia=dia)
     fld = calcular_fld(ano=ano, mes=mes, dia=dia)
     return fat_bruto, fld
 
 @st.cache_data
 def load_vendas_diarias(ano, mes, vendedores):
-    """Carrega as vendas diárias para o ano, mês e vendedores especificados."""
+    # Carrega as vendas diárias para o ano, mês e vendedores especificados
     return obter_vendas_diarias(ano=ano, mes=mes, vendedores=vendedores)
 
 @st.cache_data
 def load_maiores_faturamentos(ano, mes, limite):
-    """Carrega os maiores faturamentos de clientes para o ano, mês e limite especificados."""
+    # Carrega os maiores faturamentos de clientes para o ano, mês e limite especificados
     return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
 
-def main():
-    ambiente = check_environment()
+def main(ambiente):
+    # Verifica se o ambiente é o correto
     if ambiente != "Sales App":
         return  # Sai da função se não estiver no ambiente Sales App
 
@@ -207,4 +207,5 @@ def main():
         st.warning("Não há dados de FLD por vendedor para o período selecionado.")
 
 if __name__ == "__main__":
-    main()
+    ambiente = check_environment()  # Verifica o ambiente atual
+    main(ambiente)  # Passa o ambiente para a função main
