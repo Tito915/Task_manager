@@ -49,9 +49,12 @@ def load_sales_app_page(page_name):
     try:
         module = importlib.import_module(f'sales_app.pages.{page_name}')
         if hasattr(module, 'main'):
-            module.main()
+            ambiente = st.session_state.get('ambiente', 'Sales App')
+            module.main(ambiente)
     except ImportError:
         st.error(f"Não foi possível carregar a página {page_name}")
+    except Exception as e:
+        st.error(f"Ocorreu um erro ao executar a página {page_name}: {e}")
 
 def show_main_content():
     st.sidebar.title("Menu")
