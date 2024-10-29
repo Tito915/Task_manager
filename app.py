@@ -105,7 +105,8 @@ def show_main_content():
             "Visão Geral": 'visao_geral',
             "Metas de Vendas": 'metas_vendas',
             "Controle Fiscal": 'ctrl_fiscal',
-            "Configurações": 'configuracoes'
+            "Configurações": 'configuracoes',
+            "Calculadora": 'Calculadora'
         }
 
         selected_option = st.sidebar.selectbox(
