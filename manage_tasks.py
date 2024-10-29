@@ -41,6 +41,60 @@ def move_task_to_deleted(task_id):
         return True
     return False
 
+def render_task_status_matrix(tasks):
+    st.subheader("Matriz de Status das Tarefas")
+
+    # Coletar todos os membros envolvidos nas tarefas
+    all_members = set()
+    for task in tasks:
+        all_members.update(task.get('Membros', []))
+
+    # Criar cabeçalhos da tabela
+    headers = ["Tarefa"] + list(all_members)
+
+    # Criar dados da tabela
+    table_data = []
+    for task in tasks:
+        row = [task.get('titulo', 'Sem título')]
+        for member in all_members:
+            status_approval = task.get('Status de Aprovação', {}).get(member, 'N/A')
+            execution_status = task.get('Execução Membros', {}).get(member, 'N/A')
+            
+            if status_approval == 'N/A':
+                status = 'N/A'
+            elif execution_status == 'Aprovado' and task.get('status_execucao') == 'Concluído':
+                status = 'Concluída'
+            elif execution_status == 'Aprovado':
+                status = 'Pendente'
+            elif execution_status == 'Em Execução':
+                status = 'Em Aprovação'
+            elif execution_status == 'Em Atraso':
+                status = 'Em Atraso'
+            else:
+                status = 'N/A'
+            
+            row.append(status)
+        table_data.append(row)
+
+    # Renderizar a tabela com Streamlit
+    st.table(pd.DataFrame(table_data, columns=headers))
+
+def manage_tasks():
+    st.header("Gerenciamento de Tarefas")
+    
+    if 'user' not in st.session_state:
+        st.error("Você precisa estar logado para acessar esta página.")
+        return
+    
+    user = st.session_state.user
+    user_role = get_user_role(user)
+    can_edit = user_role in ['Desenvolvedor', 'Presidente']
+    
+    tasks = load_tasks()
+    
+    # Renderizar a matriz de status das tarefas
+    render_task_status_matrix(tasks)
+
 def manage_tasks():
     st.header("Gerenciamento de Tarefas")
     
