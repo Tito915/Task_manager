@@ -49,8 +49,7 @@ def load_sales_app_page(page_name):
     try:
         module = importlib.import_module(f'sales_app.pages.{page_name}')
         if hasattr(module, 'main'):
-            ambiente = st.session_state.get('ambiente', 'Sales App')
-            module.main(ambiente)
+            module.main()  # Chame a função main sem passar o argumento ambiente
     except ImportError:
         st.error(f"Não foi possível carregar a página {page_name}")
     except Exception as e:
