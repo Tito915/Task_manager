@@ -110,7 +110,7 @@ def show_main_content():
 
         task_manager_options[selected_option]()
 
-    elif ambiente_normalizado == "salesapp":
+    elif ambiente_normalizado == "Sales app":
         sales_app_options = {
             "Visão Geral": 'visao_geral',
             "Metas de Vendas": 'metas_vendas',
