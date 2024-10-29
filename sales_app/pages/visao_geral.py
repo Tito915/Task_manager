@@ -5,15 +5,7 @@ import pandas as pd
 from datetime import datetime
 from Verificador import calcular_receitas  # Certifique-se de que esta função está correta
 
-def check_environment():
-    # Retorna o ambiente atual, padrão é 'Task Manager'
-    return st.session_state.get('ambiente', 'Task Manager')
-
-def main(ambiente):
-    if ambiente != "salesapp":
-        st.write("Ambiente não é Sales App, saindo da função.")
-        return
-
+def main():
     st.title("Visão Geral do Faturamento")
     st.write("Carregando dados...")
 
@@ -157,5 +149,4 @@ def exibir_graficos_pizza(metas):
             col2.plotly_chart(fig_pie, use_container_width=True)
 
 if __name__ == "__main__":
-    ambiente = check_environment()
-    main(ambiente)
+    main()
