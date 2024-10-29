@@ -10,7 +10,7 @@ def check_environment():
     return st.session_state.get('ambiente', 'Task Manager')
 
 def main(ambiente):
-    if ambiente != "Sales App":
+    if ambiente != "salesapp":
         st.write("Ambiente não é Sales App, saindo da função.")
         return
 

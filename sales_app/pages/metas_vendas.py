@@ -47,7 +47,7 @@ def load_maiores_faturamentos(ano, mes, limite):
 
 def main(ambiente):
     # Verifica se o ambiente é o correto
-    if ambiente != "Sales App":
+    if ambiente != "salesapp":
         return  # Sai da função se não estiver no ambiente Sales App
 
     # Título da página

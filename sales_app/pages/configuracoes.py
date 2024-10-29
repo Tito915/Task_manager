@@ -31,7 +31,7 @@ def save_config(x_pos, y_pos, graph_size):
     st.session_state["graph_size"] = graph_size
 
 def main(ambiente):
-    if ambiente != "Sales App":
+    if ambiente != "salesapp":
         st.error("Esta página só está disponível no ambiente Sales App.")
         return
 

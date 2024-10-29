@@ -10,7 +10,7 @@ def check_environment():
 
 def main(ambiente):
     ambiente = check_environment()
-    if ambiente != "Sales App":
+    if ambiente != "salesapp":
         return  # Sai da função se não estiver no ambiente Sales App
 
     # Adicionar o diretório 'pages' ao caminho do sistema
