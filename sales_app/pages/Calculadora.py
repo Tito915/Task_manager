@@ -3,11 +3,9 @@ import json
 import os
 
 def carregar_taxas():
-    # Obtenha o caminho absoluto para o arquivo JSON
     caminho_diretorio = os.path.dirname(__file__)
     caminho_arquivo = os.path.join(caminho_diretorio, 'taxaatualizacao.json')
     
-    # Inicializa taxas padrão
     taxas_padrao = {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
     
     if os.path.exists(caminho_arquivo):
@@ -54,7 +52,6 @@ def calcular_valor_final():
         st.session_state['valor_final'] = valor_final
         st.session_state['valor_recebido'] = valor_recebido
         
-        # Simulação das parcelas
         valor_parcela = valor_final / parcelas
         st.session_state['parcelas_detalhes'] = [
             f"Parcela {i+1}: R$ {valor_parcela:.2f}" for i in range(parcelas)
@@ -64,7 +61,6 @@ def calcular_valor_final():
         st.error("Por favor, insira valores numéricos válidos.")
 
 def run_calculator():
-    # Inicialização das chaves no session_state
     if 'valor_venda' not in st.session_state:
         st.session_state['valor_venda'] = ''
     if 'entrada' not in st.session_state:
@@ -105,11 +101,9 @@ def run_calculator():
             st.write(detalhe)
             
 def main(ambiente):
-    # Normaliza o nome do ambiente
     ambiente_normalizado = ambiente.replace(" ", "").lower()
     
     if ambiente_normalizado == "salesapp":
-        # Código específico para Sales App
         st.write("Executando no ambiente Sales App")
         run_calculator()
     else:
