@@ -105,8 +105,12 @@ def run_calculator():
             st.write(detalhe)
             
 def main(ambiente):
-    if ambiente == "Sales App":
+    # Normaliza o nome do ambiente
+    ambiente_normalizado = ambiente.replace(" ", "").lower()
+    
+    if ambiente_normalizado == "salesapp":
         # Código específico para Sales App
         st.write("Executando no ambiente Sales App")
+        run_calculator()
     else:
         st.write("Outro ambiente")
