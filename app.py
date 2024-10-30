@@ -49,7 +49,14 @@ def load_sales_app_page(page_name):
     try:
         module = importlib.import_module(f'sales_app.pages.{page_name}')
         if hasattr(module, 'main'):
+            # Substituir st.set_page_config se existir no módulo
+            original_set_page_config = st.set_page_config
+            st.set_page_config = lambda *args, **kwargs: None
+            
             module.main()  # Chame a função main sem passar o argumento ambiente
+            
+            # Restaurar st.set_page_config
+            st.set_page_config = original_set_page_config
     except ImportError:
         st.error(f"Não foi possível carregar a página {page_name}")
     except Exception as e:
