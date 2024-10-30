@@ -5,6 +5,9 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+# Configuração da página deve ser a primeira chamada Streamlit
+st.set_page_config(layout="wide")
+
 # Adicione o diretório 'pages' ao caminho do sistema
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -26,9 +29,6 @@ def carregar_dados():
         return None, None, None
 
 def main():
-    # Configuração da página
-    st.set_page_config(layout="wide")
-
     # Título da página
     st.title("Controle Fiscal")
 
