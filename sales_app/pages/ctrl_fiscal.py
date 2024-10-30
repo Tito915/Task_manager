@@ -8,6 +8,7 @@ from datetime import datetime
 # Adicione o diretório 'pages' ao caminho do sistema
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+
 from Dados_Controle_Ctrl_Fiscal import obter_faturamento_anual_todos, obter_faturamento_mensal_todos, obter_faturamento_por_natureza, obter_entradas_mensais
 
 def carregar_dados():
