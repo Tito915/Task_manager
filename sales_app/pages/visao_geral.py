@@ -36,14 +36,9 @@ def main():
     mes_filtro = None if mes_selecionado == "Todos" else int(mes_selecionado)
     ano_filtro = None if ano_selecionado == "Todos" else int(ano_selecionado)
 
-    # Obter dados calculados com base nos filtros
-    try:
-        resultados_filtrados = calcular_receitas(mes_filtro, ano_filtro)
-        (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
-         qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
-         faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados_filtrados
-    except Exception as e:
-        st.error(f"Erro ao calcular receitas com filtros: {e}")
+    # Verifique se há dados de tickets antes de continuar
+    if not tickets_por_mes_ano:
+        st.warning("Nenhum dado de tickets disponível.")
         return
 
     # Filtrar os tickets por mês e ano selecionados
@@ -75,6 +70,11 @@ def main():
     exibir_graficos_pizza(metas)
 
 def filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado):
+    if mes_selecionado is None:
+        mes_selecionado = "Todos"
+    if ano_selecionado is None:
+        ano_selecionado = "Todos"
+
     if mes_selecionado == "Todos":
         if ano_selecionado == "Todos":
             tickets_anuais = {}
