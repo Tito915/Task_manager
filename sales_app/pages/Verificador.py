@@ -1,15 +1,15 @@
 import sys
 from pathlib import Path
+import pandas as pd
+from firebase_admin import storage
+from datetime import datetime, timedelta
+import io
 
 # Adicione o diretório raiz do projeto ao sys.path
 root_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(root_dir))
 
 from utils import initialize_firebase, validar_conexao
-import pandas as pd
-from firebase_admin import storage
-from datetime import datetime, timedelta
-import io
 
 def download_excel_from_firebase():
     initialize_firebase()
@@ -86,15 +86,14 @@ def calcular_receitas(mes=None, ano=None):
 
     # Faturamento dos últimos 7 dias
     data_sete_dias_atras = data_atual - timedelta(days=7)
-    faturamento_ultimos_sete_dias = df[df[col_data] >= data_sete_dias_atras].groupby(df[col_data].dt.date)[col_valor].sum().reset_index()
-    faturamento_ultimos_sete_dias = [(data.strftime("%Y-%m-%d"), valor / 1000) for data, valor in zip(faturamento_ultimos_sete_dias[col_data], faturamento_ultimos_sete_dias[col_valor])]
+    faturamento_ultimos_sete_dias = df[df[col_data] >= data_sete_dias_atras].groupby(df[col_data].dt.date)[col_valor].sum().reset_index(name='Faturamento')
+    faturamento_ultimos_sete_dias = [(data.strftime("%Y-%m-%d"), valor / 1000) for data, valor in zip(faturamento_ultimos_sete_dias[col_data], faturamento_ultimos_sete_dias['Faturamento'])]
 
     # Tickets por mês e ano
-    tickets_por_mes_ano = df[df[col_valor] > 0].groupby([df[col_data].dt.year, df[col_data].dt.month]).agg({
+    tickets_por_mes_ano = df[df[col_valor] > 0].groupby([df[col_data].dt.year.rename('ano'), df[col_data].dt.month.rename('mes')]).agg({
         col_valor: ['max', 'mean', 'min']
-    })
-    tickets_por_mes_ano.columns = ['ticket_maximo', 'ticket_medio', 'ticket_minimo']
-    tickets_por_mes_ano = tickets_por_mes_ano.reset_index()
+    }).reset_index()
+
     tickets_por_mes_ano.columns = ['ano', 'mes', 'ticket_maximo', 'ticket_medio', 'ticket_minimo']
     tickets_por_mes_ano = tickets_por_mes_ano.values.tolist()
 
@@ -147,4 +146,3 @@ if __name__ == "__main__":
     print("Distribuição de Clientes por Faixa de Valor:")
     for count, faixa in distribuicao_clientes:
         print(f"{faixa}: {count} clientes")
-        
