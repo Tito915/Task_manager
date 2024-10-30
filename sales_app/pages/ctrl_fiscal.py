@@ -5,51 +5,56 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-def check_environment():
-    return st.session_state.get('ambiente', 'Task Manager')
+# Adicione o diretório 'pages' ao caminho do sistema
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-def main(ambiente):
-    ambiente = check_environment()
-    if ambiente != "salesapp":
-        return  # Sai da função se não estiver no ambiente Sales App
+from Dados_Controle_Ctrl_Fiscal import obter_faturamento_anual_todos, obter_faturamento_mensal_todos, obter_faturamento_por_natureza, obter_entradas_mensais
 
-    # Adicionar o diretório 'pages' ao caminho do sistema
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
+def carregar_dados():
+    """Função para carregar dados com tratamento de erros."""
+    try:
+        faturamento_anual = obter_faturamento_anual_todos()
+        faturamento_mensal = obter_faturamento_mensal_todos()
+        entradas_mensais = obter_entradas_mensais()
 
-    from Dados_Controle_Ctrl_Fiscal import obter_faturamento_anual_todos, obter_faturamento_mensal_todos, obter_faturamento_por_natureza, obter_entradas_mensais
+        faturamento_anual = [(int(ano), float(valor)) for ano, valor in faturamento_anual]
+        faturamento_mensal = [(int(ano), int(mes), float(valor)) for ano, mes, valor in faturamento_mensal]
 
-    # Função para carregar dados com tratamento de erros
-    def carregar_dados():
-        try:
-            faturamento_anual = obter_faturamento_anual_todos()
-            faturamento_mensal = obter_faturamento_mensal_todos()
-            entradas_mensais = obter_entradas_mensais()
-            
-            faturamento_anual = [(int(ano), float(valor)) for ano, valor in faturamento_anual]
-            faturamento_mensal = [(int(ano), int(mes), float(valor)) for ano, mes, valor in faturamento_mensal]
-           
-            return faturamento_anual, faturamento_mensal, entradas_mensais
-        except Exception as e:
-            st.error(f"Erro ao carregar dados: {e}")
-            return None, None, None
+        return faturamento_anual, faturamento_mensal, entradas_mensais
+    except Exception as e:
+        st.error(f"Erro ao carregar dados: {e}")
+        return None, None, None
 
+def main():
     # Configuração da página
     st.set_page_config(layout="wide")
 
     # Título da página
     st.title("Controle Fiscal")
 
-    # Carregar dados
-    faturamento_anual, faturamento_mensal, entradas_mensais = carregar_dados()
+    # Botão para atualizar dados
+    if st.button("Atualizar Dados"):
+        st.session_state['atualizar'] = True
+    else:
+        st.session_state['atualizar'] = False
 
-    # Verifique se os dados foram carregados corretamente antes de continuar
-    if faturamento_anual is not None and faturamento_mensal is not None and entradas_mensais is not None:
+    # Carregar dados apenas se o botão for pressionado
+    if st.session_state.get('atualizar', True):
+        try:
+            faturamento_anual, faturamento_mensal, entradas_mensais = carregar_dados()
+            if faturamento_anual is None or faturamento_mensal is None or entradas_mensais is None:
+                st.error("Erro ao carregar dados.")
+                return
+        except Exception as e:
+            st.error(f"Erro ao carregar dados: {e}")
+            return
+
         # Criar DataFrame para visualização do faturamento anual
         df_anual = pd.DataFrame(faturamento_anual, columns=['Ano', 'Faturamento Anual'])
-        
+
         # Layout principal
         col1, col2 = st.columns([1, 2])
-        
+
         with col1:
             st.markdown("### Faturamento Anual")
             for ano, valor in faturamento_anual:
@@ -68,38 +73,38 @@ def main(ambiente):
             # Calcular metas e teto de faturamento
             ano_atual = datetime.now().year
             mes_atual = datetime.now().month
-            
+
             # Filtrar dados do ano atual
             df_ano_atual = df_mensal[df_mensal['Ano'] == ano_atual]
-            
+
             # Calcular faturamento acumulado
             faturamento_acumulado = df_ano_atual['Faturamento Mensal'].sum()
-            
+
             # Calcular número de meses restantes
             meses_restantes = 12 - mes_atual + 1  # +1 para incluir o mês atual
-            
+
             # Calcular valor disponível para faturamento
             limite_anual = 3_600_000  # 3,6 milhões
             valor_disponivel = max(0, limite_anual - faturamento_acumulado)
-            
+
             # Calcular teto mensal
             teto_mensal = valor_disponivel / meses_restantes if meses_restantes > 0 else 0
-            
+
             # Calcular média de faturamento dos meses anteriores
             media_faturamento = faturamento_acumulado / (mes_atual - 1) if mes_atual > 1 else faturamento_acumulado
-            
+
             # Obter faturamento do último mês
             ultimo_faturamento = df_ano_atual[df_ano_atual['Mês'] == mes_atual]['Faturamento Mensal'].values[0] if mes_atual > 1 else 0
 
             # Obter faturamento por natureza do mês atual
             faturamento_por_natureza_atual = obter_faturamento_por_natureza(ano_atual, mes_atual)
-            
+
             # Calcular o faturamento com cartão
             faturamento_cartao = sum(valor for natureza, valor in faturamento_por_natureza_atual if natureza.lower() == "venda com cartão")
-            
+
             # Calcular a meta de cartão (200% do faturamento com cartão)
             meta_cartao = faturamento_cartao * 2
-            
+
             # Obter o valor de entrada do mês atual
             valor_entrada = next((valor for ano, mes, valor in entradas_mensais if ano == ano_atual and mes == mes_atual), 0)
             meta_135 = 1.35 * valor_entrada
@@ -159,7 +164,7 @@ def main(ambiente):
 
         # Exibir o valor de "venda com cartão" usado para o cálculo da meta
         st.info(f"Valor de 'Venda com Cartão' usado para cálculo da meta: R$ {faturamento_cartao / 1_000:,.2f} Mil")
-        
+
         # Gráfico de barras para Entradas Mensais do ano atual
         st.markdown("### Entradas Mensais")
         
@@ -187,9 +192,5 @@ def main(ambiente):
         else:
             st.warning(f"Não há dados de entradas para o ano {ano_atual}.")
 
-    else:
-        st.error("Os dados não foram carregados corretamente.")
-
 if __name__ == "__main__":
-    ambiente = check_environment()
-    main(ambiente)
+    main()
