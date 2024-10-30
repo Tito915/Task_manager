@@ -37,13 +37,17 @@ def main():
     ano_filtro = None if ano_selecionado == "Todos" else int(ano_selecionado)
 
     # Obter dados calculados com base nos filtros
-    resultados = calcular_receitas(mes_filtro, ano_filtro)
-    (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
-     qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
-     faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
+    try:
+        resultados_filtrados = calcular_receitas(mes_filtro, ano_filtro)
+        (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
+         qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
+         faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados_filtrados
+    except Exception as e:
+        st.error(f"Erro ao calcular receitas com filtros: {e}")
+        return
 
     # Filtrar os tickets por mês e ano selecionados
-    tickets_filtrados = filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado)
+    tickets_filtrados = filtrar_tickets(tickets_por_mes_ano, mes_filtro, ano_filtro)
 
     # Exibir cartões de Receita Operacional e Quantidade de Pedidos
     exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos)
@@ -119,22 +123,28 @@ def exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria
             unsafe_allow_html=True)
 
 def exibir_grafico_faturamento_7_dias(df_faturamento_7_dias):
-    fig_line = px.line(df_faturamento_7_dias, x='Data', y='Faturamento', labels={'Faturamento': 'Faturamento (Mil)'}, title='Faturamento dos Últimos 7 Dias')
-    fig_line.update_traces(line=dict(color='royalblue'))
-    st.markdown("## Faturamento dos Últimos 7 Dias")
-    st.plotly_chart(fig_line, use_container_width=True)
+    if not df_faturamento_7_dias.empty:
+        fig_line = px.line(df_faturamento_7_dias, x='Data', y='Faturamento', labels={'Faturamento': 'Faturamento (Mil)'}, title='Faturamento dos Últimos 7 Dias')
+        fig_line.update_traces(line=dict(color='royalblue'))
+        st.markdown("## Faturamento dos Últimos 7 Dias")
+        st.plotly_chart(fig_line, use_container_width=True)
+    else:
+        st.warning("Sem dados de faturamento para os últimos 7 dias.")
 
 def exibir_grafico_funnel(distribuicao_clientes):
-    labels = [faixa for _, faixa in distribuicao_clientes]
-    values = [count for count, _ in distribuicao_clientes]
+    if distribuicao_clientes:
+        labels = [faixa for _, faixa in distribuicao_clientes]
+        values = [count for count, _ in distribuicao_clientes]
 
-    fig_funnel = go.Figure(go.Funnel(
-        y=labels,
-        x=values,
-        textinfo="value+percent initial"))
+        fig_funnel = go.Figure(go.Funnel(
+            y=labels,
+            x=values,
+            textinfo="value+percent initial"))
 
-    st.markdown("## Distribuição de Clientes por Faixa de Valor de Pedido")
-    st.plotly_chart(fig_funnel, use_container_width=True)
+        st.markdown("## Distribuição de Clientes por Faixa de Valor de Pedido")
+        st.plotly_chart(fig_funnel, use_container_width=True)
+    else:
+        st.warning("Sem dados de distribuição de clientes.")
 
 def exibir_graficos_pizza(metas):
     st.markdown("## Metas")
