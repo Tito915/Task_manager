@@ -5,9 +5,6 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-# Configuração da página deve ser a primeira chamada Streamlit
-st.set_page_config(layout="wide")
-
 # Adicione o diretório 'pages' ao caminho do sistema
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
