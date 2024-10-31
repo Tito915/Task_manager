@@ -18,6 +18,19 @@ def carregar_taxas():
         st.error(f"Erro ao carregar taxas: {e}")
         return {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
 
+def salvar_taxas(taxas):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob('SallesApp/taxaatualizacao.json')
+        
+        # Converter taxas para JSON e salvar
+        json_data = json.dumps(taxas)
+        blob.upload_from_string(json_data, content_type='application/json')
+        
+        st.success("Taxas atualizadas com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao salvar taxas: {e}")
+
 def calcular_valor_final():
     try:
         valor_venda = float(st.session_state['valor_venda'])
@@ -74,9 +87,9 @@ def main():
     if 'parcelas' not in st.session_state:
         st.session_state['parcelas'] = 1
     if 'pagamento' not in st.session_state:
-        st.session_state['pagamento'] = 'Boleto'
+        st.session_state['pagamento'] = 'Cartão'
     if 'cliente_paga' not in st.session_state:
-        st.session_state['cliente_paga'] = False
+        st.session_state['cliente_paga'] = True
     if 'taxa_antecipacao' not in st.session_state:
         st.session_state['taxa_antecipacao'] = 0.0
 
@@ -89,8 +102,8 @@ def main():
         st.selectbox("Número de parcelas:", options=list(range(1, 13)), key='parcelas')
 
     with col2:
-        st.radio("Forma de pagamento:", options=['Boleto', 'Cartão'], key='pagamento')
-        st.checkbox("Cliente paga as taxas", key='cliente_paga')
+        st.radio("Forma de pagamento:", options=['Cartão', 'Boleto'], key='pagamento')
+        st.checkbox("Cliente paga as taxas", key='cliente_paga', value=True)
         if st.session_state['pagamento'] == 'Cartão':
             st.text_input("Taxa de Antecipação (%):", key='taxa_antecipacao')
 
@@ -110,6 +123,27 @@ def main():
         if 'parcelas_detalhes' in st.session_state:
             for detalhe in st.session_state['parcelas_detalhes']:
                 st.write(detalhe)
+
+    # Aba de cadastro de taxas (apenas para Desenvolvedores)
+    if st.session_state.user['funcao'] == 'Desenvolvedor':
+        st.markdown("---")
+        st.markdown("### Cadastro de Taxas")
+        
+        taxa_type = st.radio("Tipo de Taxa:", options=['Cartão', 'Boleto'])
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            parcela = st.selectbox("Número de parcelas:", options=list(range(1, 13)))
+        with col2:
+            taxa = st.number_input("Taxa (%):", min_value=0.0, max_value=100.0, step=0.01)
+        
+        if st.button("Atualizar Taxa"):
+            if taxa_type == 'Cartão':
+                taxas['cartao'][str(parcela)] = taxa
+            else:
+                taxas['boleto'][str(parcela)] = taxa
+            salvar_taxas(taxas)
+            st.success(f"Taxa de {taxa}% para {parcela} parcela(s) no {taxa_type} atualizada com sucesso!")
 
 if __name__ == "__main__":
     main()
