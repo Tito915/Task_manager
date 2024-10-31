@@ -2,6 +2,7 @@ import streamlit as st
 import json
 from firebase_admin import storage
 import io
+import pandas as pd
 
 def carregar_taxas():
     try:
@@ -43,7 +44,7 @@ def calcular_valor_final():
             taxa = float(taxas_boleto.get(str(parcelas), 0))
         elif st.session_state['pagamento'] == 'Cartão':
             taxa = float(taxas_cartao.get(str(parcelas), 0))
-            taxa_antecipacao = float(st.session_state.get('taxa_antecipacao', 0.0))
+            taxa_antecipacao = 0.0  # Valor padrão, não é mais definido pelo usuário
             if cliente_paga_taxas:
                 taxa += taxa_antecipacao * parcelas
         else:
@@ -70,6 +71,27 @@ def calcular_valor_final():
     except ValueError:
         st.error("Por favor, insira valores numéricos válidos.")
 
+def exibir_taxas(taxas):
+    st.subheader("Taxas Cadastradas")
+    
+    df_cartao = pd.DataFrame(list(taxas['cartao'].items()), columns=['Parcelas', 'Taxa (%)'])
+    df_cartao['Parcelas'] = df_cartao['Parcelas'].astype(int)
+    df_cartao = df_cartao.sort_values('Parcelas')
+    
+    df_boleto = pd.DataFrame(list(taxas['boleto'].items()), columns=['Parcelas', 'Taxa (%)'])
+    df_boleto['Parcelas'] = df_boleto['Parcelas'].astype(int)
+    df_boleto = df_boleto.sort_values('Parcelas')
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("Taxas de Cartão")
+        st.dataframe(df_cartao)
+    
+    with col2:
+        st.write("Taxas de Boleto")
+        st.dataframe(df_boleto)
+
 def main():
     st.title("Cálculo de Venda a Prazo")
 
@@ -90,60 +112,68 @@ def main():
         st.session_state['pagamento'] = 'Cartão'
     if 'cliente_paga' not in st.session_state:
         st.session_state['cliente_paga'] = True
-    if 'taxa_antecipacao' not in st.session_state:
-        st.session_state['taxa_antecipacao'] = 0.0
 
-    # Interface do usuário
-    col1, col2 = st.columns(2)
+    # Criar abas
+    tab1, tab2 = st.tabs(["Calculadora", "Gerenciar Taxas"])
 
-    with col1:
-        st.text_input("Valor total da venda (R$):", key='valor_venda')
-        st.text_input("Valor da entrada (R$):", key='entrada')
-        st.selectbox("Número de parcelas:", options=list(range(1, 13)), key='parcelas')
-
-    with col2:
-        st.radio("Forma de pagamento:", options=['Cartão', 'Boleto'], key='pagamento')
-        st.checkbox("Cliente paga as taxas", key='cliente_paga', value=True)
-        if st.session_state['pagamento'] == 'Cartão':
-            st.text_input("Taxa de Antecipação (%):", key='taxa_antecipacao')
-
-    if st.button("Calcular"):
-        calcular_valor_final()
-
-    # Exibir resultados
-    if 'valor_final' in st.session_state:
-        st.markdown("### Resultados")
+    with tab1:
+        # Interface do usuário da calculadora
         col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Valor final a ser pago", f"R$ {st.session_state['valor_final']:.2f}")
-        with col2:
-            st.metric("Valor a ser recebido", f"R$ {st.session_state['valor_recebido']:.2f}")
 
-        st.markdown("### Detalhes das Parcelas")
-        if 'parcelas_detalhes' in st.session_state:
-            for detalhe in st.session_state['parcelas_detalhes']:
-                st.write(detalhe)
-
-    # Aba de cadastro de taxas (apenas para Desenvolvedores)
-    if st.session_state.user['funcao'] == 'Desenvolvedor':
-        st.markdown("---")
-        st.markdown("### Cadastro de Taxas")
-        
-        taxa_type = st.radio("Tipo de Taxa:", options=['Cartão', 'Boleto'])
-        
-        col1, col2 = st.columns(2)
         with col1:
-            parcela = st.selectbox("Número de parcelas:", options=list(range(1, 13)))
+            st.text_input("Valor total da venda (R$):", key='valor_venda')
+            st.text_input("Valor da entrada (R$):", key='entrada')
+            st.selectbox("Número de parcelas:", options=list(range(1, 13)), key='parcelas')
+
         with col2:
-            taxa = st.number_input("Taxa (%):", min_value=0.0, max_value=100.0, step=0.01)
-        
-        if st.button("Atualizar Taxa"):
-            if taxa_type == 'Cartão':
-                taxas['cartao'][str(parcela)] = taxa
-            else:
-                taxas['boleto'][str(parcela)] = taxa
-            salvar_taxas(taxas)
-            st.success(f"Taxa de {taxa}% para {parcela} parcela(s) no {taxa_type} atualizada com sucesso!")
+            st.radio("Forma de pagamento:", options=['Cartão', 'Boleto'], key='pagamento')
+            st.checkbox("Cliente paga as taxas", key='cliente_paga', value=True)
+
+        if st.button("Calcular"):
+            calcular_valor_final()
+
+        # Exibir resultados
+        if 'valor_final' in st.session_state:
+            st.markdown("### Resultados")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Valor final a ser pago", f"R$ {st.session_state['valor_final']:.2f}")
+            with col2:
+                st.metric("Valor a ser recebido", f"R$ {st.session_state['valor_recebido']:.2f}")
+
+            st.markdown("### Detalhes das Parcelas")
+            if 'parcelas_detalhes' in st.session_state:
+                for detalhe in st.session_state['parcelas_detalhes']:
+                    st.write(detalhe)
+
+    with tab2:
+        if st.session_state.user['funcao'] == 'Desenvolvedor':
+            st.markdown("### Gerenciamento de Taxas")
+            
+            # Exibir taxas atuais
+            exibir_taxas(taxas)
+            
+            st.markdown("---")
+            st.markdown("### Cadastro de Taxas")
+            
+            taxa_type = st.radio("Tipo de Taxa:", options=['Cartão', 'Boleto'])
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                parcela = st.selectbox("Número de parcelas:", options=list(range(1, 13)))
+            with col2:
+                taxa = st.number_input("Taxa (%):", min_value=0.0, max_value=100.0, step=0.01)
+            
+            if st.button("Atualizar Taxa"):
+                if taxa_type == 'Cartão':
+                    taxas['cartao'][str(parcela)] = taxa
+                else:
+                    taxas['boleto'][str(parcela)] = taxa
+                salvar_taxas(taxas)
+                st.success(f"Taxa de {taxa}% para {parcela} parcela(s) no {taxa_type} atualizada com sucesso!")
+                st.rerun()  # Recarrega a página para exibir as taxas atualizadas
+        else:
+            st.warning("Acesso restrito. Apenas desenvolvedores podem gerenciar as taxas.")
 
 if __name__ == "__main__":
     main()
