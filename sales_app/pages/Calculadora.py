@@ -34,8 +34,8 @@ def salvar_taxas(taxas):
 
 def calcular_valor_final():
     try:
-        valor_venda = float(st.session_state['valor_venda'])
-        entrada = float(st.session_state['entrada'])
+        valor_venda = float(st.session_state['valor_venda'] or 0)
+        entrada = float(st.session_state['entrada'] or 0)
         parcelas = int(st.session_state['parcelas'])
         
         cliente_paga_taxas = st.session_state['cliente_paga']
@@ -44,9 +44,6 @@ def calcular_valor_final():
             taxa = float(taxas_boleto.get(str(parcelas), 0))
         elif st.session_state['pagamento'] == 'Cartão':
             taxa = float(taxas_cartao.get(str(parcelas), 0))
-            taxa_antecipacao = 0.0  # Valor padrão, não é mais definido pelo usuário
-            if cliente_paga_taxas:
-                taxa += taxa_antecipacao * parcelas
         else:
             st.error("Selecione uma forma de pagamento.")
             return
@@ -63,13 +60,15 @@ def calcular_valor_final():
         st.session_state['valor_final'] = valor_final
         st.session_state['valor_recebido'] = valor_recebido
         
-        valor_parcela = valor_final / parcelas
+        valor_parcela = valor_final / parcelas if parcelas > 0 else 0
         st.session_state['parcelas_detalhes'] = [
             f"Parcela {i+1}: R$ {valor_parcela:.2f}" for i in range(parcelas)
         ]
         
-    except ValueError:
-        st.error("Por favor, insira valores numéricos válidos.")
+    except ValueError as e:
+        st.error(f"Erro de valor: {e}. Por favor, insira valores numéricos válidos.")
+    except Exception as e:
+        st.error(f"Erro inesperado: {e}")
 
 def exibir_taxas(taxas):
     st.subheader("Taxas Cadastradas")
@@ -133,7 +132,7 @@ def main():
             calcular_valor_final()
 
         # Exibir resultados
-        if 'valor_final' in st.session_state:
+        if 'valor_final' in st.session_state and 'valor_recebido' in st.session_state:
             st.markdown("### Resultados")
             col1, col2 = st.columns(2)
             with col1:
@@ -147,7 +146,7 @@ def main():
                     st.write(detalhe)
 
     with tab2:
-        if st.session_state.user['funcao'] == 'Desenvolvedor':
+        if 'user' in st.session_state and st.session_state.user.get('funcao') == 'Desenvolvedor':
             st.markdown("### Gerenciamento de Taxas")
             
             # Exibir taxas atuais
