@@ -1,25 +1,22 @@
 import streamlit as st
 import json
-import os
+from firebase_admin import storage
+import io
 
 def carregar_taxas():
-    caminho_diretorio = os.path.dirname(__file__)
-    caminho_arquivo = os.path.join(caminho_diretorio, 'taxaatualizacao.json')
-    
-    taxas_padrao = {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
-    
-    if os.path.exists(caminho_arquivo):
-        with open(caminho_arquivo, 'r') as file:
-            try:
-                data = file.read().strip()
-                if data:
-                    return json.loads(data)
-                else:
-                    st.error("Arquivo JSON vazio. Usando taxas padrão.")
-            except json.JSONDecodeError:
-                st.error("Erro ao decodificar o arquivo JSON. Usando taxas padrão.")
-    
-    return taxas_padrao
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob('SallesApp/taxaatualizacao.json')
+        
+        # Download do arquivo para a memória
+        data = blob.download_as_string()
+        
+        # Decodificar o JSON
+        taxas = json.loads(data)
+        return taxas
+    except Exception as e:
+        st.error(f"Erro ao carregar taxas: {e}")
+        return {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
 
 def calcular_valor_final():
     try:
@@ -60,7 +57,16 @@ def calcular_valor_final():
     except ValueError:
         st.error("Por favor, insira valores numéricos válidos.")
 
-def run_calculator():
+def main():
+    st.title("Cálculo de Venda a Prazo")
+
+    # Carregar taxas do Firebase Storage
+    global taxas_cartao, taxas_boleto
+    taxas = carregar_taxas()
+    taxas_cartao = taxas['cartao']
+    taxas_boleto = taxas['boleto']
+
+    # Inicializar variáveis de sessão
     if 'valor_venda' not in st.session_state:
         st.session_state['valor_venda'] = ''
     if 'entrada' not in st.session_state:
@@ -74,37 +80,36 @@ def run_calculator():
     if 'taxa_antecipacao' not in st.session_state:
         st.session_state['taxa_antecipacao'] = 0.0
 
-    st.title("Cálculo de Venda a Prazo")
+    # Interface do usuário
+    col1, col2 = st.columns(2)
 
-    taxas = carregar_taxas()
-    global taxas_cartao, taxas_boleto
-    taxas_cartao = taxas['cartao']
-    taxas_boleto = taxas['boleto']
+    with col1:
+        st.text_input("Valor total da venda (R$):", key='valor_venda')
+        st.text_input("Valor da entrada (R$):", key='entrada')
+        st.selectbox("Número de parcelas:", options=list(range(1, 13)), key='parcelas')
 
-    st.text_input("Valor total da venda (R$):", key='valor_venda')
-    st.text_input("Valor da entrada (R$):", key='entrada')
-    st.selectbox("Número de parcelas:", options=list(range(1, 13)), key='parcelas')
-    st.radio("Forma de pagamento:", options=['Boleto', 'Cartão'], key='pagamento')
-    st.checkbox("Cliente paga as taxas", key='cliente_paga')
-
-    if st.session_state['pagamento'] == 'Cartão':
-        st.text_input("Taxa de Antecipação (%):", key='taxa_antecipacao')
+    with col2:
+        st.radio("Forma de pagamento:", options=['Boleto', 'Cartão'], key='pagamento')
+        st.checkbox("Cliente paga as taxas", key='cliente_paga')
+        if st.session_state['pagamento'] == 'Cartão':
+            st.text_input("Taxa de Antecipação (%):", key='taxa_antecipacao')
 
     if st.button("Calcular"):
         calcular_valor_final()
 
-    st.write(f"Valor final a ser pago (R$): {st.session_state.get('valor_final', '')}")
-    st.write(f"Valor a ser recebido (R$): {st.session_state.get('valor_recebido', '')}")
+    # Exibir resultados
+    if 'valor_final' in st.session_state:
+        st.markdown("### Resultados")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Valor final a ser pago", f"R$ {st.session_state['valor_final']:.2f}")
+        with col2:
+            st.metric("Valor a ser recebido", f"R$ {st.session_state['valor_recebido']:.2f}")
 
-    if 'parcelas_detalhes' in st.session_state:
-        for detalhe in st.session_state['parcelas_detalhes']:
-            st.write(detalhe)
-            
-def main(ambiente):
-    ambiente_normalizado = ambiente.replace(" ", "").lower()
-    
-    if ambiente_normalizado == "salesapp":
-        st.write("Executando no ambiente Sales App")
-        run_calculator()
-    else:
-        st.write("Outro ambiente")
+        st.markdown("### Detalhes das Parcelas")
+        if 'parcelas_detalhes' in st.session_state:
+            for detalhe in st.session_state['parcelas_detalhes']:
+                st.write(detalhe)
+
+if __name__ == "__main__":
+    main()
