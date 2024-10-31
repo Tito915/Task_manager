@@ -19,6 +19,8 @@ def save_users(users):
 
 def add_user(user):
     """Adiciona um novo usuário e salva no arquivo JSON."""
+    if 'permissions' not in user:
+        user['permissions'] = []  # Permissões padrão vazias
     users = load_users()
     users.append(user)
     save_users(users)
@@ -59,3 +61,41 @@ def delete_user(email):
 def user_exists(email):
     """Verifica se um usuário com o email fornecido já existe."""
     return get_user_by_email(email) is not None
+
+# Novas funções para gerenciar permissões
+
+def add_permission(email, permission):
+    """Adiciona uma permissão a um usuário específico."""
+    users = load_users()
+    for user in users:
+        if user['email'] == email:
+            if 'permissions' not in user:
+                user['permissions'] = []
+            if permission not in user['permissions']:
+                user['permissions'].append(permission)
+                save_users(users)
+                return True
+    return False
+
+def remove_permission(email, permission):
+    """Remove uma permissão de um usuário específico."""
+    users = load_users()
+    for user in users:
+        if user['email'] == email:
+            if 'permissions' in user and permission in user['permissions']:
+                user['permissions'].remove(permission)
+                save_users(users)
+                return True
+    return False
+
+def get_user_permissions(email):
+    """Retorna a lista de permissões de um usuário específico."""
+    user = get_user_by_email(email)
+    if user and 'permissions' in user:
+        return user['permissions']
+    return []
+
+def user_has_permission(email, permission):
+    """Verifica se um usuário tem uma permissão específica."""
+    permissions = get_user_permissions(email)
+    return permission in permissions
