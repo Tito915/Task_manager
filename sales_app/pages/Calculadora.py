@@ -4,6 +4,7 @@ from firebase_admin import storage
 import io
 import pandas as pd
 
+
 def carregar_taxas():
     try:
         bucket = storage.bucket()
