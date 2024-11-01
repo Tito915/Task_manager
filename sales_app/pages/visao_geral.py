@@ -5,57 +5,77 @@ import pandas as pd
 from datetime import datetime
 from Verificador import calcular_receitas
 
+# Função para inicializar o estado da sessão
+def init_session_state():
+    if 'edit_mode' not in st.session_state:
+        st.session_state.edit_mode = False
+    if 'dev_settings' not in st.session_state:
+        st.session_state.dev_settings = {
+            'font_size': 16,
+            'show_loading': True,
+            'show_receita': True,
+            'show_pedidos': True,
+            'show_faturamento_7_dias': True,
+            'show_distribuicao_clientes': True,
+            'show_metas': True,
+            'layout_metas': "2 Colunas"
+        }
+
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
     # Controle de tamanho de fonte
-    font_size = st.sidebar.slider("Tamanho da Fonte", 10, 24, 16)
-    st.markdown(f"""
-    <style>
-        .reportview-container .main .block-container{{
-            font-size: {font_size}px;
-        }}
-    </style>
-    """, unsafe_allow_html=True)
-
+    st.session_state.dev_settings['font_size'] = st.sidebar.slider("Tamanho da Fonte", 10, 24, st.session_state.dev_settings['font_size'])
+    
     # Controle de visibilidade dos elementos
-    show_receita = st.sidebar.checkbox("Mostrar Receita Operacional", True)
-    show_pedidos = st.sidebar.checkbox("Mostrar Quantidade de Pedidos", True)
-    show_faturamento_7_dias = st.sidebar.checkbox("Mostrar Faturamento 7 Dias", True)
-    show_distribuicao_clientes = st.sidebar.checkbox("Mostrar Distribuição de Clientes", True)
-    show_metas = st.sidebar.checkbox("Mostrar Metas", True)
+    st.session_state.dev_settings['show_loading'] = st.sidebar.checkbox("Mostrar Mensagens de Carregamento", st.session_state.dev_settings['show_loading'])
+    st.session_state.dev_settings['show_receita'] = st.sidebar.checkbox("Mostrar Receita Operacional", st.session_state.dev_settings['show_receita'])
+    st.session_state.dev_settings['show_pedidos'] = st.sidebar.checkbox("Mostrar Quantidade de Pedidos", st.session_state.dev_settings['show_pedidos'])
+    st.session_state.dev_settings['show_faturamento_7_dias'] = st.sidebar.checkbox("Mostrar Faturamento 7 Dias", st.session_state.dev_settings['show_faturamento_7_dias'])
+    st.session_state.dev_settings['show_distribuicao_clientes'] = st.sidebar.checkbox("Mostrar Distribuição de Clientes", st.session_state.dev_settings['show_distribuicao_clientes'])
+    st.session_state.dev_settings['show_metas'] = st.sidebar.checkbox("Mostrar Metas", st.session_state.dev_settings['show_metas'])
 
     # Controle de layout
-    layout_metas = st.sidebar.radio("Layout das Metas", ["1 Coluna", "2 Colunas", "3 Colunas"])
+    st.session_state.dev_settings['layout_metas'] = st.sidebar.radio("Layout das Metas", ["1 Coluna", "2 Colunas", "3 Colunas"], index=["1 Coluna", "2 Colunas", "3 Colunas"].index(st.session_state.dev_settings['layout_metas']))
 
-    return show_receita, show_pedidos, show_faturamento_7_dias, show_distribuicao_clientes, show_metas, layout_metas
+    # Botão para salvar as configurações
+    if st.sidebar.button("Salvar Configurações"):
+        st.success("Configurações salvas com sucesso!")
 
 def main():
+    init_session_state()
     st.title("Visão Geral do Faturamento")
 
     # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
 
-    # Variáveis para controlar a visibilidade e layout
-    show_receita = show_pedidos = show_faturamento_7_dias = show_distribuicao_clientes = show_metas = True
-    layout_metas = "2 Colunas"
-
     # Botão para ativar o modo de edição (apenas visível para desenvolvedores)
     if is_developer:
         if st.sidebar.button("Ativar/Desativar Modo de Edição do Desenvolvedor"):
-            st.session_state.edit_mode = not st.session_state.get('edit_mode', False)
+            st.session_state.edit_mode = not st.session_state.edit_mode
         
-        if st.session_state.get('edit_mode', False):
+        if st.session_state.edit_mode:
             st.sidebar.success("Modo de Edição Ativado")
-            show_receita, show_pedidos, show_faturamento_7_dias, show_distribuicao_clientes, show_metas, layout_metas = developer_edit_mode()
+            developer_edit_mode()
         else:
             st.sidebar.info("Modo de Edição Desativado")
 
-    st.write("Carregando dados...")
+    # Aplicar tamanho de fonte
+    st.markdown(f"""
+    <style>
+        .reportview-container .main .block-container{{
+            font-size: {st.session_state.dev_settings['font_size']}px;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    if st.session_state.dev_settings['show_loading']:
+        st.write("Carregando dados...")
 
     try:
         resultados = calcular_receitas()
-        st.write("Dados carregados com sucesso.")
+        if st.session_state.dev_settings['show_loading']:
+            st.write("Dados carregados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao calcular receitas: {e}")
         return
@@ -64,7 +84,8 @@ def main():
         (receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita,
          qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
          faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
-        st.write("Dados foram descompactados com sucesso.")
+        if st.session_state.dev_settings['show_loading']:
+            st.write("Dados foram descompactados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao descompactar resultados: {e}")
         return
@@ -89,8 +110,8 @@ def main():
     tickets_filtrados = filtrar_tickets(tickets_por_mes_ano, mes_filtro, ano_filtro)
 
     # Exibir cartões de Receita Operacional e Quantidade de Pedidos
-    if show_receita or show_pedidos:
-        exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos, show_receita, show_pedidos)
+    if st.session_state.dev_settings['show_receita'] or st.session_state.dev_settings['show_pedidos']:
+        exibir_cartoes_receita_pedidos(receita_anual, receita_mensal, receita_diaria, receita_anterior, diferenca_receita, crescimento_receita, qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos, st.session_state.dev_settings['show_receita'], st.session_state.dev_settings['show_pedidos'])
 
     # Criar DataFrame para o gráfico de linha
     df_faturamento_7_dias = pd.DataFrame({
@@ -99,11 +120,11 @@ def main():
     })
 
     # Gráfico de linha do faturamento dos últimos 7 dias
-    if show_faturamento_7_dias:
+    if st.session_state.dev_settings['show_faturamento_7_dias']:
         exibir_grafico_faturamento_7_dias(df_faturamento_7_dias)
 
     # Gráfico de funil para distribuição de clientes por faixa de valor
-    if show_distribuicao_clientes:
+    if st.session_state.dev_settings['show_distribuicao_clientes']:
         exibir_grafico_funnel(distribuicao_clientes)
 
     # Atualizar dados para os gráficos de pizza
@@ -114,8 +135,8 @@ def main():
     }
 
     # Gráficos de pizza
-    if show_metas:
-        exibir_graficos_pizza(metas, layout_metas)
+    if st.session_state.dev_settings['show_metas']:
+        exibir_graficos_pizza(metas, st.session_state.dev_settings['layout_metas'])
 
 def filtrar_tickets(tickets_por_mes_ano, mes_selecionado, ano_selecionado):
     if mes_selecionado is None:
