@@ -68,6 +68,9 @@ def normalize_ambiente(ambiente):
     return ambiente.replace(" ", "").lower()
 
 def user_has_permission(user, permission):
+    # Desenvolvedores têm acesso a tudo
+    if user['funcao'] == 'Desenvolvedor':
+        return True
     return user_manager.user_has_permission(user['email'], permission)
 
 def show_main_content():
@@ -101,14 +104,18 @@ def show_main_content():
             "Home": ("ver_home", home_page),
             "Criar Tarefas": ("criar_tarefas", create_task),
             "Gerenciamento de Tarefas": ("gerenciar_tarefas", manage_tasks),
-            "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user) if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente'] else st.error("Sem permissão")),
+            "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user)),
             "Aprovar Tarefas": ("aprovar_tarefas", lambda: aprovar_tarefas(st.session_state.user['nome'])),
             "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome'])),
             "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome']))
         }
 
-        available_options = [option for option, (permission, _) in task_manager_options.items() 
-                             if user_has_permission(st.session_state.user, permission)]
+        # Se for Desenvolvedor, mostra todas as opções
+        if st.session_state.user['funcao'] == 'Desenvolvedor':
+            available_options = list(task_manager_options.keys())
+        else:
+            available_options = [option for option, (permission, _) in task_manager_options.items() 
+                                 if user_has_permission(st.session_state.user, permission)]
 
         selected_option = st.sidebar.selectbox(
             "Navegação Task Manager",
@@ -129,8 +136,12 @@ def show_main_content():
             "Calculadora": ("usar_calculadora", 'Calculadora')
         }
 
-        available_options = [option for option, (permission, _) in sales_app_options.items() 
-                             if user_has_permission(st.session_state.user, permission)]
+        # Se for Desenvolvedor, mostra todas as opções
+        if st.session_state.user['funcao'] == 'Desenvolvedor':
+            available_options = list(sales_app_options.keys())
+        else:
+            available_options = [option for option, (permission, _) in sales_app_options.items() 
+                                 if user_has_permission(st.session_state.user, permission)]
 
         selected_option = st.sidebar.selectbox(
             "Navegação Sales App",
