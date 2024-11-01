@@ -2,6 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 import importlib
+import user_manager
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager", layout="wide")
@@ -66,18 +67,18 @@ def normalize_ambiente(ambiente):
     # Remove espaços e converte para minúsculas
     return ambiente.replace(" ", "").lower()
 
+def user_has_permission(user, permission):
+    return user_manager.user_has_permission(user['email'], permission)
+
 def show_main_content():
     st.sidebar.title("Menu")
 
-    # Mostrar o nome do usuário
     if 'user' in st.session_state and st.session_state.user:
         first_name = st.session_state.user['nome'].split()[0]
         st.sidebar.success(f"Seja bem-vindo: {first_name}")
 
-        # Contar tarefas pendentes
         approval_count, return_count, execution_count = count_pending_tasks(st.session_state.user['nome'])
 
-        # Exibir notificações
         st.sidebar.markdown("### Notificações")
         col1, col2, col3 = st.sidebar.columns(3)
         col1.metric("Aprovações", approval_count, delta_color="inverse")
@@ -87,54 +88,61 @@ def show_main_content():
         st.sidebar.warning("Usuário não autenticado")
         return
 
-    # Menu suspenso para seleção de ambiente
     ambiente = st.sidebar.selectbox(
         "Selecione o Ambiente",
         ["Task Manager", "Sales App"],
         key='ambiente_select'
     )
 
-    # Normaliza o ambiente selecionado
     ambiente_normalizado = normalize_ambiente(ambiente)
 
     if ambiente_normalizado == "taskmanager":
         task_manager_options = {
-            "Home": home_page,
-            "Criar Tarefas": create_task,
-            "Gerenciamento de Tarefas": manage_tasks,
-            "Cadastrar Membro": lambda: cadastrar_membro(st.session_state.user) if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente'] else st.error("Sem permissão"),
-            "Aprovar Tarefas": lambda: aprovar_tarefas(st.session_state.user['nome']),
-            "Executar Tarefas": lambda: executar_tarefas(st.session_state.user['nome']),
-            "Downloads": lambda: exibir_downloads(load_tasks(), st.session_state.user['nome'])
+            "Home": ("ver_home", home_page),
+            "Criar Tarefas": ("criar_tarefas", create_task),
+            "Gerenciamento de Tarefas": ("gerenciar_tarefas", manage_tasks),
+            "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user) if st.session_state.user['funcao'] in ['Desenvolvedor', 'Presidente'] else st.error("Sem permissão")),
+            "Aprovar Tarefas": ("aprovar_tarefas", lambda: aprovar_tarefas(st.session_state.user['nome'])),
+            "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome'])),
+            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome']))
         }
+
+        available_options = [option for option, (permission, _) in task_manager_options.items() 
+                             if user_has_permission(st.session_state.user, permission)]
 
         selected_option = st.sidebar.selectbox(
             "Navegação Task Manager",
-            list(task_manager_options.keys()),
+            available_options,
             key='task_manager_nav'
         )
 
-        task_manager_options[selected_option]()
+        if selected_option:
+            _, function = task_manager_options[selected_option]
+            function()
 
     elif ambiente_normalizado == "salesapp":
         sales_app_options = {
-            "Visão Geral": 'visao_geral',
-            "Metas de Vendas": 'metas_vendas',
-            "Controle Fiscal": 'ctrl_fiscal',
-            "Configurações": 'configuracoes',
-            "Calculadora": 'Calculadora'
+            "Visão Geral": ("ver_visao_geral", 'visao_geral'),
+            "Metas de Vendas": ("ver_metas_vendas", 'metas_vendas'),
+            "Controle Fiscal": ("ver_controle_fiscal", 'ctrl_fiscal'),
+            "Configurações": ("ver_configuracoes", 'configuracoes'),
+            "Calculadora": ("usar_calculadora", 'Calculadora')
         }
+
+        available_options = [option for option, (permission, _) in sales_app_options.items() 
+                             if user_has_permission(st.session_state.user, permission)]
 
         selected_option = st.sidebar.selectbox(
             "Navegação Sales App",
-            list(sales_app_options.keys()),
+            available_options,
             key='sales_app_nav'
         )
 
-        load_sales_app_page(sales_app_options[selected_option])
+        if selected_option:
+            _, page = sales_app_options[selected_option]
+            load_sales_app_page(page)
 
 def main():
-    # Inicializar estado da sessão
     if 'user' not in st.session_state:
         st.session_state.user = None
     
