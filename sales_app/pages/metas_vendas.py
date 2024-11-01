@@ -21,25 +21,28 @@ def save_dev_settings(settings):
         json.dump(settings, f)
 
 def init_session_state():
-    if 'edit_mode' not in st.session_state:
-        st.session_state.edit_mode = False
+    default_settings = {
+        'font_size': 16,
+        'show_faturamento_anual': True,
+        'show_faturamento_mensal': True,
+        'show_faturamento_diario': True,
+        'show_budget': True,
+        'show_vendas_diarias': True,
+        'show_metas_vendedores': True,
+        'show_ranking_clientes': True
+    }
     
     if 'dev_settings' not in st.session_state:
         saved_settings = load_dev_settings()
         if saved_settings:
-            st.session_state.dev_settings = saved_settings
-        else:
-            st.session_state.dev_settings = {
-                'font_size': 16,
-                'show_faturamento_anual': True,
-                'show_faturamento_mensal': True,
-                'show_faturamento_diario': True,
-                'show_budget': True,
-                'show_vendas_diarias': True,
-                'show_metas_vendedores': True,
-                'show_ranking_clientes': True
-            }
-
+            # Atualiza as configurações padrão com as configurações salvas
+            default_settings.update(saved_settings)
+        
+        st.session_state.dev_settings = default_settings
+    
+    if 'edit_mode' not in st.session_state:
+        st.session_state.edit_mode = False
+        
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
@@ -92,7 +95,11 @@ def load_maiores_faturamentos(ano, mes, limite):
 def main():
     init_session_state()
     st.title("Metas de Vendas")
-
+    
+    # Cria o arquivo de configurações se não existir
+    if not os.path.exists(CONFIG_FILE):
+        save_dev_settings(st.session_state.dev_settings)
+        
     # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
 
