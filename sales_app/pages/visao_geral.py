@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
 from Verificador import calcular_receitas
+import time
 
 # Função para inicializar o estado da sessão
 def init_session_state():
@@ -41,6 +42,12 @@ def developer_edit_mode():
     # Botão para salvar as configurações
     if st.sidebar.button("Salvar Configurações"):
         st.success("Configurações salvas com sucesso!")
+        
+def show_temporary_message(message, duration=2):
+    placeholder = st.empty()
+    placeholder.info(message)
+    time.sleep(duration)
+    placeholder.empty()
 
 def main():
     init_session_state()
@@ -70,12 +77,12 @@ def main():
     """, unsafe_allow_html=True)
 
     if st.session_state.dev_settings['show_loading']:
-        st.write("Carregando dados...")
+        show_temporary_message("Carregando dados...")
 
     try:
         resultados = calcular_receitas()
         if st.session_state.dev_settings['show_loading']:
-            st.write("Dados carregados com sucesso.")
+            show_temporary_message("Dados carregados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao calcular receitas: {e}")
         return
@@ -85,7 +92,7 @@ def main():
          qtde_pedidos_atual, qtde_pedidos_anterior, diferenca_pedidos, crescimento_pedidos,
          faturamento_ultimos_sete_dias, tickets_por_mes_ano, distribuicao_clientes) = resultados
         if st.session_state.dev_settings['show_loading']:
-            st.write("Dados foram descompactados com sucesso.")
+            show_temporary_message("Dados foram descompactados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao descompactar resultados: {e}")
         return
