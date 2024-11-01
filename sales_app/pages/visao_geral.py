@@ -5,22 +5,43 @@ import pandas as pd
 from datetime import datetime
 from Verificador import calcular_receitas
 import time
+import json
+import os
 
-# Função para inicializar o estado da sessão
+# Caminho para o arquivo de configurações
+CONFIG_FILE = 'dev_settings.json'
+
+def load_dev_settings():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    return None
+
+def save_dev_settings(settings):
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(settings, f)
+
 def init_session_state():
     if 'edit_mode' not in st.session_state:
         st.session_state.edit_mode = False
+    
     if 'dev_settings' not in st.session_state:
-        st.session_state.dev_settings = {
-            'font_size': 16,
-            'show_loading': True,
-            'show_receita': True,
-            'show_pedidos': True,
-            'show_faturamento_7_dias': True,
-            'show_distribuicao_clientes': True,
-            'show_metas': True,
-            'layout_metas': "2 Colunas"
-        }
+        # Tenta carregar as configurações salvas
+        saved_settings = load_dev_settings()
+        if saved_settings:
+            st.session_state.dev_settings = saved_settings
+        else:
+            # Se não houver configurações salvas, usa os valores padrão
+            st.session_state.dev_settings = {
+                'font_size': 16,
+                'show_loading': True,
+                'show_receita': True,
+                'show_pedidos': True,
+                'show_faturamento_7_dias': True,
+                'show_distribuicao_clientes': True,
+                'show_metas': True,
+                'layout_metas': "2 Colunas"
+            }
 
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
@@ -41,6 +62,7 @@ def developer_edit_mode():
 
     # Botão para salvar as configurações
     if st.sidebar.button("Salvar Configurações"):
+        save_dev_settings(st.session_state.dev_settings)
         st.success("Configurações salvas com sucesso!")
         
 def show_temporary_message(message, duration=2):
