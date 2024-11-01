@@ -15,23 +15,35 @@ def manage_permissions():
         st.subheader(f"Gerenciar permissões para {selected_user['nome']}")
 
         # Lista de todas as permissões possíveis
-        all_permissions = [
+        task_manager_permissions = [
             "ver_home", "criar_tarefas", "gerenciar_tarefas", "cadastrar_membro",
-            "aprovar_tarefas", "executar_tarefas", "ver_downloads",
+            "aprovar_tarefas", "executar_tarefas", "ver_downloads"
+        ]
+
+        sales_app_permissions = [
             "ver_visao_geral", "ver_metas_vendas", "ver_controle_fiscal",
             "ver_configuracoes", "usar_calculadora"
         ]
 
-        # Mostrar checkboxes para cada permissão
-        new_permissions = []
-        for permission in all_permissions:
+        # Mostrar checkboxes para cada permissão do Task Manager
+        st.subheader("Permissões do Task Manager")
+        new_task_manager_permissions = []
+        for permission in task_manager_permissions:
             has_permission = permission in selected_user.get('permissions', [])
-            if st.checkbox(permission, value=has_permission):
-                new_permissions.append(permission)
+            if st.checkbox(permission, value=has_permission, key=f"tm_{permission}"):
+                new_task_manager_permissions.append(permission)
+
+        # Mostrar checkboxes para cada permissão do Sales App
+        st.subheader("Permissões do Sales App")
+        new_sales_app_permissions = []
+        for permission in sales_app_permissions:
+            has_permission = permission in selected_user.get('permissions', [])
+            if st.checkbox(permission, value=has_permission, key=f"sa_{permission}"):
+                new_sales_app_permissions.append(permission)
 
         # Botão para salvar as alterações
         if st.button("Salvar Alterações"):
-            selected_user['permissions'] = new_permissions
+            selected_user['permissions'] = new_task_manager_permissions + new_sales_app_permissions
             user_manager.update_user(selected_user)
             st.success("Permissões atualizadas com sucesso!")
 
