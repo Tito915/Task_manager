@@ -6,7 +6,7 @@ from datetime import datetime
 from Verificador import calcular_receitas
 
 def developer_edit_mode():
-    st.sidebar.header("Modo de Edição do Desenvolvedor")
+    st.sidebar.header("Controles do Desenvolvedor")
     
     # Controle de tamanho de fonte
     font_size = st.sidebar.slider("Tamanho da Fonte", 10, 24, 16)
@@ -33,13 +33,23 @@ def developer_edit_mode():
 def main():
     st.title("Visão Geral do Faturamento")
 
-    # Verificar se o usuário é desenvolvedor e ativar modo de edição
+    # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
-    if is_developer and st.sidebar.checkbox("Ativar Modo de Edição"):
-        show_receita, show_pedidos, show_faturamento_7_dias, show_distribuicao_clientes, show_metas, layout_metas = developer_edit_mode()
-    else:
-        show_receita = show_pedidos = show_faturamento_7_dias = show_distribuicao_clientes = show_metas = True
-        layout_metas = "2 Colunas"
+
+    # Variáveis para controlar a visibilidade e layout
+    show_receita = show_pedidos = show_faturamento_7_dias = show_distribuicao_clientes = show_metas = True
+    layout_metas = "2 Colunas"
+
+    # Botão para ativar o modo de edição (apenas visível para desenvolvedores)
+    if is_developer:
+        if st.sidebar.button("Ativar/Desativar Modo de Edição do Desenvolvedor"):
+            st.session_state.edit_mode = not st.session_state.get('edit_mode', False)
+        
+        if st.session_state.get('edit_mode', False):
+            st.sidebar.success("Modo de Edição Ativado")
+            show_receita, show_pedidos, show_faturamento_7_dias, show_distribuicao_clientes, show_metas, layout_metas = developer_edit_mode()
+        else:
+            st.sidebar.info("Modo de Edição Desativado")
 
     st.write("Carregando dados...")
 
