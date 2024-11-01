@@ -21,40 +21,35 @@ def save_dev_settings(settings):
         json.dump(settings, f)
 
 def init_session_state():
-    default_settings = {
-        'font_size': 16,
-        'show_faturamento_anual': True,
-        'show_faturamento_mensal': True,
-        'show_faturamento_diario': True,
-        'show_budget': True,
-        'show_vendas_diarias': True,
-        'show_metas_vendedores': True,
-        'show_ranking_clientes': True
-    }
-    
     if 'dev_settings' not in st.session_state:
+        default_settings = {
+            'font_size': 16,
+            'show_faturamento_anual': True,
+            'show_faturamento_mensal': True,
+            'show_faturamento_diario': True,
+            'show_budget': True,
+            'show_vendas_diarias': True,
+            'show_metas_vendedores': True,
+            'show_ranking_clientes': True
+        }
+        
         saved_settings = load_dev_settings()
         if saved_settings:
-            # Atualiza as configurações padrão com as configurações salvas
             default_settings.update(saved_settings)
         
         st.session_state.dev_settings = default_settings
     
     if 'edit_mode' not in st.session_state:
         st.session_state.edit_mode = False
-        
+
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
-    st.session_state.dev_settings['font_size'] = st.sidebar.slider("Tamanho da Fonte", 10, 24, st.session_state.dev_settings['font_size'])
-    
-    st.session_state.dev_settings['show_faturamento_anual'] = st.sidebar.checkbox("Mostrar Faturamento Anual", st.session_state.dev_settings['show_faturamento_anual'])
-    st.session_state.dev_settings['show_faturamento_mensal'] = st.sidebar.checkbox("Mostrar Faturamento Mensal", st.session_state.dev_settings['show_faturamento_mensal'])
-    st.session_state.dev_settings['show_faturamento_diario'] = st.sidebar.checkbox("Mostrar Faturamento Diário", st.session_state.dev_settings['show_faturamento_diario'])
-    st.session_state.dev_settings['show_budget'] = st.sidebar.checkbox("Mostrar Budget", st.session_state.dev_settings['show_budget'])
-    st.session_state.dev_settings['show_vendas_diarias'] = st.sidebar.checkbox("Mostrar Vendas Diárias", st.session_state.dev_settings['show_vendas_diarias'])
-    st.session_state.dev_settings['show_metas_vendedores'] = st.sidebar.checkbox("Mostrar Metas dos Vendedores", st.session_state.dev_settings['show_metas_vendedores'])
-    st.session_state.dev_settings['show_ranking_clientes'] = st.sidebar.checkbox("Mostrar Ranking de Clientes", st.session_state.dev_settings['show_ranking_clientes'])
+    for key in st.session_state.dev_settings:
+        if key == 'font_size':
+            st.session_state.dev_settings[key] = st.sidebar.slider("Tamanho da Fonte", 10, 24, st.session_state.dev_settings[key])
+        else:
+            st.session_state.dev_settings[key] = st.sidebar.checkbox(f"Mostrar {key.replace('_', ' ').title()}", st.session_state.dev_settings[key])
 
     if st.sidebar.button("Salvar Configurações"):
         save_dev_settings(st.session_state.dev_settings)
@@ -99,7 +94,7 @@ def main():
     # Cria o arquivo de configurações se não existir
     if not os.path.exists(CONFIG_FILE):
         save_dev_settings(st.session_state.dev_settings)
-        
+    
     # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
 
@@ -117,7 +112,7 @@ def main():
     st.markdown(f"""
     <style>
         .reportview-container .main .block-container{{
-            font-size: {st.session_state.dev_settings['font_size']}px;
+            font-size: {st.session_state.dev_settings.get('font_size', 16)}px;
         }}
     </style>
     """, unsafe_allow_html=True)
@@ -175,7 +170,7 @@ def main():
         percentual_fld_mensal = (fld_mensal / budget_mensal) * 100 if budget_mensal else 0
         percentual_fld_diario = (fld_diario / budget_diario) * 100 if budget_diario else 0
 
-        if st.session_state.dev_settings['show_faturamento_anual']:
+        if st.session_state.dev_settings.get('show_faturamento_anual', True):
             st.markdown("### Faturamento Anual")
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -185,7 +180,7 @@ def main():
             with col3:
                 create_metric_card("Percentual de Desconto Anual", f"{percentual_desconto_anual:.2f}%")
 
-        if st.session_state.dev_settings['show_faturamento_mensal']:
+        if st.session_state.dev_settings.get('show_faturamento_mensal', True):
             st.markdown("### Faturamento Mensal")
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -195,7 +190,7 @@ def main():
             with col3:
                 create_metric_card("Desconto Mensal", f"{percentual_desconto_mensal:.2f}%")
 
-        if st.session_state.dev_settings['show_faturamento_diario']:
+        if st.session_state.dev_settings.get('show_faturamento_diario', True):
             st.markdown("### Faturamento Diário")
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -205,7 +200,7 @@ def main():
             with col3:
                 create_metric_card("Desconto Diário", f"{percentual_desconto_diario:.2f}%")
 
-        if st.session_state.dev_settings['show_budget']:
+        if st.session_state.dev_settings.get('show_budget', True):
             st.markdown("### Budget")
             col1, col2, col3, col4 = st.columns(4)
             with col1:
@@ -217,7 +212,7 @@ def main():
             with col4:
                 create_metric_card("Previsão Mensal (%)", f"{previsao_mensal:.2f}%")
 
-        if st.session_state.dev_settings['show_vendas_diarias']:
+        if st.session_state.dev_settings.get('show_vendas_diarias', True):
             try:
                 vendas_diarias = load_vendas_diarias(ano, mes, vendedor_selecionado)
                 if vendas_diarias:
@@ -235,7 +230,7 @@ def main():
             except Exception as e:
                 st.error(f"Erro ao carregar vendas diárias: {e}")
 
-        if st.session_state.dev_settings['show_metas_vendedores'] or st.session_state.dev_settings['show_ranking_clientes']:
+        if st.session_state.dev_settings.get('show_metas_vendedores', True) or st.session_state.dev_settings.get('show_ranking_clientes', True):
             try:
                 fld_por_vendedor = {vendedor: calcular_fld(ano=ano, mes=mes, vendedor=vendedor) for vendedor in todos_vendedores}
                 vendedores_com_movimento = [vendedor for vendedor, fld in fld_por_vendedor.items() if fld > 0]
