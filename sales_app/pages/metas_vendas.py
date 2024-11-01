@@ -4,6 +4,58 @@ import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
 from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
+import json
+import os
+
+# Caminho para o arquivo de configurações
+CONFIG_FILE = 'dev_settings_metas_vendas.json'
+
+def load_dev_settings():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    return None
+
+def save_dev_settings(settings):
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(settings, f)
+
+def init_session_state():
+    if 'edit_mode' not in st.session_state:
+        st.session_state.edit_mode = False
+    
+    if 'dev_settings' not in st.session_state:
+        saved_settings = load_dev_settings()
+        if saved_settings:
+            st.session_state.dev_settings = saved_settings
+        else:
+            st.session_state.dev_settings = {
+                'font_size': 16,
+                'show_faturamento_anual': True,
+                'show_faturamento_mensal': True,
+                'show_faturamento_diario': True,
+                'show_budget': True,
+                'show_vendas_diarias': True,
+                'show_metas_vendedores': True,
+                'show_ranking_clientes': True
+            }
+
+def developer_edit_mode():
+    st.sidebar.header("Controles do Desenvolvedor")
+    
+    st.session_state.dev_settings['font_size'] = st.sidebar.slider("Tamanho da Fonte", 10, 24, st.session_state.dev_settings['font_size'])
+    
+    st.session_state.dev_settings['show_faturamento_anual'] = st.sidebar.checkbox("Mostrar Faturamento Anual", st.session_state.dev_settings['show_faturamento_anual'])
+    st.session_state.dev_settings['show_faturamento_mensal'] = st.sidebar.checkbox("Mostrar Faturamento Mensal", st.session_state.dev_settings['show_faturamento_mensal'])
+    st.session_state.dev_settings['show_faturamento_diario'] = st.sidebar.checkbox("Mostrar Faturamento Diário", st.session_state.dev_settings['show_faturamento_diario'])
+    st.session_state.dev_settings['show_budget'] = st.sidebar.checkbox("Mostrar Budget", st.session_state.dev_settings['show_budget'])
+    st.session_state.dev_settings['show_vendas_diarias'] = st.sidebar.checkbox("Mostrar Vendas Diárias", st.session_state.dev_settings['show_vendas_diarias'])
+    st.session_state.dev_settings['show_metas_vendedores'] = st.sidebar.checkbox("Mostrar Metas dos Vendedores", st.session_state.dev_settings['show_metas_vendedores'])
+    st.session_state.dev_settings['show_ranking_clientes'] = st.sidebar.checkbox("Mostrar Ranking de Clientes", st.session_state.dev_settings['show_ranking_clientes'])
+
+    if st.sidebar.button("Salvar Configurações"):
+        save_dev_settings(st.session_state.dev_settings)
+        st.success("Configurações salvas com sucesso!")
 
 def create_metric_card(title, value, subtitle=None, percentage=None):
     percentage_html = f'<span style="color: {"green" if percentage >= 100 else "red"}; font-size: 18px;"> ({percentage:.1f}%)</span>' if percentage is not None else ''
@@ -38,15 +90,36 @@ def load_maiores_faturamentos(ano, mes, limite):
     return obter_maiores_faturamentos(ano=ano, mes=mes, limite=limite)
 
 def main():
+    init_session_state()
     st.title("Metas de Vendas")
 
-    # Botão para atualizar dados
+    # Verificar se o usuário é desenvolvedor
+    is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
+
+    if is_developer:
+        if st.sidebar.button("Ativar/Desativar Modo de Edição do Desenvolvedor"):
+            st.session_state.edit_mode = not st.session_state.edit_mode
+        
+        if st.session_state.edit_mode:
+            st.sidebar.success("Modo de Edição Ativado")
+            developer_edit_mode()
+        else:
+            st.sidebar.info("Modo de Edição Desativado")
+
+    # Aplicar tamanho de fonte
+    st.markdown(f"""
+    <style>
+        .reportview-container .main .block-container{{
+            font-size: {st.session_state.dev_settings['font_size']}px;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
     if st.button("Atualizar Dados"):
         st.session_state['atualizar'] = True
     else:
         st.session_state['atualizar'] = False
 
-    # Carregar dados apenas se o botão for pressionado
     if st.session_state.get('atualizar', True):
         try:
             todos_vendedores = obter_vendedores()
@@ -95,106 +168,114 @@ def main():
         percentual_fld_mensal = (fld_mensal / budget_mensal) * 100 if budget_mensal else 0
         percentual_fld_diario = (fld_diario / budget_diario) * 100 if budget_diario else 0
 
-        st.markdown("### Faturamento Anual")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            create_metric_card("Fat. Bruto Anual", f"R$ {fat_bruto_anual / 1_000_000:,.2f} Mi")
-        with col2:
-            create_metric_card("FLD Anual", f"R$ {fld_anual / 1_000_000:,.2f} Mi", percentage=percentual_fld_anual)
-        with col3:
-            create_metric_card("Percentual de Desconto Anual", f"{percentual_desconto_anual:.2f}%")
+        if st.session_state.dev_settings['show_faturamento_anual']:
+            st.markdown("### Faturamento Anual")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                create_metric_card("Fat. Bruto Anual", f"R$ {fat_bruto_anual / 1_000_000:,.2f} Mi")
+            with col2:
+                create_metric_card("FLD Anual", f"R$ {fld_anual / 1_000_000:,.2f} Mi", percentage=percentual_fld_anual)
+            with col3:
+                create_metric_card("Percentual de Desconto Anual", f"{percentual_desconto_anual:.2f}%")
 
-        st.markdown("### Faturamento Mensal")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            create_metric_card("Fat. Bruto Mensal", f"R$ {fat_bruto_mensal / 1_000:,.2f} Mil")
-        with col2:
-            create_metric_card("FLD Mensal", f"R$ {fld_mensal / 1_000:,.2f} Mil", percentage=percentual_fld_mensal)
-        with col3:
-            create_metric_card("Desconto Mensal", f"{percentual_desconto_mensal:.2f}%")
+        if st.session_state.dev_settings['show_faturamento_mensal']:
+            st.markdown("### Faturamento Mensal")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                create_metric_card("Fat. Bruto Mensal", f"R$ {fat_bruto_mensal / 1_000:,.2f} Mil")
+            with col2:
+                create_metric_card("FLD Mensal", f"R$ {fld_mensal / 1_000:,.2f} Mil", percentage=percentual_fld_mensal)
+            with col3:
+                create_metric_card("Desconto Mensal", f"{percentual_desconto_mensal:.2f}%")
 
-        st.markdown("### Faturamento Diário")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            create_metric_card("Fat. Bruto Diário", f"R$ {fat_bruto_diario / 1_000:,.2f} Mil")
-        with col2:
-            create_metric_card("FLD Diário", f"R$ {fld_diario / 1_000:,.2f} Mil", percentage=percentual_fld_diario)
-        with col3:
-            create_metric_card("Desconto Diário", f"{percentual_desconto_diario:.2f}%")
+        if st.session_state.dev_settings['show_faturamento_diario']:
+            st.markdown("### Faturamento Diário")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                create_metric_card("Fat. Bruto Diário", f"R$ {fat_bruto_diario / 1_000:,.2f} Mil")
+            with col2:
+                create_metric_card("FLD Diário", f"R$ {fld_diario / 1_000:,.2f} Mil", percentage=percentual_fld_diario)
+            with col3:
+                create_metric_card("Desconto Diário", f"{percentual_desconto_diario:.2f}%")
 
-        st.markdown("### Budget")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            create_metric_card("Meta Mensal", f"R$ {budget_mensal / 1_000:,.2f} Mil")
-        with col2:
-            create_metric_card("Meta Anual", f"R$ {budget_anual / 1_000_000:,.2f} Mi")
-        with col3:
-            create_metric_card("Diferença para Meta Anual", f"R$ {diferenca_anual / 1_000_000:,.2f} Mi")
-        with col4:
-            create_metric_card("Previsão Mensal (%)", f"{previsao_mensal:.2f}%")
+        if st.session_state.dev_settings['show_budget']:
+            st.markdown("### Budget")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                create_metric_card("Meta Mensal", f"R$ {budget_mensal / 1_000:,.2f} Mil")
+            with col2:
+                create_metric_card("Meta Anual", f"R$ {budget_anual / 1_000_000:,.2f} Mi")
+            with col3:
+                create_metric_card("Diferença para Meta Anual", f"R$ {diferenca_anual / 1_000_000:,.2f} Mi")
+            with col4:
+                create_metric_card("Previsão Mensal (%)", f"{previsao_mensal:.2f}%")
 
-        try:
-            vendas_diarias = load_vendas_diarias(ano, mes, vendedor_selecionado)
-            if vendas_diarias:
-                df_vendas_diarias = pd.DataFrame(vendas_diarias, columns=['data', 'vendedor', 'vendas_diarias'])
-                
-                fig_line = px.line(df_vendas_diarias, x='data', y='vendas_diarias', color='vendedor',
-                                   labels={'vendas_diarias': 'Vendas Diárias (Mil)', 'data': 'Data'},
-                                   title='Vendas Diárias por Vendedor')
+        if st.session_state.dev_settings['show_vendas_diarias']:
+            try:
+                vendas_diarias = load_vendas_diarias(ano, mes, vendedor_selecionado)
+                if vendas_diarias:
+                    df_vendas_diarias = pd.DataFrame(vendas_diarias, columns=['data', 'vendedor', 'vendas_diarias'])
+                    
+                    fig_line = px.line(df_vendas_diarias, x='data', y='vendas_diarias', color='vendedor',
+                                       labels={'vendas_diarias': 'Vendas Diárias (Mil)', 'data': 'Data'},
+                                       title='Vendas Diárias por Vendedor')
 
-                df_vendas_diarias['vendas_diarias_format'] = df_vendas_diarias['vendas_diarias'] / 1_000
-                fig_line.update_traces(mode='lines+markers+text', text=df_vendas_diarias['vendas_diarias_format'].apply(lambda x: f"{x:,.2f} Mil"), textposition='top center')
-                st.plotly_chart(fig_line, use_container_width=True)
-            else:
-                st.warning("Não há dados de vendas diárias para o período selecionado.")
-        except Exception as e:
-            st.error(f"Erro ao carregar vendas diárias: {e}")
+                    df_vendas_diarias['vendas_diarias_format'] = df_vendas_diarias['vendas_diarias'] / 1_000
+                    fig_line.update_traces(mode='lines+markers+text', text=df_vendas_diarias['vendas_diarias_format'].apply(lambda x: f"{x:,.2f} Mil"), textposition='top center')
+                    st.plotly_chart(fig_line, use_container_width=True)
+                else:
+                    st.warning("Não há dados de vendas diárias para o período selecionado.")
+            except Exception as e:
+                st.error(f"Erro ao carregar vendas diárias: {e}")
 
-        try:
-            fld_por_vendedor = {vendedor: calcular_fld(ano=ano, mes=mes, vendedor=vendedor) for vendedor in todos_vendedores}
-            vendedores_com_movimento = [vendedor for vendedor, fld in fld_por_vendedor.items() if fld > 0]
+        if st.session_state.dev_settings['show_metas_vendedores'] or st.session_state.dev_settings['show_ranking_clientes']:
+            try:
+                fld_por_vendedor = {vendedor: calcular_fld(ano=ano, mes=mes, vendedor=vendedor) for vendedor in todos_vendedores}
+                vendedores_com_movimento = [vendedor for vendedor, fld in fld_por_vendedor.items() if fld > 0]
 
-            meta_por_vendedor = 304890
+                meta_por_vendedor = 304890
 
-            if vendedores_com_movimento:
-                df_metas = pd.DataFrame({
-                    "Vendedor": vendedores_com_movimento,
-                    "Meta": [meta_por_vendedor] * len(vendedores_com_movimento),
-                    "Alcançado": [fld_por_vendedor[vendedor] for vendedor in vendedores_com_movimento]
-                })
+                if vendedores_com_movimento:
+                    df_metas = pd.DataFrame({
+                        "Vendedor": vendedores_com_movimento,
+                        "Meta": [meta_por_vendedor] * len(vendedores_com_movimento),
+                        "Alcançado": [fld_por_vendedor[vendedor] for vendedor in vendedores_com_movimento]
+                    })
 
-                col1, col2 = st.columns(2)
+                    col1, col2 = st.columns(2)
 
-                with col1:
-                    fig_bar = go.Figure()
-                    fig_bar.add_trace(go.Bar(
-                        y=df_metas['Vendedor'],
-                        x=df_metas['Meta'],
-                        name='Meta',
-                        orientation='h',
-                        marker=dict(color='lightgray')
-                    ))
-                    fig_bar.add_trace(go.Bar(
-                        y=df_metas['Vendedor'],
-                        x=df_metas['Alcançado'],
-                        name='Alcançado',
-                        orientation='h',
-                        marker=dict(color=['blue', 'darkorange'])
-                    ))
+                    if st.session_state.dev_settings['show_metas_vendedores']:
+                        with col1:
+                            fig_bar = go.Figure()
+                            fig_bar.add_trace(go.Bar(
+                                y=df_metas['Vendedor'],
+                                x=df_metas['Meta'],
+                                name='Meta',
+                                orientation='h',
+                                marker=dict(color='lightgray')
+                            ))
+                            fig_bar.add_trace(go.Bar(
+                                y=df_metas['Vendedor'],
+                                x=df_metas['Alcançado'],
+                                name='Alcançado',
+                                orientation='h',
+                                marker=dict(color=['blue', 'darkorange'])
+                            ))
 
-                    fig_bar.update_layout(barmode='overlay', title='Meta Mensal vs Alcançado por Vendedor')
-                    st.plotly_chart(fig_bar, use_container_width=True)
+                            fig_bar.update_layout(barmode='overlay', title='Meta Mensal vs Alcançado por Vendedor')
+                            st.plotly_chart(fig_bar, use_container_width=True)
 
-                with col2:
-                    st.markdown("### Ranking dos 20 Maiores Faturamentos de Clientes")
-                    maiores_faturamentos = load_maiores_faturamentos(ano, mes, 20)
-                    if maiores_faturamentos:
-                        df_clientes = pd.DataFrame(maiores_faturamentos, columns=['Cliente', 'FLD'])
-                        st.dataframe(df_clientes)
-            else:
-                st.warning("Não há dados de FLD por vendedor para o período selecionado.")
-        except Exception as e:
-            st.error(f"Erro ao calcular FLD por vendedor: {e}")
+                    if st.session_state.dev_settings['show_ranking_clientes']:
+                        with col2:
+                            st.markdown("### Ranking dos 20 Maiores Faturamentos de Clientes")
+                            maiores_faturamentos = load_maiores_faturamentos(ano, mes, 20)
+                            if maiores_faturamentos:
+                                df_clientes = pd.DataFrame(maiores_faturamentos, columns=['Cliente', 'FLD'])
+                                st.dataframe(df_clientes)
+                else:
+                    st.warning("Não há dados de FLD por vendedor para o período selecionado.")
+            except Exception as e:
+                st.error(f"Erro ao calcular FLD por vendedor: {e}")
 
 if __name__ == "__main__":
     main()
