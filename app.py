@@ -16,6 +16,7 @@ from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
+from manage_permissions import manage_permissions
 
 # Configuração do caminho para o Sales App
 sales_app_path = Path(__file__).parent / 'sales_app'
@@ -107,7 +108,8 @@ def show_main_content():
             "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user)),
             "Aprovar Tarefas": ("aprovar_tarefas", lambda: aprovar_tarefas(st.session_state.user['nome'])),
             "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome'])),
-            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome']))
+            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome'])),
+            "Gerenciar Permissões": ("gerenciar_permissoes", manage_permissions)  # Nova opção
         }
 
         # Se for Desenvolvedor, mostra todas as opções

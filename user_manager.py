@@ -43,7 +43,6 @@ def update_user_password(email, new_password):
     return False
 
 def update_user(updated_user):
-    """Atualiza as informações de um usuário existente."""
     users = load_users()
     for i, user in enumerate(users):
         if user['email'] == updated_user['email']:
@@ -51,6 +50,12 @@ def update_user(updated_user):
             save_users(users)
             return True
     return False
+
+def user_has_permission(email, permission):
+    user = get_user_by_email(email)
+    if user and 'funcao' in user and user['funcao'] == 'Desenvolvedor':
+        return True
+    return user and 'permissions' in user and permission in user['permissions']
 
 def delete_user(email):
     """Remove um usuário do arquivo JSON."""
@@ -94,8 +99,3 @@ def get_user_permissions(email):
     if user and 'permissions' in user:
         return user['permissions']
     return []
-
-def user_has_permission(email, permission):
-    """Verifica se um usuário tem uma permissão específica."""
-    permissions = get_user_permissions(email)
-    return permission in permissions
