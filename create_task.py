@@ -106,7 +106,12 @@ def solicitacao_nota_fiscal_tab():
 
     # Carregar membros e departamentos (usando cache)
     membros_cadastrados = get_members_and_departments_cached()
-    nomes_membros = [membro['nome'] for membro in membros_cadastrados]
+    
+    # Modificação aqui: extrair apenas o primeiro nome
+    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]
+    
+    # Criar um dicionário para mapear o primeiro nome de volta ao nome completo
+    primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
 
     # Usando st.form para melhorar o desempenho
     with st.form("nota_fiscal_form"):
@@ -145,7 +150,9 @@ def solicitacao_nota_fiscal_tab():
 
         if all(campos_obrigatorios):
             # Criar as tarefas
-            criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, {
+            # Use o nome completo ao criar a tarefa
+            membro_solicitante_completo = primeiro_nome_para_completo[membro_solicitante]
+            criar_tarefas_nota_fiscal(membro_solicitante_completo, codigo_cliente, {
                 "Número do Pedido": numero_pedido,
                 "Data de saída": data_saida.strftime('%Y-%m-%d'),
                 "Hora de saída": hora_saida.strftime('%H:%M:%S'),
@@ -162,7 +169,7 @@ def solicitacao_nota_fiscal_tab():
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
-                                                
+                      
 def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
