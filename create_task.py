@@ -188,7 +188,7 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
     tarefa1 = {
         "titulo": "Emissão de nota fiscal",
         "descricao": f"Cliente: {codigo_cliente}\n\nDetalhes da Nota Fiscal:\n{observacao_detalhada}",
-        "Membros": ["Agata", membro_info['primeiro_nome']],
+        "Membros": ["Agata", membro_info['nome_completo']],
         "Departamento": "Financeiro",  # Assumindo que Agata é do departamento Financeiro
         "Etiqueta": "Urgente",
         "Task List": {
@@ -205,11 +205,14 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
         "Hora Fim": uma_hora_depois.strftime('%H:%M:%S'),
         "Data Fim": None,
         "status": "Em Aprovação",
-        "Status de Aprovação": {"Agata": "Pendente", membro_info['primeiro_nome']: "Aprovado"},
+        "Status de Aprovação": {
+            "Agata": "Pendente", 
+            membro_info['nome_completo']: "Aprovada"  # Alterado para "Aprovada"
+        },
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
         "Anexos de Conclusão": [],
-        "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido"),
+        "criado_por": membro_info['nome_completo'],
         "observacao_detalhada": observacao_detalhada,
         "membro_solicitante_id": membro_info['id'],
         "membro_solicitante_email": membro_info['email']

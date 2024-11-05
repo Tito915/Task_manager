@@ -21,9 +21,10 @@ def aprovar_tarefas(usuario_logado):
     tarefas_para_aprovar = [
         t for t in tarefas if 
         t['status'] == 'Em Aprovação' and 
-        (usuario_info['nome'].split()[0] in t.get('Membros', []) or
+        (usuario_info['nome'] in t.get('Membros', []) or
          usuario_info['email'] == t.get('membro_solicitante_email') or
-         usuario_info['id'] == t.get('membro_solicitante_id'))
+         usuario_info['id'] == t.get('membro_solicitante_id')) and
+        t.get('Status de Aprovação', {}).get(usuario_info['nome'], "") != "Aprovada"  # Não mostrar se já aprovada
     ]
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
