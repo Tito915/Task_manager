@@ -7,13 +7,19 @@ import os
 from datetime import datetime, timedelta
 from user_manager import load_users
 import logging
+from filelock import FileLock
 
-# Caminho para os arquivos JSON
+# Definição de constantes
 DATA_FILE = 'tasks.json'
 DELETED_TASKS_FILE = 'deleted_tasks.json'
+USERS_FILE = 'users.json'
 
+# Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Criação do FileLock
+lock = FileLock(f"{DATA_FILE}.lock")
 
 @st.cache_resource
 def initialize_firebase():
@@ -66,53 +72,68 @@ def validar_conexao():
 
 def load_tasks():
     try:
-        with open(DATA_FILE, 'r') as file:
-            tasks = json.load(file)
-            for task in tasks:
-                # Converter Status de Aprovação para dicionário se for string
-                if isinstance(task.get('Status de Aprovação'), str):
-                    task['Status de Aprovação'] = {membro: task['Status de Aprovação'] for membro in task.get('Membros', [])}
-                # Garantir que status_execucao exista
-                if 'status_execucao' not in task:
-                    task['status_execucao'] = 'Não Iniciada'
-            return tasks
-    except (FileNotFoundError, json.JSONDecodeError):
+        with lock:
+            with open(DATA_FILE, 'r') as file:
+                tasks = json.load(file)
+                for task in tasks:
+                    if isinstance(task.get('Status de Aprovação'), str):
+                        task['Status de Aprovação'] = {membro: task['Status de Aprovação'] for membro in task.get('Membros', [])}
+                    if 'status_execucao' not in task:
+                        task['status_execucao'] = 'Não Iniciada'
+        logger.info(f"Carregadas {len(tasks)} tarefas do arquivo.")
+        return tasks
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Erro ao carregar tarefas: {str(e)}")
         return []
-
+    
 def save_tasks(tarefas):
-    with open(DATA_FILE, 'w') as file:
-        json.dump(tarefas, file, indent=4)
+    try:
+        with lock:
+            with open(DATA_FILE, 'w') as file:
+                json.dump(tarefas, file, indent=4)
+        logger.info(f"Salvas {len(tarefas)} tarefas no arquivo.")
+    except Exception as e:
+        logger.error(f"Erro ao salvar tarefas: {str(e)}")
+        raise
+
 
 def add_task(task):
-    tasks = load_tasks()
-    if tasks:
-        max_id = max(t.get('id', 0) for t in tasks)
-        task_id = max_id + 1
-    else:
-        task_id = 1
-    
-    task.update({
-        "id": task_id,
-        "titulo": task.get("titulo", "Sem título"),
-        "descricao": task.get("descricao", "Sem descrição"),
-        "status_execucao": "Não Iniciada",
-        "Status de Aprovação": {membro: "Pendente" for membro in task.get("Membros", [])},
-        "dependencias": task.get("dependencias", []),
-        "tempo_previsto_inicio": task.get("tempo_previsto_inicio"),
-        "tempo_real_inicio": None,
-        "tempo_previsto_fim": task.get("tempo_previsto_fim"),
-        "tempo_real_fim": None,
-        "atraso": None
-    })
-    tasks.append(task)
-    save_tasks(tasks)
-    return task_id
+    try:
+        with lock:
+            tasks = load_tasks()
+            if tasks:
+                max_id = max(t.get('id', 0) for t in tasks)
+                task_id = max_id + 1
+            else:
+                task_id = 1
+            
+            task.update({
+                "id": task_id,
+                "titulo": task.get("titulo", "Sem título"),
+                "descricao": task.get("descricao", "Sem descrição"),
+                "status_execucao": "Não Iniciada",
+                "Status de Aprovação": {membro: "Pendente" for membro in task.get("Membros", [])},
+                "dependencias": task.get("dependencias", []),
+                "tempo_previsto_inicio": task.get("tempo_previsto_inicio"),
+                "tempo_real_inicio": None,
+                "tempo_previsto_fim": task.get("tempo_previsto_fim"),
+                "tempo_real_fim": None,
+                "atraso": None
+            })
+            tasks.append(task)
+            save_tasks(tasks)
+        logger.info(f"Adicionada nova tarefa com ID {task_id}")
+        return task_id
+    except Exception as e:
+        logger.error(f"Erro ao adicionar tarefa: {str(e)}")
+        raise
 
-def get_members_and_departments(json_file='users.json'):
-    if not os.path.exists(json_file):
+
+def get_members_and_departments():
+    if not os.path.exists(USERS_FILE):
         return []
 
-    with open(json_file, 'r', encoding='utf-8') as file:
+    with open(USERS_FILE, 'r', encoding='utf-8') as file:
         try:
             return json.load(file)
         except json.JSONDecodeError:
@@ -134,13 +155,20 @@ def get_task_by_id(task_id):
     return None
 
 def update_task_by_id(updated_task):
-    tasks = load_tasks()
-    for i, task in enumerate(tasks):
-        if task.get('id') == updated_task.get('id'):
-            tasks[i] = updated_task
-            save_tasks(tasks)
-            return True
-    return False
+    try:
+        with lock:
+            tasks = load_tasks()
+            for i, task in enumerate(tasks):
+                if task.get('id') == updated_task.get('id'):
+                    tasks[i] = updated_task
+                    save_tasks(tasks)
+                    logger.info(f"Atualizada tarefa com ID {updated_task.get('id')}")
+                    return True
+        logger.warning(f"Tarefa com ID {updated_task.get('id')} não encontrada para atualização")
+        return False
+    except Exception as e:
+        logger.error(f"Erro ao atualizar tarefa: {str(e)}")
+        raise
 
 def get_user_role(user):
     if isinstance(user, dict):
