@@ -118,6 +118,9 @@ def exibir_tarefa(index, tarefa, usuario_logado, todas_tarefas):
         return
 
     with st.expander("Detalhes da Execução"):
+        if 'observacao_detalhada' in tarefa:
+            st.write("Detalhes da Nota Fiscal:")
+            st.text(tarefa['observacao_detalhada'])        
         if tarefa.get("status_execucao") != "Em Andamento":
             if st.button("Iniciar Tarefa", key=f"start_{index}"):
                 tarefa['tempo_inicio'] = datetime.now().isoformat()

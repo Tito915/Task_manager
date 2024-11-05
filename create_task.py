@@ -190,12 +190,13 @@ def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
         "Hora Início": agora.strftime('%H:%M:%S'),
         "Hora Fim": uma_hora_depois.strftime('%H:%M:%S'),
         "Data Fim": None,
-        "status": "Pendente",
+        "status": "Em Aprovação",
         "Status de Aprovação": {"Agata": "Pendente", membro_solicitante: "Aprovado"},
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
         "Anexos de Conclusão": [],
-        "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido")
+        "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido"),
+        "observacao_detalhada": observacao_detalhada
     }
 
     # Adicionar as tarefas

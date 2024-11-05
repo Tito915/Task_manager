@@ -19,6 +19,7 @@ def aprovar_tarefas(usuario_logado):
         tarefa for tarefa in tarefas 
         if any(primeiro_nome_logado == membro.split()[0] for membro in tarefa.get("Membros", []))
         and tarefa.get('Status de Aprovação', {}).get(usuario_logado, "") != "Aprovada"
+        and tarefa.get('criado_por') != usuario_logado  # Não mostrar tarefas criadas pelo usuário logado
     ]
 
     if not tarefas_para_aprovar:
@@ -32,6 +33,10 @@ def aprovar_tarefas(usuario_logado):
         st.write(f"Descrição: {tarefa.get('descricao', 'Sem descrição')}")
         st.write(f"Membros: {', '.join(tarefa.get('Membros', []))}")
         st.write(f"Etiqueta: {tarefa.get('Etiqueta', 'Não especificada')}")
+        
+        if 'observacao_detalhada' in tarefa:
+            st.write("Detalhes da Nota Fiscal:")
+            st.text(tarefa['observacao_detalhada'])
         
         st.write("Status de Aprovação:")
         membros_pendentes = []
