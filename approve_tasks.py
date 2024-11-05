@@ -166,4 +166,4 @@ def exibir_tarefas_deletadas():
 
 if __name__ == "__main__":
     # Simulando um usuário logado
-    aprovar_tarefas("Tito")  # Você pode mudar isso para testar diferentes formas de identificação
+    aprovar_tarefas()  # Você pode mudar isso para testar diferentes formas de identificação
