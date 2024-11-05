@@ -8,6 +8,32 @@ import os
 # Caminho para o arquivo de configurações
 CONFIG_FILE = 'dev_settings.json'
 
+def init_session_state():
+    if 'edit_mode' not in st.session_state:
+        st.session_state.edit_mode = False
+    
+    if 'dev_settings' not in st.session_state:
+        # Tenta carregar as configurações salvas
+        saved_settings = load_dev_settings()
+        if saved_settings:
+            # Mescla as configurações salvas com as padrões para garantir que todas as chaves existam
+            default_settings = get_default_settings()
+            st.session_state.dev_settings = {**default_settings, **saved_settings}
+            
+            # Garante que 'nota_fiscal_layout' exista e tenha todas as chaves necessárias
+            if 'nota_fiscal_layout' not in st.session_state.dev_settings:
+                st.session_state.dev_settings['nota_fiscal_layout'] = default_settings['nota_fiscal_layout']
+            else:
+                st.session_state.dev_settings['nota_fiscal_layout'] = {
+                    **default_settings['nota_fiscal_layout'],
+                    **st.session_state.dev_settings['nota_fiscal_layout']
+                }
+        else:
+            # Se não houver configurações salvas, usa os valores padrão
+            st.session_state.dev_settings = get_default_settings()
+# Chame init_session_state() no início do script
+init_session_state()
+
 def load_dev_settings():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as f:
@@ -37,31 +63,7 @@ def get_default_settings():
             'membro_solicitante': 1
         }
     }
-    
-def init_session_state():
-    if 'edit_mode' not in st.session_state:
-        st.session_state.edit_mode = False
-    
-    if 'dev_settings' not in st.session_state:
-        # Tenta carregar as configurações salvas
-        saved_settings = load_dev_settings()
-        if saved_settings:
-            # Mescla as configurações salvas com as padrões para garantir que todas as chaves existam
-            default_settings = get_default_settings()
-            st.session_state.dev_settings = {**default_settings, **saved_settings}
-            
-            # Garante que 'nota_fiscal_layout' exista e tenha todas as chaves necessárias
-            if 'nota_fiscal_layout' not in st.session_state.dev_settings:
-                st.session_state.dev_settings['nota_fiscal_layout'] = default_settings['nota_fiscal_layout']
-            else:
-                st.session_state.dev_settings['nota_fiscal_layout'] = {
-                    **default_settings['nota_fiscal_layout'],
-                    **st.session_state.dev_settings['nota_fiscal_layout']
-                }
-        else:
-            # Se não houver configurações salvas, usa os valores padrão
-            st.session_state.dev_settings = get_default_settings()
-            
+                
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
@@ -101,6 +103,11 @@ def solicitacao_nota_fiscal_tab():
     # Carregar membros e departamentos
     membros_cadastrados = get_members_and_departments()
     nomes_membros = [membro['nome'] for membro in membros_cadastrados]
+
+    # Verificação adicional para garantir que dev_settings existe
+    if 'dev_settings' not in st.session_state:
+        st.error("Erro: dev_settings não está inicializado corretamente.")
+        return
 
     # Garantir que 'nota_fiscal_layout' existe
     if 'nota_fiscal_layout' not in st.session_state.dev_settings:
@@ -382,7 +389,6 @@ def exibir_detalhes_tarefa(tarefa):
         st.write("  Status de aprovação não disponível")
 
 if __name__ == "__main__":
-    init_session_state()
     
     # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
