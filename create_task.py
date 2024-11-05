@@ -17,7 +17,27 @@ def load_dev_settings():
 def save_dev_settings(settings):
     with open(CONFIG_FILE, 'w') as f:
         json.dump(settings, f)
-
+        
+def get_default_settings():
+    return {
+        'font_size': 16,
+        'nota_fiscal_layout': {
+            'numero_pedido': 1,
+            'data_saida': 1,
+            'hora_saida': 1,
+            'codigo_cliente': 1,
+            'forma_pagamento': 1,
+            'parcelas': 1,
+            'placa_veiculo': 1,
+            'nome_motorista': 1,
+            'cpf_motorista': 1,
+            'tem_dof': 1,
+            'dof_info': 1,
+            'observacoes': 1,
+            'membro_solicitante': 1
+        }
+    }
+    
 def init_session_state():
     if 'edit_mode' not in st.session_state:
         st.session_state.edit_mode = False
@@ -26,28 +46,22 @@ def init_session_state():
         # Tenta carregar as configurações salvas
         saved_settings = load_dev_settings()
         if saved_settings:
-            st.session_state.dev_settings = saved_settings
+            # Mescla as configurações salvas com as padrões para garantir que todas as chaves existam
+            default_settings = get_default_settings()
+            st.session_state.dev_settings = {**default_settings, **saved_settings}
+            
+            # Garante que 'nota_fiscal_layout' exista e tenha todas as chaves necessárias
+            if 'nota_fiscal_layout' not in st.session_state.dev_settings:
+                st.session_state.dev_settings['nota_fiscal_layout'] = default_settings['nota_fiscal_layout']
+            else:
+                st.session_state.dev_settings['nota_fiscal_layout'] = {
+                    **default_settings['nota_fiscal_layout'],
+                    **st.session_state.dev_settings['nota_fiscal_layout']
+                }
         else:
             # Se não houver configurações salvas, usa os valores padrão
-            st.session_state.dev_settings = {
-                'font_size': 16,
-                'nota_fiscal_layout': {
-                    'numero_pedido': 1,
-                    'data_saida': 1,
-                    'hora_saida': 1,
-                    'codigo_cliente': 1,
-                    'forma_pagamento': 1,
-                    'parcelas': 1,
-                    'placa_veiculo': 1,
-                    'nome_motorista': 1,
-                    'cpf_motorista': 1,
-                    'tem_dof': 1,
-                    'dof_info': 1,
-                    'observacoes': 1,
-                    'membro_solicitante': 1
-                }
-            }
-
+            st.session_state.dev_settings = get_default_settings()
+            
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
@@ -88,9 +102,13 @@ def solicitacao_nota_fiscal_tab():
     membros_cadastrados = get_members_and_departments()
     nomes_membros = [membro['nome'] for membro in membros_cadastrados]
 
-    # Campos para preenchimento
+    # Garantir que 'nota_fiscal_layout' existe
+    if 'nota_fiscal_layout' not in st.session_state.dev_settings:
+        st.session_state.dev_settings['nota_fiscal_layout'] = get_default_settings()['nota_fiscal_layout']
+
     layout = st.session_state.dev_settings['nota_fiscal_layout']
 
+    # Campos para preenchimento
     col1, col2, col3 = st.columns(3)
 
     with col1.container():
@@ -146,7 +164,7 @@ def solicitacao_nota_fiscal_tab():
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
-            
+                        
 def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
