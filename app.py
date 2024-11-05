@@ -10,7 +10,7 @@ st.set_page_config(page_title="Task Manager", layout="wide")
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao
 from home_page import home_page
-from create_task import create_task
+from create_task import create_task, init_session_state as create_task_init_session_state
 from manage_tasks import manage_tasks
 from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
@@ -160,6 +160,7 @@ def main():
         st.session_state.user = None
     
     init_session_state()
+    create_task_init_session_state()
     
     if st.session_state.user is None:
         login()

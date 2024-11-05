@@ -8,6 +8,32 @@ import os
 # Caminho para o arquivo de configurações
 CONFIG_FILE = 'dev_settings.json'
 
+def load_dev_settings():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    return None
+
+def get_default_settings():
+    return {
+        'font_size': 16,
+        'nota_fiscal_layout': {
+            'numero_pedido': 1,
+            'data_saida': 1,
+            'hora_saida': 1,
+            'codigo_cliente': 1,
+            'forma_pagamento': 1,
+            'parcelas': 1,
+            'placa_veiculo': 1,
+            'nome_motorista': 1,
+            'cpf_motorista': 1,
+            'tem_dof': 1,
+            'dof_info': 1,
+            'observacoes': 1,
+            'membro_solicitante': 1
+        }
+    }
+
 def init_session_state():
     if 'edit_mode' not in st.session_state:
         st.session_state.edit_mode = False
@@ -34,36 +60,10 @@ def init_session_state():
 # Chame init_session_state() no início do script
 init_session_state()
 
-def load_dev_settings():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
-    return None
-
 def save_dev_settings(settings):
     with open(CONFIG_FILE, 'w') as f:
         json.dump(settings, f)
-        
-def get_default_settings():
-    return {
-        'font_size': 16,
-        'nota_fiscal_layout': {
-            'numero_pedido': 1,
-            'data_saida': 1,
-            'hora_saida': 1,
-            'codigo_cliente': 1,
-            'forma_pagamento': 1,
-            'parcelas': 1,
-            'placa_veiculo': 1,
-            'nome_motorista': 1,
-            'cpf_motorista': 1,
-            'tem_dof': 1,
-            'dof_info': 1,
-            'observacoes': 1,
-            'membro_solicitante': 1
-        }
-    }
-                
+                    
 def developer_edit_mode():
     st.sidebar.header("Controles do Desenvolvedor")
     
