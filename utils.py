@@ -71,31 +71,41 @@ def validar_conexao():
         return False
 
 def load_tasks():
+    file_path = 'tasks.json'
     try:
-        with lock:
-            with open(DATA_FILE, 'r') as file:
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
                 tasks = json.load(file)
-                for task in tasks:
-                    if isinstance(task.get('Status de Aprovação'), str):
-                        task['Status de Aprovação'] = {membro: task['Status de Aprovação'] for membro in task.get('Membros', [])}
-                    if 'status_execucao' not in task:
-                        task['status_execucao'] = 'Não Iniciada'
-        logger.info(f"Carregadas {len(tasks)} tarefas do arquivo.")
-        return tasks
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logger.error(f"Erro ao carregar tarefas: {str(e)}")
+            return tasks
+        else:
+            print(f"Arquivo {file_path} não encontrado. Criando um novo arquivo.")
+            save_tasks([])
+            return []
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar o JSON: {e}")
+        return []
+    except Exception as e:
+        print(f"Erro ao carregar tarefas: {e}")
         return []
     
-def save_tasks(tarefas):
+def save_tasks(tasks):
+    file_path = 'tasks.json'
     try:
-        with lock:
-            with open(DATA_FILE, 'w') as file:
-                json.dump(tarefas, file, indent=4)
-        logger.info(f"Salvas {len(tarefas)} tarefas no arquivo.")
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(tasks, file, ensure_ascii=False, indent=4)
     except Exception as e:
-        logger.error(f"Erro ao salvar tarefas: {str(e)}")
-        raise
+        print(f"Erro ao salvar tarefas: {e}")
 
+# Adicione esta função para verificar o conteúdo do arquivo tasks.json
+def print_tasks_file_content():
+    file_path = 'tasks.json'
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+            print("Conteúdo do arquivo tasks.json:")
+            print(content)
+    except Exception as e:
+        print(f"Erro ao ler o arquivo tasks.json: {e}")
 
 def add_task(task):
     try:

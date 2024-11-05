@@ -1,13 +1,16 @@
 import os
 import json
 import streamlit as st
-from utils import load_tasks, save_tasks, update_task_by_id, get_members_and_departments
+from utils import load_tasks, save_tasks, update_task_by_id, get_members_and_departments, print_tasks_file_content
 
 def get_members_and_departments_cached():
     return get_members_and_departments()
 
 def aprovar_tarefas(usuario_logado):
     st.header("Aprovação de Tarefas")
+    
+        # Debugar o conteúdo do arquivo tasks.json
+    print_tasks_file_content()
 
     # Carregar informações completas do usuário
     membros_cadastrados = get_members_and_departments_cached()
@@ -33,6 +36,7 @@ def aprovar_tarefas(usuario_logado):
         return
 
     tarefas = load_tasks()
+    st.write(f"Número total de tarefas carregadas: {len(tarefas)}")
     tarefas_para_aprovar = [
         t for t in tarefas if 
         t['status'] == 'Em Aprovação' and 
@@ -45,6 +49,8 @@ def aprovar_tarefas(usuario_logado):
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
     tarefas = [atualizar_status_aprovacao(tarefa) for tarefa in tarefas]
     save_tasks(tarefas)  # Salvar as tarefas atualizadas
+    st.success("Tarefas atualizadas com sucesso!")
+    print_tasks_file_content()  # Verificar se as alterações foram salvas corretamente
 
     if not tarefas_para_aprovar:
         st.info("Você não tem tarefas para serem aprovadas.")
