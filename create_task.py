@@ -104,11 +104,6 @@ def solicitacao_nota_fiscal_tab():
     membros_cadastrados = get_members_and_departments()
     nomes_membros = [membro['nome'] for membro in membros_cadastrados]
 
-    # Verificação adicional para garantir que dev_settings existe
-    if 'dev_settings' not in st.session_state:
-        st.error("Erro: dev_settings não está inicializado corretamente.")
-        return
-
     # Garantir que 'nota_fiscal_layout' existe
     if 'nota_fiscal_layout' not in st.session_state.dev_settings:
         st.session_state.dev_settings['nota_fiscal_layout'] = get_default_settings()['nota_fiscal_layout']
@@ -127,16 +122,19 @@ def solicitacao_nota_fiscal_tab():
     with col3.container():
         hora_saida = st.time_input("Hora de saída", key="hora_saida")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1.container():
         codigo_cliente = st.text_input("Código do cliente", key="codigo_cliente")
     
     with col2.container():
         forma_pagamento = st.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"], key="forma_pagamento")
-
-    if forma_pagamento in ["Boleto", "Crédito"]:
-        parcelas = st.selectbox("Parcelas", range(1, 11), key="parcelas")
+    
+    with col3.container():
+        if forma_pagamento in ["Boleto", "Crédito"]:
+            parcelas = st.selectbox("Qtde de Parcelas", range(1, 11), key="parcelas")
+        else:
+            st.write("Qtde de Parcelas: N/A")
 
     col1, col2, col3 = st.columns(3)
 
@@ -149,7 +147,7 @@ def solicitacao_nota_fiscal_tab():
     with col3.container():
         cpf_motorista = st.text_input("CPF do motorista", key="cpf_motorista")
 
-    tem_dof = st.radio("Tem DOF?", ["SIM", "NAO"], key="tem_dof")
+    tem_dof = st.selectbox("Tem DOF?", ["NAO", "SIM"], key="tem_dof")
 
     if tem_dof == "SIM":
         dof_info = st.text_area("Informações do DOF", key="dof_info")
@@ -171,7 +169,7 @@ def solicitacao_nota_fiscal_tab():
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
-                        
+                                    
 def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
