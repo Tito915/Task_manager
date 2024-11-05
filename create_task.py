@@ -1,11 +1,11 @@
 import streamlit as st
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from utils import add_task, get_members_and_departments, load_tasks, update_task_by_id
 import json
 import math
 
 def create_task():
-    tab1, tab2, tab3 = st.tabs(["Tarefas", "Confirmação Pix", "Consulta de Cadastro Clientes"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Tarefas", "Confirmação Pix", "Consulta de Cadastro Clientes", "Solicitação de nota fiscal"])
 
     with tab1:
         tarefas_tab()
@@ -16,6 +16,88 @@ def create_task():
     with tab3:
         consulta_cadastro_clientes_tab()
 
+    with tab4:
+        solicitacao_nota_fiscal_tab()
+
+def solicitacao_nota_fiscal_tab():
+    st.header("Solicitação de nota fiscal")
+
+    # Carregar membros e departamentos
+    membros_cadastrados = get_members_and_departments()
+    nomes_membros = [membro['nome'] for membro in membros_cadastrados]
+
+    # Campos para preenchimento
+    numero_pedido = st.text_input("Número do Pedido")
+    data_saida = st.date_input("Data de saída")
+    hora_saida = st.time_input("Hora de saída")
+    codigo_cliente = st.text_input("Código do cliente")
+    forma_pagamento = st.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"])
+    
+    if forma_pagamento in ["Boleto", "Crédito"]:
+        parcelas = st.selectbox("Parcelas", range(1, 11))
+    
+    placa_veiculo = st.text_input("Placa do veículo")
+    nome_motorista = st.text_input("Nome completo do motorista")
+    cpf_motorista = st.text_input("CPF do motorista")
+    
+    tem_dof = st.radio("Tem DOF?", ["SIM", "NAO"])
+    
+    if tem_dof == "SIM":
+        dof_info = st.text_area("Informações do DOF")
+    
+    observacoes = st.text_area("Observações")
+
+    membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros)
+
+    if st.button("Criar Solicitação de Nota Fiscal"):
+        # Validar campos obrigatórios
+        campos_obrigatorios = [numero_pedido, data_saida, hora_saida, codigo_cliente, 
+                               forma_pagamento, placa_veiculo, nome_motorista, cpf_motorista]
+        if tem_dof == "SIM":
+            campos_obrigatorios.append(dof_info)
+
+        if all(campos_obrigatorios):
+            # Criar as tarefas
+            criar_tarefas_nota_fiscal(membro_solicitante)
+            st.success("Solicitação de nota fiscal criada com sucesso!")
+        else:
+            st.error("Por favor, preencha todos os campos obrigatórios.")
+
+def criar_tarefas_nota_fiscal(membro_solicitante):
+    agora = datetime.now()
+    uma_hora_depois = agora + timedelta(hours=1)
+
+    # Tarefa 1: Emissão de Nota fiscal
+    tarefa1 = {
+        "titulo": "Emissão de nota fiscal",
+        "descricao": f"Cliente: {codigo_cliente}",
+        "Membros": ["Agata", membro_solicitante],
+        "Departamento": "Financeiro",  # Assumindo que Agata é do departamento Financeiro
+        "Etiqueta": "Urgente",
+        "Task List": {
+            1: {
+                "descricao": "Emissão de Nota fiscal",
+                "membro": "Agata",
+                "horario": uma_hora_depois.strftime('%H:%M:%S'),
+                "exige_anexo": True,
+                "dependencias": []
+            }
+        },
+        "Data Início": agora.date().isoformat(),
+        "Hora Início": agora.strftime('%H:%M:%S'),
+        "Hora Fim": uma_hora_depois.strftime('%H:%M:%S'),
+        "Data Fim": None,
+        "status": "Pendente",
+        "Status de Aprovação": {"Agata": "Pendente", membro_solicitante: "Pendente"},
+        "tempo_previsto_inicio": agora.isoformat(),
+        "tempo_previsto_fim": uma_hora_depois.isoformat(),
+        "Anexos de Conclusão": [],
+        "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido")
+    }
+
+    # Adicionar as tarefas
+    add_task(tarefa1)
+    
 def tarefas_tab():
     st.header("Criar Tarefa")
     
