@@ -3,7 +3,69 @@ from datetime import datetime, time, timedelta
 from utils import add_task, get_members_and_departments, load_tasks, update_task_by_id
 import json
 import math
+import os
 
+# Caminho para o arquivo de configurações
+CONFIG_FILE = 'dev_settings.json'
+
+def load_dev_settings():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)
+    return None
+
+def save_dev_settings(settings):
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(settings, f)
+
+def init_session_state():
+    if 'edit_mode' not in st.session_state:
+        st.session_state.edit_mode = False
+    
+    if 'dev_settings' not in st.session_state:
+        # Tenta carregar as configurações salvas
+        saved_settings = load_dev_settings()
+        if saved_settings:
+            st.session_state.dev_settings = saved_settings
+        else:
+            # Se não houver configurações salvas, usa os valores padrão
+            st.session_state.dev_settings = {
+                'font_size': 16,
+                'nota_fiscal_layout': {
+                    'numero_pedido': 1,
+                    'data_saida': 1,
+                    'hora_saida': 1,
+                    'codigo_cliente': 1,
+                    'forma_pagamento': 1,
+                    'parcelas': 1,
+                    'placa_veiculo': 1,
+                    'nome_motorista': 1,
+                    'cpf_motorista': 1,
+                    'tem_dof': 1,
+                    'dof_info': 1,
+                    'observacoes': 1,
+                    'membro_solicitante': 1
+                }
+            }
+
+def developer_edit_mode():
+    st.sidebar.header("Controles do Desenvolvedor")
+    
+    # Controle de tamanho de fonte
+    st.session_state.dev_settings['font_size'] = st.sidebar.slider("Tamanho da Fonte", 10, 24, st.session_state.dev_settings['font_size'])
+    
+    # Controle de layout para a aba de Solicitação de Nota Fiscal
+    st.sidebar.subheader("Layout da Solicitação de Nota Fiscal")
+    for field, cols in st.session_state.dev_settings['nota_fiscal_layout'].items():
+        st.session_state.dev_settings['nota_fiscal_layout'][field] = st.sidebar.selectbox(
+            f"Colunas para {field}", [1, 2, 3], index=cols-1
+        )
+
+    # Botão para salvar as configurações
+    if st.sidebar.button("Salvar Configurações"):
+        save_dev_settings(st.session_state.dev_settings)
+        st.success("Configurações salvas com sucesso!")
+        
 def create_task():
     tab1, tab2, tab3, tab4 = st.tabs(["Tarefas", "Confirmação Pix", "Consulta de Cadastro Clientes", "Solicitação de nota fiscal"])
 
@@ -27,27 +89,49 @@ def solicitacao_nota_fiscal_tab():
     nomes_membros = [membro['nome'] for membro in membros_cadastrados]
 
     # Campos para preenchimento
-    numero_pedido = st.text_input("Número do Pedido")
-    data_saida = st.date_input("Data de saída")
-    hora_saida = st.time_input("Hora de saída")
-    codigo_cliente = st.text_input("Código do cliente")
-    forma_pagamento = st.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"])
-    
-    if forma_pagamento in ["Boleto", "Crédito"]:
-        parcelas = st.selectbox("Parcelas", range(1, 11))
-    
-    placa_veiculo = st.text_input("Placa do veículo")
-    nome_motorista = st.text_input("Nome completo do motorista")
-    cpf_motorista = st.text_input("CPF do motorista")
-    
-    tem_dof = st.radio("Tem DOF?", ["SIM", "NAO"])
-    
-    if tem_dof == "SIM":
-        dof_info = st.text_area("Informações do DOF")
-    
-    observacoes = st.text_area("Observações")
+    layout = st.session_state.dev_settings['nota_fiscal_layout']
 
-    membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros)
+    col1, col2, col3 = st.columns(3)
+
+    with col1.container():
+        numero_pedido = st.text_input("Número do Pedido", key="numero_pedido")
+    
+    with col2.container():
+        data_saida = st.date_input("Data de saída", key="data_saida")
+    
+    with col3.container():
+        hora_saida = st.time_input("Hora de saída", key="hora_saida")
+
+    col1, col2 = st.columns(2)
+
+    with col1.container():
+        codigo_cliente = st.text_input("Código do cliente", key="codigo_cliente")
+    
+    with col2.container():
+        forma_pagamento = st.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"], key="forma_pagamento")
+
+    if forma_pagamento in ["Boleto", "Crédito"]:
+        parcelas = st.selectbox("Parcelas", range(1, 11), key="parcelas")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1.container():
+        placa_veiculo = st.text_input("Placa do veículo", key="placa_veiculo")
+    
+    with col2.container():
+        nome_motorista = st.text_input("Nome completo do motorista", key="nome_motorista")
+    
+    with col3.container():
+        cpf_motorista = st.text_input("CPF do motorista", key="cpf_motorista")
+
+    tem_dof = st.radio("Tem DOF?", ["SIM", "NAO"], key="tem_dof")
+
+    if tem_dof == "SIM":
+        dof_info = st.text_area("Informações do DOF", key="dof_info")
+
+    observacoes = st.text_area("Observações", key="observacoes")
+
+    membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros, key="membro_solicitante")
 
     if st.button("Criar Solicitação de Nota Fiscal"):
         # Validar campos obrigatórios
@@ -62,7 +146,7 @@ def solicitacao_nota_fiscal_tab():
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
-
+            
 def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
@@ -97,7 +181,7 @@ def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
 
     # Adicionar as tarefas
     add_task(tarefa1)
-
+    
 def tarefas_tab():
     st.header("Criar Tarefa")
     
@@ -280,6 +364,31 @@ def exibir_detalhes_tarefa(tarefa):
         st.write("  Status de aprovação não disponível")
 
 if __name__ == "__main__":
+    init_session_state()
+    
+    # Verificar se o usuário é desenvolvedor
+    is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
+
+    # Botão para ativar o modo de edição (apenas visível para desenvolvedores)
+    if is_developer:
+        if st.sidebar.button("Ativar/Desativar Modo de Edição do Desenvolvedor"):
+            st.session_state.edit_mode = not st.session_state.edit_mode
+        
+        if st.session_state.edit_mode:
+            st.sidebar.success("Modo de Edição Ativado")
+            developer_edit_mode()
+        else:
+            st.sidebar.info("Modo de Edição Desativado")
+
+    # Aplicar tamanho de fonte
+    st.markdown(f"""
+    <style>
+        .reportview-container .main .block-container{{
+            font-size: {st.session_state.dev_settings['font_size']}px;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
     if 'user' not in st.session_state:
         st.warning("Você precisa fazer login para criar tarefas.")
     else:
