@@ -335,7 +335,13 @@ def tarefas_tab():
                 "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido")
             }
             task_id = add_task(task)
+            print(f"Tarefa de nota fiscal criada com ID: {task_id}")
             st.success(f"Tarefa '{titulo}' criada e salva com sucesso! ID: {task_id}")
+
+            # Verificar se a tarefa foi adicionada corretamente
+            todas_tarefas = load_tasks()
+            print(f"Total de tarefas após adição: {len(todas_tarefas)}")
+            print(f"Última tarefa adicionada: {todas_tarefas[-1]}")
 
     # Exibir tarefas criadas pelo usuário logado
     exibir_tarefas_criadas()
