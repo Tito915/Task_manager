@@ -11,10 +11,25 @@ def aprovar_tarefas(usuario_logado):
 
     # Carregar informações completas do usuário
     membros_cadastrados = get_members_and_departments_cached()
-    usuario_info = next((m for m in membros_cadastrados if m['email'] == usuario_logado), None)
+    
+    # Função para normalizar strings (remover espaços, converter para minúsculas)
+    def normalize(s):
+        return s.lower().replace(" ", "")
+
+    # Busca flexível do usuário
+    usuario_info = None
+    for membro in membros_cadastrados:
+        if (normalize(usuario_logado) in normalize(membro['nome']) or
+            normalize(usuario_logado) == normalize(membro['email']) or
+            normalize(usuario_logado) in f"{normalize(membro['nome'])}({normalize(membro['email'])})"):
+            usuario_info = membro
+            break
 
     if not usuario_info:
-        st.error("Usuário não encontrado.")
+        st.error(f"Usuário não encontrado: {usuario_logado}")
+        st.write("Membros cadastrados:")
+        for membro in membros_cadastrados:
+            st.write(f"- Nome: {membro['nome']}, Email: {membro['email']}")
         return
 
     tarefas = load_tasks()
@@ -24,7 +39,7 @@ def aprovar_tarefas(usuario_logado):
         (usuario_info['nome'] in t.get('Membros', []) or
          usuario_info['email'] == t.get('membro_solicitante_email') or
          usuario_info['id'] == t.get('membro_solicitante_id')) and
-        t.get('Status de Aprovação', {}).get(usuario_info['nome'], "") != "Aprovada"  # Não mostrar se já aprovada
+        t.get('Status de Aprovação', {}).get(usuario_info['nome'], "") != "Aprovada"
     ]
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
@@ -145,4 +160,4 @@ def exibir_tarefas_deletadas():
 
 if __name__ == "__main__":
     # Simulando um usuário logado
-    aprovar_tarefas("usuario@exemplo.com")
+    aprovar_tarefas("Tito")  # Você pode mudar isso para testar diferentes formas de identificação
