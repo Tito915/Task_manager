@@ -8,18 +8,19 @@ from datetime import datetime, timedelta
 from user_manager import load_users
 import logging
 from filelock import FileLock
+import tempfile
 
 # Definição de constantes
-DATA_FILE = 'tasks.json'
-DELETED_TASKS_FILE = 'deleted_tasks.json'
-USERS_FILE = 'users.json'
+DATA_FILE = 'SallesApp/tasks.json'
+DELETED_TASKS_FILE = 'SallesApp/deleted_tasks.json'
+USERS_FILE = 'SallesApp/users.json'
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Criação do FileLock
-lock = FileLock(f"{DATA_FILE}.lock")
+lock = FileLock(f"{tempfile.gettempdir()}/tasks.json.lock")
 
 @st.cache_resource
 def initialize_firebase():
@@ -49,12 +50,9 @@ def initialize_firebase():
                 'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
                 'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
             })
-            # Inicializar o bucket de armazenamento
-            bucket = storage.bucket()
-                        
-            logger.info("Firebase e Storage bucket inicializados com sucesso")
+            logger.info("Firebase inicializado com sucesso")
         except Exception as e:
-            logger.error(f"Erro ao inicializar Firebase ou Storage bucket: {str(e)}")
+            logger.error(f"Erro ao inicializar Firebase: {str(e)}")
             raise
 
     return firebase_admin.get_app()
@@ -71,41 +69,39 @@ def validar_conexao():
         return False
 
 def load_tasks():
-    file_path = 'tasks.json'
     try:
-        if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                tasks = json.load(file)
+        bucket = storage.bucket()
+        blob = bucket.blob(DATA_FILE)
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            tasks = json.loads(content)
+            logger.info(f"Tarefas carregadas com sucesso. Total de tarefas: {len(tasks)}")
             return tasks
         else:
-            print(f"Arquivo {file_path} não encontrado. Criando um novo arquivo.")
+            logger.warning(f"Arquivo {DATA_FILE} não encontrado no Firebase Storage. Criando um novo arquivo.")
             save_tasks([])
             return []
-    except json.JSONDecodeError as e:
-        print(f"Erro ao decodificar o JSON: {e}")
-        return []
     except Exception as e:
-        print(f"Erro ao carregar tarefas: {e}")
+        logger.error(f"Erro ao carregar tarefas do Firebase Storage: {str(e)}")
         return []
-    
-def save_tasks(tasks):
-    file_path = 'tasks.json'
-    try:
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(tasks, file, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print(f"Erro ao salvar tarefas: {e}")
 
-# Adicione esta função para verificar o conteúdo do arquivo tasks.json
-def print_tasks_file_content():
-    file_path = 'tasks.json'
+def save_tasks(tasks):
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-            print("Conteúdo do arquivo tasks.json:")
-            print(content)
+        bucket = storage.bucket()
+        blob = bucket.blob(DATA_FILE)
+        blob.upload_from_string(json.dumps(tasks, ensure_ascii=False, indent=4), content_type='application/json')
+        logger.info(f"Tarefas salvas com sucesso no Firebase Storage. Total de tarefas: {len(tasks)}")
     except Exception as e:
-        print(f"Erro ao ler o arquivo tasks.json: {e}")
+        logger.error(f"Erro ao salvar tarefas no Firebase Storage: {str(e)}")
+
+def print_tasks_file_content():
+    try:
+        tasks = load_tasks()
+        logger.debug("Conteúdo do arquivo tasks.json:")
+        logger.debug(json.dumps(tasks, ensure_ascii=False, indent=4))
+    except Exception as e:
+        logger.error(f"Erro ao ler o conteúdo das tarefas: {str(e)}")
 
 def add_task(task):
     try:
@@ -138,26 +134,35 @@ def add_task(task):
         logger.error(f"Erro ao adicionar tarefa: {str(e)}")
         raise
 
-
 def get_members_and_departments():
     try:
-        with open('users.json', 'r') as file:
-            users = json.load(file)
-        return users
-    except FileNotFoundError:
-        print("Arquivo users.json não encontrado")
-        return []
-    except json.JSONDecodeError:
-        print("Erro ao decodificar o arquivo JSON")
+        bucket = storage.bucket()
+        blob = bucket.blob(USERS_FILE)
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            users = json.loads(content)
+            return users
+        else:
+            logger.warning(f"Arquivo {USERS_FILE} não encontrado no Firebase Storage.")
+            return []
+    except Exception as e:
+        logger.error(f"Erro ao carregar usuários do Firebase Storage: {str(e)}")
         return []
 
 def update_task(updated_task, task_index):
-    tarefas = load_tasks()
-    if 0 <= task_index < len(tarefas):
-        tarefas[task_index] = updated_task
-        save_tasks(tarefas)
-    else:
-        raise IndexError("Índice de tarefa inválido")
+    try:
+        with lock:
+            tasks = load_tasks()
+            if 0 <= task_index < len(tasks):
+                tasks[task_index] = updated_task
+                save_tasks(tasks)
+                logger.info(f"Tarefa atualizada com sucesso. Índice: {task_index}")
+            else:
+                raise IndexError("Índice de tarefa inválido")
+    except Exception as e:
+        logger.error(f"Erro ao atualizar tarefa: {str(e)}")
+        raise
 
 def get_task_by_id(task_id):
     tasks = load_tasks()
@@ -193,65 +198,95 @@ def get_user_role(user):
     return 'Usuário'
 
 def delete_task(index):
-    tasks = load_tasks()
-    if 0 <= index < len(tasks):
-        task = tasks.pop(index)
-        save_tasks(tasks)
-        move_to_deleted_tasks(task)
-        return True
-    return False
+    try:
+        with lock:
+            tasks = load_tasks()
+            if 0 <= index < len(tasks):
+                task = tasks.pop(index)
+                save_tasks(tasks)
+                move_to_deleted_tasks(task)
+                logger.info(f"Tarefa deletada com sucesso. Índice: {index}")
+                return True
+            logger.warning(f"Índice de tarefa inválido para deleção: {index}")
+            return False
+    except Exception as e:
+        logger.error(f"Erro ao deletar tarefa: {str(e)}")
+        return False
 
 def move_to_deleted_tasks(task):
     try:
-        with open(DELETED_TASKS_FILE, 'r') as file:
-            deleted_tasks = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        deleted_tasks = []
-    
-    task['deleted_at'] = datetime.now().isoformat()
-    deleted_tasks.append(task)
-    
-    with open(DELETED_TASKS_FILE, 'w') as file:
-        json.dump(deleted_tasks, file, indent=4)
+        bucket = storage.bucket()
+        blob = bucket.blob(DELETED_TASKS_FILE)
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            deleted_tasks = json.loads(content)
+        else:
+            deleted_tasks = []
+        
+        task['deleted_at'] = datetime.now().isoformat()
+        deleted_tasks.append(task)
+        
+        blob.upload_from_string(json.dumps(deleted_tasks, ensure_ascii=False, indent=4), content_type='application/json')
+        logger.info(f"Tarefa movida para tarefas deletadas com sucesso.")
+    except Exception as e:
+        logger.error(f"Erro ao mover tarefa para tarefas deletadas: {str(e)}")
 
 def load_deleted_tasks():
     try:
-        with open(DELETED_TASKS_FILE, 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
+        bucket = storage.bucket()
+        blob = bucket.blob(DELETED_TASKS_FILE)
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            deleted_tasks = json.loads(content)
+            return deleted_tasks
+        else:
+            logger.warning(f"Arquivo {DELETED_TASKS_FILE} não encontrado no Firebase Storage.")
+            return []
+    except Exception as e:
+        logger.error(f"Erro ao carregar tarefas deletadas do Firebase Storage: {str(e)}")
         return []
-    
+
 def clear_all_tasks():
-    save_tasks([])
+    try:
+        save_tasks([])
+        logger.info("Todas as tarefas foram removidas com sucesso.")
+    except Exception as e:
+        logger.error(f"Erro ao limpar todas as tarefas: {str(e)}")
 
 def clear_all_members():
     developer_email = "titodosantos@icloud.com"
     developer_password = "Ermec6sello*"
     
     try:
-        with open('users.json', 'r') as file:
-            users = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        users = []
-    
-    # Filtrar para manter apenas o desenvolvedor
-    developer = next((user for user in users if user.get('email') == developer_email), None)
-    
-    if developer:
-        # Garantir que a senha do desenvolvedor não seja alterada
-        developer['senha'] = developer_password
-        users = [developer]
-    else:
-        # Se o desenvolvedor não existir, crie-o
-        users = [{
-            'email': developer_email,
-            'senha': developer_password,
-            'nome': 'Desenvolvedor',
-            'funcao': 'Desenvolvedor'
-        }]
-    
-    with open('users.json', 'w') as file:
-        json.dump(users, file, indent=4)
+        users = get_members_and_departments()
         
+        # Filtrar para manter apenas o desenvolvedor
+        developer = next((user for user in users if user.get('email') == developer_email), None)
+        
+        if developer:
+            # Garantir que a senha do desenvolvedor não seja alterada
+            developer['senha'] = developer_password
+            users = [developer]
+        else:
+            # Se o desenvolvedor não existir, crie-o
+            users = [{
+                'email': developer_email,
+                'senha': developer_password,
+                'nome': 'Desenvolvedor',
+                'funcao': 'Desenvolvedor'
+            }]
+        
+        bucket = storage.bucket()
+        blob = bucket.blob(USERS_FILE)
+        blob.upload_from_string(json.dumps(users, ensure_ascii=False, indent=4), content_type='application/json')
+        logger.info("Membros limpos, mantendo apenas o desenvolvedor.")
+    except Exception as e:
+        logger.error(f"Erro ao limpar membros: {str(e)}")
+
 def verify_developer_password(password):
     return password == "Ermec6sello*"
+
+# Inicialização do Firebase
+initialize_firebase()
