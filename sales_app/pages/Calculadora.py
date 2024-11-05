@@ -19,7 +19,7 @@ def carregar_taxas():
     except Exception as e:
         st.error(f"Erro ao carregar taxas: {e}")
         return {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
-
+    
 def salvar_taxas(taxas):
     try:
         bucket = storage.bucket()
@@ -32,7 +32,7 @@ def salvar_taxas(taxas):
         st.success("Taxas atualizadas com sucesso!")
     except Exception as e:
         st.error(f"Erro ao salvar taxas: {e}")
-
+        
 def calcular_valor_final():
     try:
         valor_venda = float(st.session_state['valor_venda'] or 0)
@@ -96,10 +96,17 @@ def main():
     st.title("Cálculo de Venda a Prazo")
 
     # Carregar taxas do Firebase Storage
+    if 'taxas' not in st.session_state:
+        st.session_state['taxas'] = carregar_taxas()
+
+    # Botão para atualizar taxas
+    if st.button("Atualizar Taxas"):
+        st.session_state['taxas'] = carregar_taxas()
+        st.success("Taxas atualizadas com sucesso!")
+
     global taxas_cartao, taxas_boleto
-    taxas = carregar_taxas()
-    taxas_cartao = taxas['cartao']
-    taxas_boleto = taxas['boleto']
+    taxas_cartao = st.session_state['taxas']['cartao']
+    taxas_boleto = st.session_state['taxas']['boleto']
 
     # Inicializar variáveis de sessão
     if 'valor_venda' not in st.session_state:
@@ -151,7 +158,7 @@ def main():
             st.markdown("### Gerenciamento de Taxas")
             
             # Exibir taxas atuais
-            exibir_taxas(taxas)
+            exibir_taxas(st.session_state['taxas'])
             
             st.markdown("---")
             st.markdown("### Cadastro de Taxas")
@@ -166,10 +173,10 @@ def main():
             
             if st.button("Atualizar Taxa"):
                 if taxa_type == 'Cartão':
-                    taxas['cartao'][str(parcela)] = taxa
+                    st.session_state['taxas']['cartao'][str(parcela)] = taxa
                 else:
-                    taxas['boleto'][str(parcela)] = taxa
-                salvar_taxas(taxas)
+                    st.session_state['taxas']['boleto'][str(parcela)] = taxa
+                salvar_taxas(st.session_state['taxas'])
                 st.success(f"Taxa de {taxa}% para {parcela} parcela(s) no {taxa_type} atualizada com sucesso!")
                 st.rerun()  # Recarrega a página para exibir as taxas atualizadas
         else:
