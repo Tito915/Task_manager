@@ -1,26 +1,34 @@
 import os
 import json
 import streamlit as st
-from utils import load_tasks, save_tasks, update_task_by_id
+from utils import load_tasks, save_tasks, update_task_by_id, get_members_and_departments
+
+def get_members_and_departments_cached():
+    return get_members_and_departments()
 
 def aprovar_tarefas(usuario_logado):
     st.header("Aprovação de Tarefas")
 
-    # Extrair o primeiro nome do usuário logado
-    primeiro_nome_logado = usuario_logado.split()[0]
+    # Carregar informações completas do usuário
+    membros_cadastrados = get_members_and_departments_cached()
+    usuario_info = next((m for m in membros_cadastrados if m['email'] == usuario_logado), None)
+
+    if not usuario_info:
+        st.error("Usuário não encontrado.")
+        return
 
     tarefas = load_tasks()
+    tarefas_para_aprovar = [
+        t for t in tarefas if 
+        t['status'] == 'Em Aprovação' and 
+        (usuario_info['nome'].split()[0] in t.get('Membros', []) or
+         usuario_info['email'] == t.get('membro_solicitante_email') or
+         usuario_info['id'] == t.get('membro_solicitante_id'))
+    ]
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
     tarefas = [atualizar_status_aprovacao(tarefa) for tarefa in tarefas]
     save_tasks(tarefas)  # Salvar as tarefas atualizadas
-
-    tarefas_para_aprovar = [
-        tarefa for tarefa in tarefas 
-        if any(primeiro_nome_logado == membro.split()[0] for membro in tarefa.get("Membros", []))
-        and tarefa.get('Status de Aprovação', {}).get(usuario_logado, "") != "Aprovada"
-        and tarefa.get('criado_por') != usuario_logado  # Não mostrar tarefas criadas pelo usuário logado
-    ]
 
     if not tarefas_para_aprovar:
         st.info("Você não tem tarefas para serem aprovadas.")
@@ -40,8 +48,8 @@ def aprovar_tarefas(usuario_logado):
         
         st.write("Status de Aprovação:")
         membros_pendentes = []
-        for membro_completo, status in tarefa.get('Status de Aprovação', {}).items():
-            membro_primeiro_nome = membro_completo.split()[0]
+        for membro, status in tarefa.get('Status de Aprovação', {}).items():
+            membro_primeiro_nome = membro.split()[0]
             if status == "Aprovada":
                 st.write(f"- {membro_primeiro_nome}: ✅ {status}")
             elif status == "Rejeitada":
@@ -59,49 +67,40 @@ def aprovar_tarefas(usuario_logado):
         col1, col2, col3 = st.columns(3)
         with col1:
             if st.button(f"Aprovar '{nome_tarefa}'", key=f"aprovar_{index}"):
-                nome_completo = next((membro for membro in tarefa.get('Status de Aprovação', {}) if membro.split()[0] == primeiro_nome_logado), None)
-                if nome_completo:
-                    tarefa['Status de Aprovação'][nome_completo] = "Aprovada"
-                    
-                    if all(status == "Aprovada" for status in tarefa['Status de Aprovação'].values()):
-                        tarefa['status'] = "Aprovada"
-                    else:
-                        tarefa['status'] = "Em Aprovação"
-                    
-                    update_task_by_id(tarefa)
-                    st.success(f"Tarefa '{nome_tarefa}' aprovada por você!")
-                    st.rerun()
+                nome_completo = usuario_info['nome']
+                tarefa['Status de Aprovação'][nome_completo] = "Aprovada"
+                
+                if all(status == "Aprovada" for status in tarefa['Status de Aprovação'].values()):
+                    tarefa['status'] = "Aprovada"
                 else:
-                    st.error("Erro ao encontrar seu nome na lista de aprovação.")
+                    tarefa['status'] = "Em Aprovação"
+                
+                update_task_by_id(tarefa)
+                st.success(f"Tarefa '{nome_tarefa}' aprovada por você!")
+                st.rerun()
         
         with col2:
             if st.button(f"Rejeitar '{nome_tarefa}'", key=f"rejeitar_{index}"):
                 if st.checkbox("Confirmar rejeição", key=f"confirmar_rejeicao_{index}"):
-                    nome_completo = next((membro for membro in tarefa.get('Status de Aprovação', {}) if membro.split()[0] == primeiro_nome_logado), None)
-                    if nome_completo:
-                        tarefa['Status de Aprovação'][nome_completo] = "Rejeitada"
-                        tarefa['status'] = "Rejeitada"
-                        
-                        update_task_by_id(tarefa)
-                        adicionar_tarefa_deletada(tarefa)
-                        st.warning(f"Tarefa '{nome_tarefa}' rejeitada por você.")
-                        st.rerun()
-                    else:
-                        st.error("Erro ao encontrar seu nome na lista de aprovação.")
+                    nome_completo = usuario_info['nome']
+                    tarefa['Status de Aprovação'][nome_completo] = "Rejeitada"
+                    tarefa['status'] = "Rejeitada"
+                    
+                    update_task_by_id(tarefa)
+                    adicionar_tarefa_deletada(tarefa)
+                    st.warning(f"Tarefa '{nome_tarefa}' rejeitada por você.")
+                    st.rerun()
                 else:
                     st.info("Marque a caixa de confirmação para rejeitar a tarefa.")
 
         with col3:
             if st.button("Desfazer Aprovação/Rejeição", key=f"desfazer_{index}"):
-                nome_completo = next((membro for membro in tarefa.get('Status de Aprovação', {}) if membro.split()[0] == primeiro_nome_logado), None)
-                if nome_completo:
-                    tarefa['Status de Aprovação'][nome_completo] = "Pendente"
-                    tarefa['status'] = "Em Aprovação"
-                    update_task_by_id(tarefa)
-                    st.info(f"Sua decisão para a tarefa '{nome_tarefa}' foi desfeita.")
-                    st.rerun()
-                else:
-                    st.error("Erro ao encontrar seu nome na lista de aprovação.")
+                nome_completo = usuario_info['nome']
+                tarefa['Status de Aprovação'][nome_completo] = "Pendente"
+                tarefa['status'] = "Em Aprovação"
+                update_task_by_id(tarefa)
+                st.info(f"Sua decisão para a tarefa '{nome_tarefa}' foi desfeita.")
+                st.rerun()
 
 def atualizar_status_aprovacao(tarefa):
     if 'Status de Aprovação' not in tarefa:
@@ -145,4 +144,4 @@ def exibir_tarefas_deletadas():
 
 if __name__ == "__main__":
     # Simulando um usuário logado
-    aprovar_tarefas("Nome do Usuário Logado")
+    aprovar_tarefas("usuario@exemplo.com")

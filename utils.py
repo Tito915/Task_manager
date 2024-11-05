@@ -130,14 +130,16 @@ def add_task(task):
 
 
 def get_members_and_departments():
-    if not os.path.exists(USERS_FILE):
+    try:
+        with open('users.json', 'r') as file:
+            users = json.load(file)
+        return users
+    except FileNotFoundError:
+        print("Arquivo users.json não encontrado")
         return []
-
-    with open(USERS_FILE, 'r', encoding='utf-8') as file:
-        try:
-            return json.load(file)
-        except json.JSONDecodeError:
-            return []
+    except json.JSONDecodeError:
+        print("Erro ao decodificar o arquivo JSON")
+        return []
 
 def update_task(updated_task, task_index):
     tarefas = load_tasks()

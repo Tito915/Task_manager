@@ -99,19 +99,26 @@ def create_task():
 
 @st.cache_data
 def get_members_and_departments_cached():
-    return get_members_and_departments()
-
+    members = get_members_and_departments()
+    return [{
+        'id': member['id'],
+        'nome_completo': member['nome'],
+        'primeiro_nome': member['nome'].split()[0],
+        'email': member['email'],
+        'funcao': member['funcao']
+    } for member in members]
+    
 def solicitacao_nota_fiscal_tab():
     st.header("Solicitação de nota fiscal")
 
     # Carregar membros e departamentos (usando cache)
     membros_cadastrados = get_members_and_departments_cached()
     
-    # Modificação aqui: extrair apenas o primeiro nome
-    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]
+    # Criar opções de seleção usando primeiro nome e email
+    opcoes_membro = [f"{m['primeiro_nome']} ({m['email']})" for m in membros_cadastrados]
     
-    # Criar um dicionário para mapear o primeiro nome de volta ao nome completo
-    primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
+    # Criar um dicionário para mapear a opção de seleção de volta às informações completas do membro
+    mapeamento_membros = {f"{m['primeiro_nome']} ({m['email']})": m for m in membros_cadastrados}
 
     # Usando st.form para melhorar o desempenho
     with st.form("nota_fiscal_form"):
@@ -137,7 +144,7 @@ def solicitacao_nota_fiscal_tab():
         dof_info = st.text_area("Informações do DOF") if tem_dof == "SIM" else "N/A"
 
         observacoes = st.text_area("Observações")
-        membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros)
+        membro_selecionado = st.selectbox("Membro que Solicitou a emissão de nota", opcoes_membro)
 
         submitted = st.form_submit_button("Criar Solicitação de Nota Fiscal")
 
@@ -149,10 +156,10 @@ def solicitacao_nota_fiscal_tab():
             campos_obrigatorios.append(dof_info)
 
         if all(campos_obrigatorios):
-            # Criar as tarefas
-            # Use o nome completo ao criar a tarefa
-            membro_solicitante_completo = primeiro_nome_para_completo[membro_solicitante]
-            criar_tarefas_nota_fiscal(membro_solicitante_completo, codigo_cliente, {
+            # Obter informações completas do membro selecionado
+            membro_info = mapeamento_membros[membro_selecionado]
+            
+            criar_tarefas_nota_fiscal(membro_info, codigo_cliente, {
                 "Número do Pedido": numero_pedido,
                 "Data de saída": data_saida.strftime('%Y-%m-%d'),
                 "Hora de saída": hora_saida.strftime('%H:%M:%S'),
@@ -170,7 +177,7 @@ def solicitacao_nota_fiscal_tab():
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
                       
-def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
+def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
 
@@ -181,7 +188,7 @@ def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
     tarefa1 = {
         "titulo": "Emissão de nota fiscal",
         "descricao": f"Cliente: {codigo_cliente}\n\nDetalhes da Nota Fiscal:\n{observacao_detalhada}",
-        "Membros": ["Agata", membro_solicitante],
+        "Membros": ["Agata", membro_info['primeiro_nome']],
         "Departamento": "Financeiro",  # Assumindo que Agata é do departamento Financeiro
         "Etiqueta": "Urgente",
         "Task List": {
@@ -198,12 +205,14 @@ def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
         "Hora Fim": uma_hora_depois.strftime('%H:%M:%S'),
         "Data Fim": None,
         "status": "Em Aprovação",
-        "Status de Aprovação": {"Agata": "Pendente", membro_solicitante: "Aprovado"},
+        "Status de Aprovação": {"Agata": "Pendente", membro_info['primeiro_nome']: "Aprovado"},
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
         "Anexos de Conclusão": [],
         "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido"),
-        "observacao_detalhada": observacao_detalhada
+        "observacao_detalhada": observacao_detalhada,
+        "membro_solicitante_id": membro_info['id'],
+        "membro_solicitante_email": membro_info['email']
     }
 
     # Adicionar as tarefas
