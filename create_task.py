@@ -58,12 +58,12 @@ def solicitacao_nota_fiscal_tab():
 
         if all(campos_obrigatorios):
             # Criar as tarefas
-            criar_tarefas_nota_fiscal(membro_solicitante)
+            criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente)
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
 
-def criar_tarefas_nota_fiscal(membro_solicitante):
+def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
 
@@ -97,7 +97,7 @@ def criar_tarefas_nota_fiscal(membro_solicitante):
 
     # Adicionar as tarefas
     add_task(tarefa1)
-    
+
 def tarefas_tab():
     st.header("Criar Tarefa")
     
