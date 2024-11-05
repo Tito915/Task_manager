@@ -4,7 +4,6 @@ from firebase_admin import storage
 import io
 import pandas as pd
 
-
 def carregar_taxas():
     try:
         bucket = storage.bucket()
@@ -19,7 +18,7 @@ def carregar_taxas():
     except Exception as e:
         st.error(f"Erro ao carregar taxas: {e}")
         return {'cartao': {str(i): 0.0 for i in range(1, 13)}, 'boleto': {str(i): 0.0 for i in range(1, 13)}}
-    
+
 def salvar_taxas(taxas):
     try:
         bucket = storage.bucket()
@@ -99,10 +98,11 @@ def main():
     if 'taxas' not in st.session_state:
         st.session_state['taxas'] = carregar_taxas()
 
-    # Botão para atualizar taxas
-    if st.button("Atualizar Taxas"):
-        st.session_state['taxas'] = carregar_taxas()
-        st.success("Taxas atualizadas com sucesso!")
+    # Botão para atualizar taxas (visível apenas para desenvolvedores)
+    if 'user' in st.session_state and st.session_state.user.get('funcao') == 'Desenvolvedor':
+        if st.button("Atualizar Taxas do Firebase"):
+            st.session_state['taxas'] = carregar_taxas()
+            st.success("Taxas atualizadas com sucesso do Firebase!")
 
     global taxas_cartao, taxas_boleto
     taxas_cartao = st.session_state['taxas']['cartao']
