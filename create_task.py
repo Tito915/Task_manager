@@ -97,66 +97,46 @@ def create_task():
     with tab4:
         solicitacao_nota_fiscal_tab()
 
+@st.cache_data
+def get_members_and_departments_cached():
+    return get_members_and_departments()
+
 def solicitacao_nota_fiscal_tab():
     st.header("Solicitação de nota fiscal")
 
-    # Carregar membros e departamentos
-    membros_cadastrados = get_members_and_departments()
+    # Carregar membros e departamentos (usando cache)
+    membros_cadastrados = get_members_and_departments_cached()
     nomes_membros = [membro['nome'] for membro in membros_cadastrados]
 
-    # Garantir que 'nota_fiscal_layout' existe
-    if 'nota_fiscal_layout' not in st.session_state.dev_settings:
-        st.session_state.dev_settings['nota_fiscal_layout'] = get_default_settings()['nota_fiscal_layout']
+    # Usando st.form para melhorar o desempenho
+    with st.form("nota_fiscal_form"):
+        col1, col2, col3 = st.columns(3)
+        
+        numero_pedido = col1.text_input("Número do Pedido")
+        data_saida = col2.date_input("Data de saída")
+        hora_saida = col3.time_input("Hora de saída")
 
-    layout = st.session_state.dev_settings['nota_fiscal_layout']
+        col1, col2, col3 = st.columns(3)
+        
+        codigo_cliente = col1.text_input("Código do cliente")
+        forma_pagamento = col2.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"])
+        parcelas = col3.selectbox("Qtde de Parcelas", range(1, 11)) if forma_pagamento in ["Boleto", "Crédito"] else "N/A"
 
-    # Campos para preenchimento
-    col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
+        
+        placa_veiculo = col1.text_input("Placa do veículo")
+        nome_motorista = col2.text_input("Nome completo do motorista")
+        cpf_motorista = col3.text_input("CPF do motorista")
 
-    with col1.container():
-        numero_pedido = st.text_input("Número do Pedido", key="numero_pedido")
-    
-    with col2.container():
-        data_saida = st.date_input("Data de saída", key="data_saida")
-    
-    with col3.container():
-        hora_saida = st.time_input("Hora de saída", key="hora_saida")
+        tem_dof = st.selectbox("Tem DOF?", ["NAO", "SIM"])
+        dof_info = st.text_area("Informações do DOF") if tem_dof == "SIM" else "N/A"
 
-    col1, col2, col3 = st.columns(3)
+        observacoes = st.text_area("Observações")
+        membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros)
 
-    with col1.container():
-        codigo_cliente = st.text_input("Código do cliente", key="codigo_cliente")
-    
-    with col2.container():
-        forma_pagamento = st.selectbox("Forma de Pagamento", ["A vista", "Boleto", "Débito", "Crédito"], key="forma_pagamento")
-    
-    with col3.container():
-        if forma_pagamento in ["Boleto", "Crédito"]:
-            parcelas = st.selectbox("Qtde de Parcelas", range(1, 11), key="parcelas")
-        else:
-            st.write("Qtde de Parcelas: N/A")
+        submitted = st.form_submit_button("Criar Solicitação de Nota Fiscal")
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1.container():
-        placa_veiculo = st.text_input("Placa do veículo", key="placa_veiculo")
-    
-    with col2.container():
-        nome_motorista = st.text_input("Nome completo do motorista", key="nome_motorista")
-    
-    with col3.container():
-        cpf_motorista = st.text_input("CPF do motorista", key="cpf_motorista")
-
-    tem_dof = st.selectbox("Tem DOF?", ["NAO", "SIM"], key="tem_dof")
-
-    if tem_dof == "SIM":
-        dof_info = st.text_area("Informações do DOF", key="dof_info")
-
-    observacoes = st.text_area("Observações", key="observacoes")
-
-    membro_solicitante = st.selectbox("Membro que Solicitou a emissão de nota", nomes_membros, key="membro_solicitante")
-
-    if st.button("Criar Solicitação de Nota Fiscal"):
+    if submitted:
         # Validar campos obrigatórios
         campos_obrigatorios = [numero_pedido, data_saida, hora_saida, codigo_cliente, 
                                forma_pagamento, placa_veiculo, nome_motorista, cpf_motorista]
@@ -165,19 +145,35 @@ def solicitacao_nota_fiscal_tab():
 
         if all(campos_obrigatorios):
             # Criar as tarefas
-            criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente)
+            criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, {
+                "Número do Pedido": numero_pedido,
+                "Data de saída": data_saida.strftime('%Y-%m-%d'),
+                "Hora de saída": hora_saida.strftime('%H:%M:%S'),
+                "Código do cliente": codigo_cliente,
+                "Forma de Pagamento": forma_pagamento,
+                "Qtde de Parcelas": parcelas,
+                "Placa do veículo": placa_veiculo,
+                "Nome do motorista": nome_motorista,
+                "CPF do motorista": cpf_motorista,
+                "Tem DOF?": tem_dof,
+                "Informações do DOF": dof_info,
+                "Observações": observacoes
+            })
             st.success("Solicitação de nota fiscal criada com sucesso!")
         else:
             st.error("Por favor, preencha todos os campos obrigatórios.")
-                                    
-def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
+                                                
+def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente, dados_nota):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
+
+    # Criar a observação com todos os dados preenchidos
+    observacao_detalhada = "\n".join([f"{k}: {v}" for k, v in dados_nota.items()])
 
     # Tarefa 1: Emissão de Nota fiscal
     tarefa1 = {
         "titulo": "Emissão de nota fiscal",
-        "descricao": f"Cliente: {codigo_cliente}",
+        "descricao": f"Cliente: {codigo_cliente}\n\nDetalhes da Nota Fiscal:\n{observacao_detalhada}",
         "Membros": ["Agata", membro_solicitante],
         "Departamento": "Financeiro",  # Assumindo que Agata é do departamento Financeiro
         "Etiqueta": "Urgente",
@@ -195,7 +191,7 @@ def criar_tarefas_nota_fiscal(membro_solicitante, codigo_cliente):
         "Hora Fim": uma_hora_depois.strftime('%H:%M:%S'),
         "Data Fim": None,
         "status": "Pendente",
-        "Status de Aprovação": {"Agata": "Pendente", membro_solicitante: "Pendente"},
+        "Status de Aprovação": {"Agata": "Pendente", membro_solicitante: "Aprovado"},
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
         "Anexos de Conclusão": [],
