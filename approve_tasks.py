@@ -12,8 +12,8 @@ def aprovar_tarefas():
     # Debugar o conteúdo do arquivo tasks.json
     print_tasks_file_content()
 
-    # Obter o usuário logado da sessão do Streamlit
-    if 'user' not in st.session_state:
+    # Verificar se o usuário está autenticado
+    if 'user' not in st.session_state or not st.session_state.user:
         st.error("Você precisa fazer login para aprovar tarefas.")
         return
 
@@ -22,18 +22,15 @@ def aprovar_tarefas():
     # Carregar informações completas do usuário
     membros_cadastrados = get_members_and_departments_cached()
     
-    # Função para normalizar strings (remover espaços, converter para minúsculas)
+    # Função para normalizar strings
     def normalize(s):
         return s.lower().replace(" ", "")
 
     # Busca flexível do usuário
-    usuario_info = None
-    for membro in membros_cadastrados:
-        if (normalize(usuario_logado['primeiro_nome']) == normalize(membro['primeiro_nome']) or
-            normalize(usuario_logado['nome_completo']) == normalize(membro['nome_completo']) or
-            normalize(usuario_logado['email']) == normalize(membro['email'])):
-            usuario_info = membro
-            break
+    usuario_info = next((membro for membro in membros_cadastrados if 
+                         normalize(usuario_logado['primeiro_nome']) == normalize(membro['primeiro_nome']) or
+                         normalize(usuario_logado['nome_completo']) == normalize(membro['nome_completo']) or
+                         normalize(usuario_logado['email']) == normalize(membro['email'])), None)
 
     if not usuario_info:
         st.error(f"Usuário não encontrado: {usuario_logado['nome_completo']}")
@@ -44,20 +41,21 @@ def aprovar_tarefas():
 
     tarefas = load_tasks()
     st.write(f"Número total de tarefas carregadas: {len(tarefas)}")
+
     tarefas_para_aprovar = [
         t for t in tarefas if 
         t['status'] == 'Em Aprovação' and 
         (usuario_info['nome_completo'] in t.get('Membros', []) or
          usuario_info['email'] == t.get('membro_solicitante_email') or
          usuario_info['id'] == t.get('membro_solicitante_id')) and
-        t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], "") != "Aprovada"
+        t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], "") == "Pendente"
     ]
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
     tarefas = [atualizar_status_aprovacao(tarefa) for tarefa in tarefas]
-    save_tasks(tarefas)  # Salvar as tarefas atualizadas
+    save_tasks(tarefas)
     st.success("Tarefas atualizadas com sucesso!")
-    print_tasks_file_content()  # Verificar se as alterações foram salvas corretamente
+    print_tasks_file_content()
 
     if not tarefas_para_aprovar:
         st.info("Você não tem tarefas para serem aprovadas.")
@@ -146,6 +144,7 @@ def inicializar_arquivo_tarefas_deletadas():
     if not os.path.exists('tarefas_deletadas.json'):
         with open('tarefas_deletadas.json', 'w') as file:
             json.dump([], file)
+    pass
 
 def carregar_tarefas_deletadas():
     try:
