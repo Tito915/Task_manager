@@ -63,6 +63,7 @@ def aprovar_tarefas():
             debug_info.append(f"Criado por: {t.get('criado_por', 'Desconhecido')}")
             debug_info.append(f"Membro na tarefa: {usuario_info['nome_completo'] in t.get('Membros', [])}")
             debug_info.append(f"Status pendente: {t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], '') == 'Pendente'}")
+            debug_info.append(f"ID da tarefa: {t.get('id', 'Não disponível')}")
             debug_info.append("---")
 
     if not tarefas_para_aprovar:

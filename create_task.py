@@ -224,6 +224,14 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
         st.session_state.task_creation_log = []
     st.session_state.task_creation_log.append(f"Tarefa de nota fiscal criada: {tarefa1}")
 
+    # Verificar se a tarefa foi adicionada corretamente
+    todas_tarefas = load_tasks()
+    ultima_tarefa = todas_tarefas[-1] if todas_tarefas else None
+    if ultima_tarefa:
+        st.session_state.task_creation_log.append(f"Última tarefa após adição: {ultima_tarefa}")
+    else:
+        st.session_state.task_creation_log.append("Erro: Não foi possível recuperar a última tarefa adicionada")
+
 def tarefas_tab():
     st.header("Criar Tarefa")
     

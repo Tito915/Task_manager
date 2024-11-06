@@ -117,12 +117,18 @@ def add_task(task):
             else:
                 task_id = 1
             
+            # Garantir que o criador da tarefa tenha o status "Aprovada"
+            criador = task.get("criado_por")
+            status_aprovacao = {membro: "Pendente" for membro in task.get("Membros", [])}
+            if criador:
+                status_aprovacao[criador] = "Aprovada"
+            
             task.update({
                 "id": task_id,
                 "titulo": task.get("titulo", "Sem título"),
                 "descricao": task.get("descricao", "Sem descrição"),
                 "status_execucao": "Não Iniciada",
-                "Status de Aprovação": {membro: "Pendente" for membro in task.get("Membros", [])},
+                "Status de Aprovação": status_aprovacao,
                 "dependencias": task.get("dependencias", []),
                 "tempo_previsto_inicio": task.get("tempo_previsto_inicio"),
                 "tempo_real_inicio": None,
@@ -132,12 +138,20 @@ def add_task(task):
             })
             tasks.append(task)
             save_tasks(tasks)
+
+            # Verificar se a tarefa foi adicionada corretamente
+            updated_tasks = load_tasks()
+            added_task = next((t for t in updated_tasks if t['id'] == task_id), None)
+            if added_task:
+                logger.info(f"Tarefa adicionada com sucesso: {added_task}")
+            else:
+                logger.error("Erro: A tarefa não foi adicionada corretamente")
+
         logger.info(f"Adicionada nova tarefa com ID {task_id}")
         return task_id
     except Exception as e:
         logger.error(f"Erro ao adicionar tarefa: {str(e)}")
         raise
-
 def get_members_and_departments():
     try:
         bucket = storage.bucket()
