@@ -336,6 +336,11 @@ def tarefas_tab():
             
             task_id = add_task(task)
             st.success(f"Tarefa '{titulo}' criada e salva com sucesso! ID: {task_id}")
+            
+            # Adicionar log
+            if 'task_creation_log' not in st.session_state:
+                st.session_state.task_creation_log = []
+            st.session_state.task_creation_log.append(f"Tarefa criada: {task}")
 
     exibir_tarefas_criadas()
 

@@ -9,18 +9,19 @@ def get_members_and_departments_cached():
 def aprovar_tarefas():
     st.header("Aprovação de Tarefas")
     
-    # Debugar o conteúdo do arquivo tasks.json
-    print_tasks_file_content()
+    debug_info = []
+    debug_info.append(f"Número total de tarefas carregadas: {len(load_tasks())}")
 
-    # Verificar se o usuário está autenticado
     if 'user' not in st.session_state or not st.session_state.user:
         st.error("Você precisa fazer login para aprovar tarefas.")
+        debug_info.append("Erro: Usuário não autenticado")
         return
 
     usuario_logado = st.session_state.user
+    debug_info.append(f"Usuário logado: {usuario_logado}")
 
-    # Carregar informações completas do usuário
     membros_cadastrados = get_members_and_departments_cached()
+    debug_info.append(f"Número de membros cadastrados: {len(membros_cadastrados)}")
     
     # Função para normalizar strings
     def normalize(s):
@@ -50,6 +51,7 @@ def aprovar_tarefas():
          usuario_info['id'] == t.get('membro_solicitante_id')) and
         t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], "") == "Pendente"
     ]
+    debug_info.append(f"Número de tarefas para aprovar: {len(tarefas_para_aprovar)}")
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
     tarefas = [atualizar_status_aprovacao(tarefa) for tarefa in tarefas]
@@ -128,6 +130,9 @@ def aprovar_tarefas():
                 update_task_by_id(tarefa)
                 st.info(f"Sua decisão para a tarefa '{nome_tarefa}' foi desfeita.")
                 st.rerun()
+                
+    # Adicione esta linha no final da função
+    st.session_state['debug_info'] = "\n".join(debug_info)
 
 def atualizar_status_aprovacao(tarefa):
     if 'Status de Aprovação' not in tarefa:

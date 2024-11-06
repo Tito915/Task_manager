@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 import importlib
 import user_manager
+from approve_tasks import aprovar_tarefas
+from debug_tools import add_developer_options
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager", layout="wide")
@@ -173,6 +175,8 @@ def main():
     init_session_state()
     create_task_init_session_state()
     
+    add_developer_options()
+
     if st.session_state.user is None:
         login()
     else:
