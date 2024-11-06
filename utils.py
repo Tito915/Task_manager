@@ -57,6 +57,10 @@ def initialize_firebase():
 
     return firebase_admin.get_app()
 
+@st.cache_data(ttl=3600)  # Cache por 1 hora
+def get_members_and_departments_cached():
+    return get_members_and_departments()
+
 @st.cache_resource(ttl=timedelta(hours=2))
 def validar_conexao():
     try:
