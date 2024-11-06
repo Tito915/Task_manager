@@ -226,9 +226,9 @@ def tarefas_tab():
     
     # Carregar membros e departamentos a partir do arquivo JSON
     membros_cadastrados = get_members_and_departments()
-    nomes_membros = [membro['nome'].split()[0] for membro in membros_cadastrados]  # Apenas o primeiro nome
-    primeiro_nome_para_completo = {membro['nome'].split()[0]: membro['nome'] for membro in membros_cadastrados}
-    departamentos = {membro['nome'].split()[0]: membro['funcao'] for membro in membros_cadastrados}
+    nomes_membros = [membro['primeiro_nome'] for membro in membros_cadastrados]  # Usando 'primeiro_nome'
+    primeiro_nome_para_completo = {membro['primeiro_nome']: membro['nome_completo'] for membro in membros_cadastrados}
+    departamentos = {membro['primeiro_nome']: membro['funcao'] for membro in membros_cadastrados}
 
     # Formulário para criar tarefas
     col1, col2 = st.columns([2, 1])
