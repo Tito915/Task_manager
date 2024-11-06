@@ -23,6 +23,7 @@ def show_debug_info():
         st.success("Informações de debug copiadas para a área de transferência!")
 
 def add_developer_options():
-    if st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor':
+    user = st.session_state.get('user')
+    if isinstance(user, dict) and user.get('funcao') == 'Desenvolvedor':
         if st.sidebar.button("Debug Info"):
             show_debug_info()

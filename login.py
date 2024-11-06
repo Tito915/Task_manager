@@ -16,7 +16,14 @@ def login():
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
             else:
-                st.session_state.user = user
+                # Armazene apenas as informações necessárias do usuário na sessão
+                st.session_state.user = {
+                    'email': user['email'],
+                    'nome_completo': user.get('nome_completo', user.get('nome', 'Nome não definido')),
+                    'primeiro_nome': user.get('nome_completo', user.get('nome', 'Nome não definido')).split()[0],
+                    'funcao': user.get('funcao', 'Usuário')
+                }
+                st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
                 st.rerun()
         else:
             st.error("Email ou senha incorretos.")
@@ -30,30 +37,24 @@ def mudar_senha(user):
 
     if submit_button:
         if nova_senha == confirmar_senha:
-            if update_user_password(user['email'], nova_senha):
-                st.success("Senha alterada com sucesso!")
-                st.session_state.user = get_user_by_email(user['email'])  # Atualiza o usuário na sessão
-                st.rerun()
+            if len(nova_senha) < 8:
+                st.error("A nova senha deve ter pelo menos 8 caracteres.")
+            elif nova_senha == "senha_padrao":
+                st.error("Você não pode usar a senha padrão como sua nova senha.")
             else:
-                st.error("Erro ao atualizar a senha. Tente novamente.")
+                if update_user_password(user['email'], nova_senha):
+                    st.success("Senha alterada com sucesso!")
+                    updated_user = get_user_by_email(user['email'])
+                    st.session_state.user = {
+                        'email': updated_user['email'],
+                        'nome_completo': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')),
+                        'primeiro_nome': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')).split()[0],
+                        'funcao': updated_user.get('funcao', 'Usuário')
+                    }
+                    st.rerun()
+                else:
+                    st.error("Erro ao atualizar a senha. Tente novamente.")
         else:
             st.error("As senhas não coincidem. Tente novamente.")
 
-# Adicione esta função ao seu arquivo user_manager.py
-def update_user_password(email, new_password):
-    try:
-        with open('users.json', 'r') as file:
-            users = json.load(file)
-        
-        for user in users:
-            if user['email'] == email:
-                user['senha'] = new_password
-                break
-        
-        with open('users.json', 'w') as file:
-            json.dump(users, file, indent=4)
-        
-        return True
-    except Exception as e:
-        print(f"Erro ao atualizar senha: {e}")
-        return False
+# A função update_user_password pode permanecer no arquivo user_manager.py
