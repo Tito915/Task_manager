@@ -53,11 +53,17 @@ def aprovar_tarefas():
     ]
     debug_info.append(f"Número de tarefas para aprovar: {len(tarefas_para_aprovar)}")
     
-    # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
-    tarefas = [atualizar_status_aprovacao(tarefa) for tarefa in tarefas]
-    save_tasks(tarefas)
-    st.success("Tarefas atualizadas com sucesso!")
-    print_tasks_file_content()
+    # Adicionar logs de depuração
+    debug_info.append(f"Tarefas filtradas para {usuario_info['nome_completo']}:")
+    for t in tarefas:
+        if t['status'] == 'Em Aprovação':
+            debug_info.append(f"Tarefa: {t['titulo']}")
+            debug_info.append(f"Membros: {t.get('Membros', [])}")
+            debug_info.append(f"Status de Aprovação: {t.get('Status de Aprovação', {})}")
+            debug_info.append(f"Criado por: {t.get('criado_por', 'Desconhecido')}")
+            debug_info.append(f"Membro na tarefa: {usuario_info['nome_completo'] in t.get('Membros', [])}")
+            debug_info.append(f"Status pendente: {t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], '') == 'Pendente'}")
+            debug_info.append("---")
 
     if not tarefas_para_aprovar:
         st.info("Você não tem tarefas para serem aprovadas.")

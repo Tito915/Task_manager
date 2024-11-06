@@ -57,6 +57,7 @@ def init_session_state():
         else:
             # Se não houver configurações salvas, usa os valores padrão
             st.session_state.dev_settings = get_default_settings()
+
 # Chame init_session_state() no início do script
 init_session_state()
 
@@ -186,13 +187,13 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
     tarefa1 = {
         "titulo": "Emissão de nota fiscal",
         "descricao": f"Cliente: {codigo_cliente}\n\nDetalhes da Nota Fiscal:\n{observacao_detalhada}",
-        "Membros": ["Agata", membro_info['nome_completo']],
+        "Membros": [membro_info['nome_completo'], "Agata Sofia Felix Ferreira Nunes"],
         "Departamento": "Financeiro",
         "Etiqueta": "Urgente",
         "Task List": {
             1: {
                 "descricao": "Emissão de Nota fiscal",
-                "membro": "Agata",
+                "membro": "Agata Sofia Felix Ferreira Nunes",
                 "horario": uma_hora_depois.strftime('%H:%M:%S'),
                 "exige_anexo": True,
                 "dependencias": []
@@ -204,8 +205,8 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
         "Data Fim": None,
         "status": "Em Aprovação",
         "Status de Aprovação": {
-            "Agata": "Pendente", 
-            membro_info['nome_completo']: "Aprovada"  # O criador da tarefa já tem aprovação
+            membro_info['nome_completo']: "Aprovada",  # O criador já aprova
+            "Agata Sofia Felix Ferreira Nunes": "Pendente"  # Agata precisa aprovar
         },
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
@@ -217,6 +218,11 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
     }
 
     add_task(tarefa1)
+    
+    # Adicionar log
+    if 'task_creation_log' not in st.session_state:
+        st.session_state.task_creation_log = []
+    st.session_state.task_creation_log.append(f"Tarefa de nota fiscal criada: {tarefa1}")
 
 def tarefas_tab():
     st.header("Criar Tarefa")
@@ -407,7 +413,6 @@ def exibir_detalhes_tarefa(tarefa):
         st.write("  Status de aprovação não disponível")
 
 if __name__ == "__main__":
-    
     # Verificar se o usuário é desenvolvedor
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
 
