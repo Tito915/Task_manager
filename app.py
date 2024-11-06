@@ -78,10 +78,10 @@ def show_main_content():
     st.sidebar.title("Menu")
 
     if 'user' in st.session_state and st.session_state.user:
-        first_name = st.session_state.user['nome'].split()[0]
+        first_name = st.session_state.user['primeiro_nome']
         st.sidebar.success(f"Seja bem-vindo: {first_name}")
 
-        approval_count, return_count, execution_count = count_pending_tasks(st.session_state.user['nome'])
+        approval_count, return_count, execution_count = count_pending_tasks(st.session_state.user['nome_completo'])
 
         st.sidebar.markdown("### Notificações")
         col1, col2, col3 = st.sidebar.columns(3)
@@ -106,10 +106,10 @@ def show_main_content():
             "Criar Tarefas": ("criar_tarefas", create_task),
             "Gerenciamento de Tarefas": ("gerenciar_tarefas", manage_tasks),
             "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user)),
-            "Aprovar Tarefas": ("aprovar_tarefas", lambda: aprovar_tarefas(st.session_state.user['nome'])),
-            "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome'])),
-            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome'])),
-            "Gerenciar Permissões": ("gerenciar_permissoes", manage_permissions)  # Nova opção
+            "Aprovar Tarefas": ("aprovar_tarefas", aprovar_tarefas),
+            "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome_completo'])),
+            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome_completo'])),
+            "Gerenciar Permissões": ("gerenciar_permissoes", manage_permissions)
         }
 
         # Se for Desenvolvedor, mostra todas as opções
@@ -154,6 +154,17 @@ def show_main_content():
         if selected_option:
             _, page = sales_app_options[selected_option]
             load_sales_app_page(page)
+
+    # Botão de logout
+    if st.sidebar.button("Logout"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.experimental_rerun()
+
+    # Exibe informações do usuário logado
+    st.sidebar.markdown("---")
+    st.sidebar.write(f"Logado como: {st.session_state.user['nome_completo']}")
+    st.sidebar.write(f"Função: {st.session_state.user['funcao']}")
 
 def main():
     if 'user' not in st.session_state:
