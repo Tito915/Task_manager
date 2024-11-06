@@ -1,8 +1,6 @@
-
 import streamlit as st
 import json
 from user_manager import load_users, add_user, save_users
-
 
 def cadastrar_membro(user):
     if user['funcao'] not in ['Desenvolvedor', 'Presidente']:
@@ -21,15 +19,19 @@ def cadastrar_membro(user):
 
 def cadastrar_novo_membro():
     st.subheader("Cadastrar Novo Membro")
-    nome = st.text_input("Nome")
+    primeiro_nome = st.text_input("Primeiro Nome")
+    sobrenome = st.text_input("Sobrenome")
     email = st.text_input("Email")
     senha = st.text_input("Senha", type="password")
     funcao = st.selectbox("Função", ["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"])
 
     if st.button("Cadastrar"):
+        users = load_users()
         novo_usuario = {
-            "id": str(len(load_users()) + 1).zfill(3),
-            "nome": nome,
+            "id": str(len(users) + 1).zfill(3),
+            "primeiro_nome": primeiro_nome,
+            "sobrenome": sobrenome,
+            "nome_completo": f"{primeiro_nome} {sobrenome}",
             "email": email,
             "senha": senha,
             "funcao": funcao
@@ -42,24 +44,28 @@ def gerenciar_membros_existentes():
     users = load_users()
     
     for user in users:
-        with st.expander(f"{user['nome']} - {user['funcao']}"):
+        with st.expander(f"{user['nome_completo']} - {user['funcao']}"):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                novo_nome = st.text_input("Nome", user['nome'], key=f"nome_{user['id']}")
+                novo_primeiro_nome = st.text_input("Primeiro Nome", user['primeiro_nome'], key=f"primeiro_nome_{user['id']}")
             with col2:
-                novo_email = st.text_input("Email", user['email'], key=f"email_{user['id']}")
+                novo_sobrenome = st.text_input("Sobrenome", user['sobrenome'], key=f"sobrenome_{user['id']}")
             with col3:
-                nova_funcao = st.selectbox("Função", ["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"], 
-                                           index=["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"].index(user['funcao']),
-                                           key=f"funcao_{user['id']}")
+                novo_email = st.text_input("Email", user['email'], key=f"email_{user['id']}")
+            
+            nova_funcao = st.selectbox("Função", ["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"], 
+                                       index=["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"].index(user['funcao']),
+                                       key=f"funcao_{user['id']}")
             
             nova_senha = st.text_input("Nova Senha (deixe em branco para manter a atual)", type="password", key=f"senha_{user['id']}")
             
             col4, col5 = st.columns(2)
             with col4:
                 if st.button("Atualizar", key=f"atualizar_{user['id']}"):
-                    user['nome'] = novo_nome
+                    user['primeiro_nome'] = novo_primeiro_nome
+                    user['sobrenome'] = novo_sobrenome
+                    user['nome_completo'] = f"{novo_primeiro_nome} {novo_sobrenome}"
                     user['email'] = novo_email
                     user['funcao'] = nova_funcao
                     if nova_senha:
@@ -75,7 +81,12 @@ def gerenciar_membros_existentes():
                     st.success("Membro excluído com sucesso!")
                     st.rerun()
 
-# Adicione esta função ao seu arquivo user_manager.py se ainda não existir
+# Atualização no arquivo user_manager.py
 def save_users(users):
     with open('users.json', 'w') as file:
         json.dump(users, file, indent=4)
+
+def add_user(user):
+    users = load_users()
+    users.append(user)
+    save_users(users)

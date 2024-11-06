@@ -6,11 +6,18 @@ from utils import load_tasks, save_tasks, update_task_by_id, get_members_and_dep
 def get_members_and_departments_cached():
     return get_members_and_departments()
 
-def aprovar_tarefas(usuario_logado):
+def aprovar_tarefas():
     st.header("Aprovação de Tarefas")
     
-        # Debugar o conteúdo do arquivo tasks.json
+    # Debugar o conteúdo do arquivo tasks.json
     print_tasks_file_content()
+
+    # Obter o usuário logado da sessão do Streamlit
+    if 'user' not in st.session_state:
+        st.error("Você precisa fazer login para aprovar tarefas.")
+        return
+
+    usuario_logado = st.session_state.user
 
     # Carregar informações completas do usuário
     membros_cadastrados = get_members_and_departments_cached()
@@ -22,17 +29,17 @@ def aprovar_tarefas(usuario_logado):
     # Busca flexível do usuário
     usuario_info = None
     for membro in membros_cadastrados:
-        if (normalize(usuario_logado) in normalize(membro['nome']) or
-            normalize(usuario_logado) == normalize(membro['email']) or
-            normalize(usuario_logado) in f"{normalize(membro['nome'])}({normalize(membro['email'])})"):
+        if (normalize(usuario_logado['primeiro_nome']) == normalize(membro['primeiro_nome']) or
+            normalize(usuario_logado['nome_completo']) == normalize(membro['nome_completo']) or
+            normalize(usuario_logado['email']) == normalize(membro['email'])):
             usuario_info = membro
             break
 
     if not usuario_info:
-        st.error(f"Usuário não encontrado: {usuario_logado}")
+        st.error(f"Usuário não encontrado: {usuario_logado['nome_completo']}")
         st.write("Membros cadastrados:")
         for membro in membros_cadastrados:
-            st.write(f"- Nome: {membro['nome']}, Email: {membro['email']}")
+            st.write(f"- Nome: {membro['nome_completo']}, Email: {membro['email']}")
         return
 
     tarefas = load_tasks()
@@ -40,10 +47,10 @@ def aprovar_tarefas(usuario_logado):
     tarefas_para_aprovar = [
         t for t in tarefas if 
         t['status'] == 'Em Aprovação' and 
-        (usuario_info['nome'] in t.get('Membros', []) or
+        (usuario_info['nome_completo'] in t.get('Membros', []) or
          usuario_info['email'] == t.get('membro_solicitante_email') or
          usuario_info['id'] == t.get('membro_solicitante_id')) and
-        t.get('Status de Aprovação', {}).get(usuario_info['nome'], "") != "Aprovada"
+        t.get('Status de Aprovação', {}).get(usuario_info['nome_completo'], "") != "Aprovada"
     ]
     
     # Atualizar todas as tarefas para garantir que tenham 'Status de Aprovação'
@@ -89,7 +96,7 @@ def aprovar_tarefas(usuario_logado):
         col1, col2, col3 = st.columns(3)
         with col1:
             if st.button(f"Aprovar '{nome_tarefa}'", key=f"aprovar_{index}"):
-                nome_completo = usuario_info['nome']
+                nome_completo = usuario_info['nome_completo']
                 tarefa['Status de Aprovação'][nome_completo] = "Aprovada"
                 
                 if all(status == "Aprovada" for status in tarefa['Status de Aprovação'].values()):
@@ -104,7 +111,7 @@ def aprovar_tarefas(usuario_logado):
         with col2:
             if st.button(f"Rejeitar '{nome_tarefa}'", key=f"rejeitar_{index}"):
                 if st.checkbox("Confirmar rejeição", key=f"confirmar_rejeicao_{index}"):
-                    nome_completo = usuario_info['nome']
+                    nome_completo = usuario_info['nome_completo']
                     tarefa['Status de Aprovação'][nome_completo] = "Rejeitada"
                     tarefa['status'] = "Rejeitada"
                     
@@ -117,7 +124,7 @@ def aprovar_tarefas(usuario_logado):
 
         with col3:
             if st.button("Desfazer Aprovação/Rejeição", key=f"desfazer_{index}"):
-                nome_completo = usuario_info['nome']
+                nome_completo = usuario_info['nome_completo']
                 tarefa['Status de Aprovação'][nome_completo] = "Pendente"
                 tarefa['status'] = "Em Aprovação"
                 update_task_by_id(tarefa)
@@ -165,5 +172,4 @@ def exibir_tarefas_deletadas():
         st.info("Não há tarefas deletadas.")
 
 if __name__ == "__main__":
-    # Simulando um usuário logado
-    aprovar_tarefas()  # Você pode mudar isso para testar diferentes formas de identificação
+    aprovar_tarefas()

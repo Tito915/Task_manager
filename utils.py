@@ -193,7 +193,7 @@ def get_user_role(user):
     elif isinstance(user, str):
         users = load_users()
         for u in users:
-            if u['nome'] == user:
+            if u['nome_completo'] == user or u['primeiro_nome'] == user:
                 return u.get('funcao', 'Usuário')
     return 'Usuário'
 
