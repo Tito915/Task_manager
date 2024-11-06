@@ -107,7 +107,7 @@ def get_members_and_departments_cached():
         'email': member['email'],
         'funcao': member['funcao']
     } for member in members]
-    
+
 def solicitacao_nota_fiscal_tab():
     st.header("Solicitação de nota fiscal")
 
@@ -181,15 +181,13 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
     agora = datetime.now()
     uma_hora_depois = agora + timedelta(hours=1)
 
-    # Criar a observação com todos os dados preenchidos
     observacao_detalhada = "\n".join([f"{k}: {v}" for k, v in dados_nota.items()])
 
-    # Tarefa 1: Emissão de Nota fiscal
     tarefa1 = {
         "titulo": "Emissão de nota fiscal",
         "descricao": f"Cliente: {codigo_cliente}\n\nDetalhes da Nota Fiscal:\n{observacao_detalhada}",
         "Membros": ["Agata", membro_info['nome_completo']],
-        "Departamento": "Financeiro",  # Assumindo que Agata é do departamento Financeiro
+        "Departamento": "Financeiro",
         "Etiqueta": "Urgente",
         "Task List": {
             1: {
@@ -207,7 +205,7 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
         "status": "Em Aprovação",
         "Status de Aprovação": {
             "Agata": "Pendente", 
-            membro_info['nome_completo']: "Aprovada"  # Alterado para "Aprovada"
+            membro_info['nome_completo']: "Aprovada"  # O criador da tarefa já tem aprovação
         },
         "tempo_previsto_inicio": agora.isoformat(),
         "tempo_previsto_fim": uma_hora_depois.isoformat(),
@@ -218,15 +216,13 @@ def criar_tarefas_nota_fiscal(membro_info, codigo_cliente, dados_nota):
         "membro_solicitante_email": membro_info['email']
     }
 
-    # Adicionar as tarefas
     add_task(tarefa1)
-    
+
 def tarefas_tab():
     st.header("Criar Tarefa")
     
-    # Carregar membros e departamentos a partir do arquivo JSON
-    membros_cadastrados = get_members_and_departments()
-    nomes_membros = [membro['primeiro_nome'] for membro in membros_cadastrados]  # Usando 'primeiro_nome'
+    membros_cadastrados = get_members_and_departments_cached()
+    nomes_membros = [membro['primeiro_nome'] for membro in membros_cadastrados]
     primeiro_nome_para_completo = {membro['primeiro_nome']: membro['nome_completo'] for membro in membros_cadastrados}
     departamentos = {membro['primeiro_nome']: membro['funcao'] for membro in membros_cadastrados}
 
@@ -327,23 +323,20 @@ def tarefas_tab():
                 "Hora Início": hora_inicio.strftime('%H:%M:%S'),
                 "Hora Fim": hora_fim.strftime('%H:%M:%S'),
                 "Data Fim": str(data_fim) if data_fim else None,
-                "status": "Pendente",
+                "status": "Em Aprovação",
                 "Status de Aprovação": {membro: "Pendente" for membro in [primeiro_nome_para_completo.get(m, m) for m in membros_selecionados]},
                 "tempo_previsto_inicio": hora_inicio.isoformat(),
                 "tempo_previsto_fim": hora_fim.isoformat(),
                 "Anexos de Conclusão": [],
-                "criado_por": st.session_state.get('user', {}).get('nome', "Usuário Desconhecido")
+                "criado_por": st.session_state.user['nome_completo']
             }
+            
+            # O criador da tarefa já tem aprovação
+            task["Status de Aprovação"][st.session_state.user['nome_completo']] = "Aprovada"
+            
             task_id = add_task(task)
-            print(f"Tarefa de nota fiscal criada com ID: {task_id}")
             st.success(f"Tarefa '{titulo}' criada e salva com sucesso! ID: {task_id}")
 
-            # Verificar se a tarefa foi adicionada corretamente
-            todas_tarefas = load_tasks()
-            print(f"Total de tarefas após adição: {len(todas_tarefas)}")
-            print(f"Última tarefa adicionada: {todas_tarefas[-1]}")
-
-    # Exibir tarefas criadas pelo usuário logado
     exibir_tarefas_criadas()
 
 def confirmacao_pix_tab():
@@ -362,7 +355,7 @@ def exibir_tarefas_criadas():
         return
 
     tarefas = load_tasks()
-    nome_usuario = st.session_state.user.get('nome', "")
+    nome_usuario = st.session_state.user['nome_completo']
     tarefas_usuario = [t for t in tarefas if t.get('criado_por') == nome_usuario]
     
     if tarefas_usuario:
