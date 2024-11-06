@@ -12,7 +12,7 @@ def manage_permissions():
     selected_user = next((user for user in users if user['email'] == selected_user_email), None)
 
     if selected_user:
-        st.subheader(f"Gerenciar permissões para {selected_user['nome']}")
+        st.subheader(f"Gerenciar permissões para {selected_user['nome_completo']}")  # Alterado de 'nome' para 'nome_completo'
 
         # Lista de todas as permissões possíveis
         task_manager_permissions = [
