@@ -2,6 +2,7 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, db, storage
 import json
+from debug_tools import add_developer_options, collect_debug_info
 
 # Inicialização do Firebase (isso deve ser feito apenas uma vez, geralmente no início do seu aplicativo)
 @st.cache_resource
@@ -145,33 +146,36 @@ def manage_permissions():
             st.sidebar.write("Debug: Permissões Atuais")
             st.sidebar.json(st.session_state.user_permissions)
 
-            # Opção para conceder todas as permissões
-            grant_all = st.checkbox("Conceder todas as permissões", key="grant_all")
-            if grant_all:
-                st.session_state.user_permissions = task_manager_permissions + sales_app_permissions
-            
-            # Mostrar checkboxes para cada permissão do Task Manager
-            st.subheader("Permissões do Task Manager")
-            for permission in task_manager_permissions:
-                checked = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}", disabled=grant_all)
-                if checked and permission not in st.session_state.user_permissions:
-                    st.session_state.user_permissions.append(permission)
-                elif not checked and permission in st.session_state.user_permissions:
-                    st.session_state.user_permissions.remove(permission)
+            # Usar st.form para evitar atualizações imediatas
+            with st.form("permissions_form"):
+                # Opção para conceder todas as permissões
+                grant_all = st.checkbox("Conceder todas as permissões", key="grant_all")
+                
+                # Mostrar checkboxes para cada permissão do Task Manager
+                st.subheader("Permissões do Task Manager")
+                tm_permissions = {}
+                for permission in task_manager_permissions:
+                    tm_permissions[permission] = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}", disabled=grant_all)
 
-            # Mostrar checkboxes para cada permissão do Sales App
-            st.subheader("Permissões do Sales App")
-            for permission in sales_app_permissions:
-                checked = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}", disabled=grant_all)
-                if checked and permission not in st.session_state.user_permissions:
-                    st.session_state.user_permissions.append(permission)
-                elif not checked and permission in st.session_state.user_permissions:
-                    st.session_state.user_permissions.remove(permission)
+                # Mostrar checkboxes para cada permissão do Sales App
+                st.subheader("Permissões do Sales App")
+                sa_permissions = {}
+                for permission in sales_app_permissions:
+                    sa_permissions[permission] = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}", disabled=grant_all)
 
-            # Botão para salvar as alterações
-            if st.button("Salvar Alterações"):
-                update_user_permissions(selected_user_email, st.session_state.user_permissions)
+                # Botão para salvar as alterações
+                submitted = st.form_submit_button("Salvar Alterações")
+
+            if submitted:
+                new_permissions = []
+                if grant_all:
+                    new_permissions = task_manager_permissions + sales_app_permissions
+                else:
+                    new_permissions = [perm for perm, checked in {**tm_permissions, **sa_permissions}.items() if checked]
+                
+                update_user_permissions(selected_user_email, new_permissions)
                 st.success("Permissões atualizadas com sucesso!")
+                st.session_state.user_permissions = new_permissions
 
             # Debug: Mostrar permissões após alterações
             st.sidebar.write("Debug: Permissões Após Alterações")
@@ -184,24 +188,16 @@ def manage_permissions():
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
         st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
 
-# Adicione esta função no início do seu arquivo
-def show_developer_options():
-    if st.sidebar.checkbox("Mostrar Opções de Desenvolvedor"):
-        st.sidebar.write("Debug: Todas as Variáveis de Sessão")
-        st.sidebar.json(dict(st.session_state))
-
-# No final do seu arquivo, adicione:
+# No final do seu arquivo, modifique para:
 if __name__ == "__main__":
     initialize_firebase()
     if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
-        show_developer_options()  # Adicione esta linha
+        add_developer_options()  # Usa a função do seu arquivo debug_tools.py
         manage_permissions()
     else:
         st.error("Você não tem permissão para acessar esta página.")
 
-if __name__ == "__main__":
-    initialize_firebase()
-    if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
-        manage_permissions()
-    else:
-        st.error("Você não tem permissão para acessar esta página.")
+    # Adicionar mais informações de debug
+    if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
+        debug_info = collect_debug_info()
+        st.sidebar.json(debug_info)
