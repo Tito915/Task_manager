@@ -96,7 +96,7 @@ def load_users():
         st.error(f"Erro ao carregar usuários: {str(e)}")
         return []
 
-def manage_permissions():
+def user_permissions():
     st.header("Gerenciamento de Permissões de Usuários")
 
     # Debug: Mostrar informações do usuário atual
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     initialize_firebase()
     if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
         add_developer_options()  # Usa a função do seu arquivo debug_tools.py
-        manage_permissions()
+        user_permissions()
     else:
         st.error("Você não tem permissão para acessar esta página.")
 
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     initialize_firebase()
     if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
         add_developer_options()  # Usa a função do seu arquivo debug_tools.py
-        manage_permissions()
+        user_permissions()
     else:
         st.error("Você não tem permissão para acessar esta página.")
 
