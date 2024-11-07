@@ -20,7 +20,7 @@ from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
-from user_permissions import manage_permissions
+from user_permissions import user_permissions
 
 # Importações do Sales App
 from sales_app.pages.visao_geral import main as visao_geral_main
