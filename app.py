@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 import importlib
-import manage_permissions
+import user_permissions
 from approve_tasks import aprovar_tarefas
 from debug_tools import add_developer_options, collect_debug_info
 
@@ -20,7 +20,7 @@ from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
-from manage_permissions import manage_permissions
+from user_permissions import manage_permissions
 
 # Importações do Sales App
 from sales_app.pages.visao_geral import main as visao_geral_main
@@ -153,7 +153,7 @@ def main():
         # Opção de Gerenciar Permissões (disponível em ambos os apps)
         if user['funcao'] == 'Desenvolvedor':
             if st.sidebar.button("Gerenciar Permissões"):
-                manage_permissions()
+                user_permissions()
 
         if st.sidebar.button("Logout"):
             for key in list(st.session_state.keys()):
