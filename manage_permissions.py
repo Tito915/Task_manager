@@ -125,35 +125,35 @@ def manage_permissions():
                 "ver_configuracoes", "usar_calculadora"
             ]
 
-            # Obter as permissões atuais do usuário
-            user_permissions = all_permissions.get(selected_user_email, [])
+            # Inicializar o estado da sessão para as permissões se ainda não existir
+            if 'user_permissions' not in st.session_state:
+                st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
 
             # Opção para conceder todas as permissões
-            grant_all = st.checkbox("Conceder todas as permissões")
-
+            if st.checkbox("Conceder todas as permissões", key="grant_all"):
+                st.session_state.user_permissions = task_manager_permissions + sales_app_permissions
+            
             # Mostrar checkboxes para cada permissão do Task Manager
             st.subheader("Permissões do Task Manager")
-            new_task_manager_permissions = []
             for permission in task_manager_permissions:
-                has_permission = permission in user_permissions or grant_all
-                if st.checkbox(permission, value=has_permission, key=f"tm_{permission}", disabled=grant_all):
-                    new_task_manager_permissions.append(permission)
+                if st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}"):
+                    if permission not in st.session_state.user_permissions:
+                        st.session_state.user_permissions.append(permission)
+                elif permission in st.session_state.user_permissions:
+                    st.session_state.user_permissions.remove(permission)
 
             # Mostrar checkboxes para cada permissão do Sales App
             st.subheader("Permissões do Sales App")
-            new_sales_app_permissions = []
             for permission in sales_app_permissions:
-                has_permission = permission in user_permissions or grant_all
-                if st.checkbox(permission, value=has_permission, key=f"sa_{permission}", disabled=grant_all):
-                    new_sales_app_permissions.append(permission)
+                if st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}"):
+                    if permission not in st.session_state.user_permissions:
+                        st.session_state.user_permissions.append(permission)
+                elif permission in st.session_state.user_permissions:
+                    st.session_state.user_permissions.remove(permission)
 
             # Botão para salvar as alterações
             if st.button("Salvar Alterações"):
-                if grant_all:
-                    new_permissions = task_manager_permissions + sales_app_permissions
-                else:
-                    new_permissions = new_task_manager_permissions + new_sales_app_permissions
-                update_user_permissions(selected_user_email, new_permissions)
+                update_user_permissions(selected_user_email, st.session_state.user_permissions)
                 st.success("Permissões atualizadas com sucesso!")
 
         else:
