@@ -93,17 +93,21 @@ def load_users():
 def user_permissions():
     st.header("Gerenciamento de Permissões de Usuários")
 
-    # Debug: Mostrar informações do usuário atual
-    if 'user' in st.session_state:
-        st.sidebar.write("Debug: Usuário Logado")
-        st.sidebar.json(st.session_state.user)
-    else:
-        st.sidebar.write("Debug: Nenhum usuário logado")
+    # Verificar se o usuário é um desenvolvedor
+    is_developer = st.session_state.user['funcao'] == 'Desenvolvedor' if 'user' in st.session_state else False
 
-    # Botão de Debug para Desenvolvedores
-    if st.sidebar.button("Debug: Mostrar Estado da Sessão", key="debug_button_1"):
-        st.sidebar.write("Debug: Estado da Sessão")
-        st.sidebar.json(dict(st.session_state))
+    # Debug: Mostrar informações do usuário atual (apenas para desenvolvedores)
+    if is_developer:
+        if 'user' in st.session_state:
+            st.sidebar.write("Debug: Usuário Logado")
+            st.sidebar.json(st.session_state.user)
+        else:
+            st.sidebar.write("Debug: Nenhum usuário logado")
+
+        # Botão de Debug para Desenvolvedores
+        if st.sidebar.button("Debug: Mostrar Estado da Sessão", key="debug_button_1"):
+            st.sidebar.write("Debug: Estado da Sessão")
+            st.sidebar.json(dict(st.session_state))
 
     try:
         users = load_users()
@@ -144,9 +148,10 @@ def user_permissions():
                 "ver_configuracoes", "usar_calculadora"
             ]
 
-            # Debug: Mostrar permissões atuais
-            st.sidebar.write("Debug: Permissões Atuais")
-            st.sidebar.json(st.session_state.user_permissions)
+            # Debug: Mostrar permissões atuais (apenas para desenvolvedores)
+            if is_developer:
+                st.sidebar.write("Debug: Permissões Atuais")
+                st.sidebar.json(st.session_state.user_permissions)
 
             with st.form("permissions_form"):
                 grant_all = st.checkbox("Conceder todas as permissões", key="grant_all")
@@ -180,16 +185,18 @@ def user_permissions():
                 st.session_state.user_permissions = new_permissions
                 st.success("Permissões atualizadas com sucesso!")
 
-            # Debug: Mostrar permissões após alterações
-            st.sidebar.write("Debug: Permissões Após Alterações")
-            st.sidebar.json(st.session_state.user_permissions)
+            # Debug: Mostrar permissões após alterações (apenas para desenvolvedores)
+            if is_developer:
+                st.sidebar.write("Debug: Permissões Após Alterações")
+                st.sidebar.json(st.session_state.user_permissions)
 
         else:
             st.warning("Nenhum usuário selecionado")
 
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
-        st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
+        if is_developer:
+            st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
 
 if __name__ == "__main__":
     initialize_firebase()
@@ -199,7 +206,8 @@ if __name__ == "__main__":
     else:
         st.error("Você não tem permissão para acessar esta página.")
 
-    # Adicionar mais informações de debug
-    if st.sidebar.button("Mostrar Informações de Debug Detalhadas", key="debug_button_2"):
-        debug_info = collect_debug_info()
-        st.sidebar.json(debug_info)
+    # Adicionar mais informações de debug (apenas para desenvolvedores)
+    if 'user' in st.session_state and st.session_state.user['funcao'] == 'Desenvolvedor':
+        if st.sidebar.button("Mostrar Informações de Debug Detalhadas", key="debug_button_2"):
+            debug_info = collect_debug_info()
+            st.sidebar.json(debug_info)
