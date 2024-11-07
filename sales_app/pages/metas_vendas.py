@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
-from Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
+from ..Dados_MetasVendas import calcular_faturamento_bruto, calcular_fld, obter_vendas_diarias, obter_vendedores, obter_maiores_faturamentos
 import json
 import os
 

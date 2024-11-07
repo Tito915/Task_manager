@@ -8,7 +8,8 @@ from debug_tools import add_developer_options
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
-
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao, get_user_permissions
 from home_page import home_page
@@ -27,6 +28,12 @@ from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
 from sales_app.pages.configuracoes import main as configuracoes_main
 from sales_app.pages.Calculadora import main as calculadora_main
 
+try:
+    from sales_app.pages.visao_geral import main as visao_geral_main
+    print("Importação de visao_geral bem-sucedida")
+except ImportError as e:
+    print(f"Erro ao importar visao_geral: {e}")
+    
 # Configuração do caminho para o Sales App
 sales_app_path = Path(__file__).parent / 'sales_app'
 sys.path.append(str(sales_app_path))

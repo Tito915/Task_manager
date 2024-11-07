@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
-from Verificador import calcular_receitas
+from .Verificador import calcular_receitas
 import time
 import json
 import os
