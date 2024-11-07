@@ -107,7 +107,7 @@ def manage_permissions():
         st.sidebar.write("Debug: Nenhum usuário logado")
 
     # Botão de Debug para Desenvolvedores
-    if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+    if st.sidebar.button("Debug: Mostrar Estado da Sessão", key="debug_button_1"):
         st.sidebar.write("Debug: Estado da Sessão")
         st.sidebar.json(dict(st.session_state))
 
@@ -133,7 +133,10 @@ def manage_permissions():
                                            key='user_select')
 
         # Atualizar o usuário selecionado na session_state
-        st.session_state.selected_user_email = selected_user_email
+        if selected_user_email != st.session_state.selected_user_email:
+            st.session_state.selected_user_email = selected_user_email
+            st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
+            st.experimental_rerun()
 
         selected_user = next((user for user in users if user['email'] == selected_user_email), None)
 
@@ -150,10 +153,6 @@ def manage_permissions():
                 "ver_visao_geral", "ver_metas_vendas", "ver_controle_fiscal",
                 "ver_configuracoes", "usar_calculadora"
             ]
-
-            # Inicializar o estado da sessão para as permissões se ainda não existir
-            if 'user_permissions' not in st.session_state:
-                st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
 
             # Debug: Mostrar permissões atuais
             st.sidebar.write("Debug: Permissões Atuais")
@@ -206,6 +205,20 @@ def manage_permissions():
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
         st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
+
+# No final do seu arquivo, modifique para:
+if __name__ == "__main__":
+    initialize_firebase()
+    if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
+        add_developer_options()  # Usa a função do seu arquivo debug_tools.py
+        manage_permissions()
+    else:
+        st.error("Você não tem permissão para acessar esta página.")
+
+    # Adicionar mais informações de debug
+    if st.sidebar.button("Mostrar Informações de Debug Detalhadas", key="debug_button_2"):
+        debug_info = collect_debug_info()
+        st.sidebar.json(debug_info)
         
 # No final do seu arquivo, modifique para:
 if __name__ == "__main__":
