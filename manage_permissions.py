@@ -35,6 +35,17 @@ def initialize_firebase():
 PERMISSIONS_FILE = 'SallesApp/permissions.json'
 USERS_FILE = 'SallesApp/users.json'
 
+def get_user_permissions(email):
+    all_permissions = load_permissions()
+    return all_permissions.get(email, [])
+
+def user_has_permission(email, permission):
+    user_permissions = get_user_permissions(email)
+    return permission in user_permissions
+
+def can_manage_permissions(user):
+    return user['funcao'] == 'Desenvolvedor' or 'gerenciar_permissoes' in get_user_permissions(user['email'])
+
 def load_permissions():
     try:
         bucket = storage.bucket()
@@ -117,25 +128,31 @@ def manage_permissions():
             # Obter as permissões atuais do usuário
             user_permissions = all_permissions.get(selected_user_email, [])
 
+            # Opção para conceder todas as permissões
+            grant_all = st.checkbox("Conceder todas as permissões")
+
             # Mostrar checkboxes para cada permissão do Task Manager
             st.subheader("Permissões do Task Manager")
             new_task_manager_permissions = []
             for permission in task_manager_permissions:
-                has_permission = permission in user_permissions
-                if st.checkbox(permission, value=has_permission, key=f"tm_{permission}"):
+                has_permission = permission in user_permissions or grant_all
+                if st.checkbox(permission, value=has_permission, key=f"tm_{permission}", disabled=grant_all):
                     new_task_manager_permissions.append(permission)
 
             # Mostrar checkboxes para cada permissão do Sales App
             st.subheader("Permissões do Sales App")
             new_sales_app_permissions = []
             for permission in sales_app_permissions:
-                has_permission = permission in user_permissions
-                if st.checkbox(permission, value=has_permission, key=f"sa_{permission}"):
+                has_permission = permission in user_permissions or grant_all
+                if st.checkbox(permission, value=has_permission, key=f"sa_{permission}", disabled=grant_all):
                     new_sales_app_permissions.append(permission)
 
             # Botão para salvar as alterações
             if st.button("Salvar Alterações"):
-                new_permissions = new_task_manager_permissions + new_sales_app_permissions
+                if grant_all:
+                    new_permissions = task_manager_permissions + sales_app_permissions
+                else:
+                    new_permissions = new_task_manager_permissions + new_sales_app_permissions
                 update_user_permissions(selected_user_email, new_permissions)
                 st.success("Permissões atualizadas com sucesso!")
 
@@ -147,4 +164,8 @@ def manage_permissions():
         print(f"Erro detalhado: {str(e)}")
 
 if __name__ == "__main__":
-    manage_permissions()
+    initialize_firebase()
+    if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
+        manage_permissions()
+    else:
+        st.error("Você não tem permissão para acessar esta página.")

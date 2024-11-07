@@ -5,7 +5,6 @@ import importlib
 import user_manager
 from approve_tasks import aprovar_tarefas
 from debug_tools import add_developer_options
-from utils import get_user_permissions
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
