@@ -1,4 +1,13 @@
 import streamlit as st
+from utils import get_user_permissions
+
+def home():
+    user_permissions = get_user_permissions(st.session_state.user['email'])
+    if "ver_home" in user_permissions:
+        st.title("Página Inicial")
+        # Código da página inicial
+    else:
+        st.warning("Você não tem permissão para acessar esta página.")
 
 # Inicializar session_state se não existir
 if 'dados' not in st.session_state:

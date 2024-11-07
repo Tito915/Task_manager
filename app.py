@@ -5,12 +5,13 @@ import importlib
 import user_manager
 from approve_tasks import aprovar_tarefas
 from debug_tools import add_developer_options
+from utils import get_user_permissions
 
 # Configuração da página deve ser a primeira chamada Streamlit
-st.set_page_config(page_title="Task Manager", layout="wide")
+st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 
 # Importações locais
-from utils import load_tasks, initialize_firebase, validar_conexao
+from utils import load_tasks, initialize_firebase, validar_conexao, get_user_permissions
 from home_page import home_page
 from create_task import create_task, init_session_state as create_task_init_session_state
 from manage_tasks import manage_tasks
@@ -19,6 +20,13 @@ from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
 from manage_permissions import manage_permissions
+
+# Importações do Sales App
+from sales_app.pages.visao_geral import main as visao_geral_main
+from sales_app.pages.metas_vendas import main as metas_vendas_main
+from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
+from sales_app.pages.configuracoes import main as configuracoes_main
+from sales_app.pages.Calculadora import main as calculadora_main
 
 # Configuração do caminho para o Sales App
 sales_app_path = Path(__file__).parent / 'sales_app'
@@ -41,7 +49,9 @@ def init_session_state():
         st.session_state.ambiente = 'Task Manager'
     if 'navigation_key' not in st.session_state:
         st.session_state.navigation_key = 'Home'
-
+def home():
+    home_page()
+    
 def count_pending_tasks(user_name):
     tasks = load_tasks()
     approval_count = sum(1 for task in tasks if task.get('status') == 'Pendente' and user_name in task.get('Membros', []))
@@ -170,17 +180,64 @@ def show_main_content():
 
 def main():
     if 'user' not in st.session_state:
-        st.session_state.user = None
-    
-    init_session_state()
-    create_task_init_session_state()
-    
-    add_developer_options()
-
-    if st.session_state.user is None:
         login()
     else:
-        show_main_content()
+        user = st.session_state.user
+        user_permissions = get_user_permissions(user['email'])
+
+        st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
+
+        # Separando os menus do Task Manager e do Sales App
+        task_manager_menu = ["Home", "Criar Tarefa", "Gerenciar Tarefas", "Aprovar Tarefas", "Executar Tarefas", "Cadastrar Membro", "Downloads"]
+        sales_app_menu = ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Configurações", "Calculadora"]
+        
+        # Adicionando opção para escolher entre Task Manager e Sales App
+        app_choice = st.sidebar.radio("Escolha o aplicativo:", ["Task Manager", "Sales App"])
+
+        if app_choice == "Task Manager":
+            choice = st.sidebar.selectbox("Menu do Task Manager", task_manager_menu)
+
+            if choice == "Home" and "ver_home" in user_permissions:
+                home()
+            elif choice == "Criar Tarefa" and "criar_tarefas" in user_permissions:
+                create_task()
+            elif choice == "Gerenciar Tarefas" and "gerenciar_tarefas" in user_permissions:
+                manage_tasks()
+            elif choice == "Aprovar Tarefas" and "aprovar_tarefas" in user_permissions:
+                aprovar_tarefas()
+            elif choice == "Executar Tarefas" and "executar_tarefas" in user_permissions:
+                executar_tarefas()
+            elif choice == "Cadastrar Membro" and "cadastrar_membro" in user_permissions:
+                cadastrar_membro()
+            elif choice == "Downloads" and "ver_downloads" in user_permissions:
+                exibir_downloads()
+            else:
+                st.warning("Você não tem permissão para acessar esta funcionalidade.")
+
+        elif app_choice == "Sales App":
+            choice = st.sidebar.selectbox("Menu do Sales App", sales_app_menu)
+
+            if choice == "Visão Geral" and "ver_visao_geral" in user_permissions:
+                visao_geral_main()
+            elif choice == "Metas de Vendas" and "ver_metas_vendas" in user_permissions:
+                metas_vendas_main()
+            elif choice == "Controle Fiscal" and "ver_controle_fiscal" in user_permissions:
+                ctrl_fiscal_main()
+            elif choice == "Configurações" and "ver_configuracoes" in user_permissions:
+                configuracoes_main()
+            elif choice == "Calculadora" and "usar_calculadora" in user_permissions:
+                calculadora_main()
+            else:
+                st.warning("Você não tem permissão para acessar esta funcionalidade.")
+
+        # Opção de Gerenciar Permissões (disponível em ambos os apps)
+        if user['funcao'] == 'Desenvolvedor':
+            if st.sidebar.button("Gerenciar Permissões"):
+                manage_permissions()
+
+        if st.sidebar.button("Logout"):
+            del st.session_state['user']
+            st.experimental_rerun()
 
 if __name__ == "__main__":
     main()

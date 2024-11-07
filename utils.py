@@ -71,7 +71,23 @@ def validar_conexao():
     except Exception as e:
         logger.error(f"Erro ao validar conexão com Firebase: {str(e)}")
         return False
-
+    
+def get_user_permissions(email):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob('SallesApp/permissions.json')
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            all_permissions = json.loads(content)
+            return all_permissions.get(email, [])
+        else:
+            print(f"Arquivo de permissões não encontrado")
+            return []
+    except Exception as e:
+        print(f"Erro ao carregar permissões do usuário: {str(e)}")
+        return []
+    
 def load_tasks():
     try:
         bucket = storage.bucket()
