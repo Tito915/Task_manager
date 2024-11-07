@@ -4,21 +4,17 @@ from firebase_admin import credentials, db, storage
 import json
 from debug_tools import add_developer_options, collect_debug_info
 
-# Inicialização do Firebase (isso deve ser feito apenas uma vez, geralmente no início do seu aplicativo)
+# Inicialização do Firebase
 @st.cache_resource
 def initialize_firebase():
     if not firebase_admin._apps:
         try:
-            # Tenta obter as credenciais do Streamlit Secrets
             cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
             if isinstance(cred_dict, dict):
-                # Se já for um dicionário, use-o diretamente
                 cred = credentials.Certificate(cred_dict)
             elif isinstance(cred_dict, str):
-                # Se for uma string JSON, parse-a
                 cred = credentials.Certificate(json.loads(cred_dict))
             else:
-                # Se for um AttrDict, converta para um dicionário padrão
                 cred = credentials.Certificate(dict(cred_dict))
             
             firebase_admin.initialize_app(cred, {
@@ -29,7 +25,6 @@ def initialize_firebase():
         except Exception as e:
             st.error(f"Erro ao inicializar Firebase: {str(e)}")
             raise
-
     return firebase_admin.get_app()
 
 # Constantes
@@ -58,7 +53,6 @@ def load_permissions():
             content = blob.download_as_text()
             return json.loads(content)
         else:
-            # Se o arquivo não existir, crie um novo com um dicionário vazio
             empty_permissions = {}
             save_permissions(empty_permissions)
             return empty_permissions
@@ -112,28 +106,24 @@ def user_permissions():
         st.sidebar.json(dict(st.session_state))
 
     try:
-        # Carregar todos os usuários
         users = load_users()
-
-        # Carregar todas as permissões
         all_permissions = load_permissions()
 
         if not users:
             st.warning("Nenhum usuário encontrado.")
             return
 
-        # Usar st.session_state para manter o usuário selecionado
+        # Inicializar selected_user_email se não existir
         if 'selected_user_email' not in st.session_state:
             st.session_state.selected_user_email = users[0]['email']
 
-        # Selecionar um usuário
         selected_user_email = st.selectbox("Selecione um usuário", 
                                            [user['email'] for user in users],
                                            index=[user['email'] for user in users].index(st.session_state.selected_user_email),
                                            key='user_select')
 
-        # Atualizar o usuário selecionado na session_state
-        if selected_user_email != st.session_state.selected_user_email:
+        # Atualizar o usuário selecionado na session_state e inicializar user_permissions
+        if selected_user_email != st.session_state.selected_user_email or 'user_permissions' not in st.session_state:
             st.session_state.selected_user_email = selected_user_email
             st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
             st.experimental_rerun()
@@ -143,7 +133,6 @@ def user_permissions():
         if selected_user:
             st.subheader(f"Gerenciar permissões para {selected_user['nome_completo']}")
 
-            # Lista de todas as permissões possíveis
             task_manager_permissions = [
                 "ver_home", "criar_tarefas", "gerenciar_tarefas", "cadastrar_membro",
                 "aprovar_tarefas", "executar_tarefas", "ver_downloads"
@@ -158,12 +147,9 @@ def user_permissions():
             st.sidebar.write("Debug: Permissões Atuais")
             st.sidebar.json(st.session_state.user_permissions)
 
-            # Usar st.form para evitar atualizações imediatas
             with st.form("permissions_form"):
-                # Opção para conceder todas as permissões
                 grant_all = st.checkbox("Conceder todas as permissões", key="grant_all")
                 
-                # Mostrar checkboxes para cada permissão do Task Manager
                 st.subheader("Permissões do Task Manager")
                 tm_permissions = {}
                 for permission in task_manager_permissions:
@@ -172,7 +158,6 @@ def user_permissions():
                                                              key=f"tm_{permission}", 
                                                              disabled=grant_all)
 
-                # Mostrar checkboxes para cada permissão do Sales App
                 st.subheader("Permissões do Sales App")
                 sa_permissions = {}
                 for permission in sales_app_permissions:
@@ -181,7 +166,6 @@ def user_permissions():
                                                              key=f"sa_{permission}", 
                                                              disabled=grant_all)
 
-                # Botão para salvar as alterações
                 submitted = st.form_submit_button("Salvar Alterações")
 
             if submitted:
@@ -206,30 +190,15 @@ def user_permissions():
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
         st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
 
-# No final do seu arquivo, modifique para:
 if __name__ == "__main__":
     initialize_firebase()
     if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
-        add_developer_options()  # Usa a função do seu arquivo debug_tools.py
+        add_developer_options()
         user_permissions()
     else:
         st.error("Você não tem permissão para acessar esta página.")
 
     # Adicionar mais informações de debug
     if st.sidebar.button("Mostrar Informações de Debug Detalhadas", key="debug_button_2"):
-        debug_info = collect_debug_info()
-        st.sidebar.json(debug_info)
-        
-# No final do seu arquivo, modifique para:
-if __name__ == "__main__":
-    initialize_firebase()
-    if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
-        add_developer_options()  # Usa a função do seu arquivo debug_tools.py
-        user_permissions()
-    else:
-        st.error("Você não tem permissão para acessar esta página.")
-
-    # Adicionar mais informações de debug
-    if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
         debug_info = collect_debug_info()
         st.sidebar.json(debug_info)

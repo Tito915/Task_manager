@@ -2,7 +2,6 @@ import streamlit as st
 import sys
 from pathlib import Path
 import importlib
-import user_permissions
 from approve_tasks import aprovar_tarefas
 from debug_tools import add_developer_options, collect_debug_info
 
