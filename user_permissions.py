@@ -113,7 +113,7 @@ def user_permissions():
             st.warning("Nenhum usuário encontrado.")
             return
 
-        # Inicializar selected_user_email se não existir
+        # Usar st.session_state para manter o usuário selecionado
         if 'selected_user_email' not in st.session_state:
             st.session_state.selected_user_email = users[0]['email']
 
@@ -122,11 +122,10 @@ def user_permissions():
                                            index=[user['email'] for user in users].index(st.session_state.selected_user_email),
                                            key='user_select')
 
-        # Atualizar o usuário selecionado na session_state e inicializar user_permissions
-        if selected_user_email != st.session_state.selected_user_email or 'user_permissions' not in st.session_state:
+        # Atualizar o usuário selecionado na session_state
+        if selected_user_email != st.session_state.selected_user_email:
             st.session_state.selected_user_email = selected_user_email
             st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
-            st.rerun()  # Substituímos st.experimental_rerun() por st.rerun()
 
         selected_user = next((user for user in users if user['email'] == selected_user_email), None)
 
