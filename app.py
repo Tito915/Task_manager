@@ -2,14 +2,15 @@ import streamlit as st
 import sys
 from pathlib import Path
 import importlib
-import user_manager
+import manage_permissions
 from approve_tasks import aprovar_tarefas
-from debug_tools import add_developer_options
+from debug_tools import add_developer_options, collect_debug_info
 
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao, get_user_permissions
 from home_page import home_page
@@ -55,6 +56,7 @@ def init_session_state():
         st.session_state.ambiente = 'Task Manager'
     if 'navigation_key' not in st.session_state:
         st.session_state.navigation_key = 'Home'
+
 def home():
     home_page()
     
@@ -89,107 +91,19 @@ def normalize_ambiente(ambiente):
 def user_has_permission(user, permission):
     # Desenvolvedores têm acesso a tudo
     if user['funcao'] == 'Desenvolvedor':
+        print(f"Usuário {user['email']} é Desenvolvedor, permissão concedida para {permission}")
         return True
-    return user_manager.user_has_permission(user['email'], permission)
-
-def show_main_content():
-    st.sidebar.title("Menu")
-
-    if 'user' in st.session_state and st.session_state.user:
-        first_name = st.session_state.user['primeiro_nome']
-        st.sidebar.success(f"Seja bem-vindo: {first_name}")
-
-        approval_count, return_count, execution_count = count_pending_tasks(st.session_state.user['nome_completo'])
-
-        st.sidebar.markdown("### Notificações")
-        col1, col2, col3 = st.sidebar.columns(3)
-        col1.metric("Aprovações", approval_count, delta_color="inverse")
-        col2.metric("Retornos", return_count, delta_color="inverse")
-        col3.metric("Execuções", execution_count, delta_color="inverse")
-    else:
-        st.sidebar.warning("Usuário não autenticado")
-        return
-
-    ambiente = st.sidebar.selectbox(
-        "Selecione o Ambiente",
-        ["Task Manager", "Sales App"],
-        key='ambiente_select'
-    )
-
-    ambiente_normalizado = normalize_ambiente(ambiente)
-
-    if ambiente_normalizado == "taskmanager":
-        task_manager_options = {
-            "Home": ("ver_home", home_page),
-            "Criar Tarefas": ("criar_tarefas", create_task),
-            "Gerenciamento de Tarefas": ("gerenciar_tarefas", manage_tasks),
-            "Cadastrar Membro": ("cadastrar_membro", lambda: cadastrar_membro(st.session_state.user)),
-            "Aprovar Tarefas": ("aprovar_tarefas", aprovar_tarefas),
-            "Executar Tarefas": ("executar_tarefas", lambda: executar_tarefas(st.session_state.user['nome_completo'])),
-            "Downloads": ("ver_downloads", lambda: exibir_downloads(load_tasks(), st.session_state.user['nome_completo'])),
-            "Gerenciar Permissões": ("gerenciar_permissoes", manage_permissions)
-        }
-
-        # Se for Desenvolvedor, mostra todas as opções
-        if st.session_state.user['funcao'] == 'Desenvolvedor':
-            available_options = list(task_manager_options.keys())
-        else:
-            available_options = [option for option, (permission, _) in task_manager_options.items() 
-                                 if user_has_permission(st.session_state.user, permission)]
-
-        selected_option = st.sidebar.selectbox(
-            "Navegação Task Manager",
-            available_options,
-            key='task_manager_nav'
-        )
-
-        if selected_option:
-            _, function = task_manager_options[selected_option]
-            function()
-
-    elif ambiente_normalizado == "salesapp":
-        sales_app_options = {
-            "Visão Geral": ("ver_visao_geral", 'visao_geral'),
-            "Metas de Vendas": ("ver_metas_vendas", 'metas_vendas'),
-            "Controle Fiscal": ("ver_controle_fiscal", 'ctrl_fiscal'),
-            "Configurações": ("ver_configuracoes", 'configuracoes'),
-            "Calculadora": ("usar_calculadora", 'Calculadora')
-        }
-
-        # Se for Desenvolvedor, mostra todas as opções
-        if st.session_state.user['funcao'] == 'Desenvolvedor':
-            available_options = list(sales_app_options.keys())
-        else:
-            available_options = [option for option, (permission, _) in sales_app_options.items() 
-                                 if user_has_permission(st.session_state.user, permission)]
-
-        selected_option = st.sidebar.selectbox(
-            "Navegação Sales App",
-            available_options,
-            key='sales_app_nav'
-        )
-
-        if selected_option:
-            _, page = sales_app_options[selected_option]
-            load_sales_app_page(page)
-
-    # Botão de logout
-    if st.sidebar.button("Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.experimental_rerun()
-
-    # Exibe informações do usuário logado
-    st.sidebar.markdown("---")
-    st.sidebar.write(f"Logado como: {st.session_state.user['nome_completo']}")
-    st.sidebar.write(f"Função: {st.session_state.user['funcao']}")
+    has_permission = permission in get_user_permissions(user['email'])
+    print(f"Verificando permissão {permission} para {user['email']}: {has_permission}")
+    return has_permission
 
 def main():
     if 'user' not in st.session_state:
         login()
     else:
         user = st.session_state.user
-        user_permissions = get_user_permissions(user['email'])
+        print(f"Usuário logado: {user['email']}")
+        print(f"Permissões do usuário: {get_user_permissions(user['email'])}")
 
         st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
 
@@ -203,35 +117,35 @@ def main():
         if app_choice == "Task Manager":
             choice = st.sidebar.selectbox("Menu do Task Manager", task_manager_menu)
 
-            if choice == "Home" and "ver_home" in user_permissions:
+            if choice == "Home" and user_has_permission(user, "ver_home"):
                 home()
-            elif choice == "Criar Tarefa" and "criar_tarefas" in user_permissions:
+            elif choice == "Criar Tarefa" and user_has_permission(user, "criar_tarefas"):
                 create_task()
-            elif choice == "Gerenciar Tarefas" and "gerenciar_tarefas" in user_permissions:
+            elif choice == "Gerenciar Tarefas" and user_has_permission(user, "gerenciar_tarefas"):
                 manage_tasks()
-            elif choice == "Aprovar Tarefas" and "aprovar_tarefas" in user_permissions:
+            elif choice == "Aprovar Tarefas" and user_has_permission(user, "aprovar_tarefas"):
                 aprovar_tarefas()
-            elif choice == "Executar Tarefas" and "executar_tarefas" in user_permissions:
-                executar_tarefas()
-            elif choice == "Cadastrar Membro" and "cadastrar_membro" in user_permissions:
-                cadastrar_membro()
-            elif choice == "Downloads" and "ver_downloads" in user_permissions:
-                exibir_downloads()
+            elif choice == "Executar Tarefas" and user_has_permission(user, "executar_tarefas"):
+                executar_tarefas(user['nome_completo'])
+            elif choice == "Cadastrar Membro" and user_has_permission(user, "cadastrar_membro"):
+                cadastrar_membro(user)
+            elif choice == "Downloads" and user_has_permission(user, "ver_downloads"):
+                exibir_downloads(load_tasks(), user['nome_completo'])
             else:
                 st.warning("Você não tem permissão para acessar esta funcionalidade.")
 
         elif app_choice == "Sales App":
             choice = st.sidebar.selectbox("Menu do Sales App", sales_app_menu)
 
-            if choice == "Visão Geral" and "ver_visao_geral" in user_permissions:
+            if choice == "Visão Geral" and user_has_permission(user, "ver_visao_geral"):
                 visao_geral_main()
-            elif choice == "Metas de Vendas" and "ver_metas_vendas" in user_permissions:
+            elif choice == "Metas de Vendas" and user_has_permission(user, "ver_metas_vendas"):
                 metas_vendas_main()
-            elif choice == "Controle Fiscal" and "ver_controle_fiscal" in user_permissions:
+            elif choice == "Controle Fiscal" and user_has_permission(user, "ver_controle_fiscal"):
                 ctrl_fiscal_main()
-            elif choice == "Configurações" and "ver_configuracoes" in user_permissions:
+            elif choice == "Configurações" and user_has_permission(user, "ver_configuracoes"):
                 configuracoes_main()
-            elif choice == "Calculadora" and "usar_calculadora" in user_permissions:
+            elif choice == "Calculadora" and user_has_permission(user, "usar_calculadora"):
                 calculadora_main()
             else:
                 st.warning("Você não tem permissão para acessar esta funcionalidade.")
@@ -242,8 +156,18 @@ def main():
                 manage_permissions()
 
         if st.sidebar.button("Logout"):
-            del st.session_state['user']
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
             st.experimental_rerun()
+
+        # Adicionar botão de debug
+        if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+            st.sidebar.json(dict(st.session_state))
+
+        # Adicionar botão para mostrar informações de debug detalhadas
+        if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
+            debug_info = collect_debug_info()
+            st.sidebar.json(debug_info)
 
 if __name__ == "__main__":
     main()

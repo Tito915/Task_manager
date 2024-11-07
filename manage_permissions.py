@@ -38,7 +38,9 @@ USERS_FILE = 'SallesApp/users.json'
 
 def get_user_permissions(email):
     all_permissions = load_permissions()
-    return all_permissions.get(email, [])
+    permissions = all_permissions.get(email, [])
+    print(f"Permissões carregadas para {email}: {permissions}")
+    return permissions
 
 def user_has_permission(email, permission):
     user_permissions = get_user_permissions(email)
@@ -69,7 +71,7 @@ def save_permissions(permissions):
         bucket = storage.bucket()
         blob = bucket.blob(PERMISSIONS_FILE)
         blob.upload_from_string(json.dumps(permissions, ensure_ascii=False, indent=4), content_type='application/json')
-        print("Permissões salvas com sucesso.")
+        print(f"Permissões salvas com sucesso: {json.dumps(permissions, ensure_ascii=False, indent=2)}")
     except Exception as e:
         st.error(f"Erro ao salvar permissões: {str(e)}")
 
