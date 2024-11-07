@@ -122,8 +122,19 @@ def manage_permissions():
             st.warning("Nenhum usuário encontrado.")
             return
 
+        # Usar st.session_state para manter o usuário selecionado
+        if 'selected_user_email' not in st.session_state:
+            st.session_state.selected_user_email = users[0]['email']
+
         # Selecionar um usuário
-        selected_user_email = st.selectbox("Selecione um usuário", [user['email'] for user in users])
+        selected_user_email = st.selectbox("Selecione um usuário", 
+                                           [user['email'] for user in users],
+                                           index=[user['email'] for user in users].index(st.session_state.selected_user_email),
+                                           key='user_select')
+
+        # Atualizar o usuário selecionado na session_state
+        st.session_state.selected_user_email = selected_user_email
+
         selected_user = next((user for user in users if user['email'] == selected_user_email), None)
 
         if selected_user:
@@ -157,13 +168,19 @@ def manage_permissions():
                 st.subheader("Permissões do Task Manager")
                 tm_permissions = {}
                 for permission in task_manager_permissions:
-                    tm_permissions[permission] = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}", disabled=grant_all)
+                    tm_permissions[permission] = st.checkbox(permission, 
+                                                             value=permission in st.session_state.user_permissions, 
+                                                             key=f"tm_{permission}", 
+                                                             disabled=grant_all)
 
                 # Mostrar checkboxes para cada permissão do Sales App
                 st.subheader("Permissões do Sales App")
                 sa_permissions = {}
                 for permission in sales_app_permissions:
-                    sa_permissions[permission] = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}", disabled=grant_all)
+                    sa_permissions[permission] = st.checkbox(permission, 
+                                                             value=permission in st.session_state.user_permissions, 
+                                                             key=f"sa_{permission}", 
+                                                             disabled=grant_all)
 
                 # Botão para salvar as alterações
                 submitted = st.form_submit_button("Salvar Alterações")
@@ -189,7 +206,7 @@ def manage_permissions():
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
         st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
-
+        
 # No final do seu arquivo, modifique para:
 if __name__ == "__main__":
     initialize_firebase()
