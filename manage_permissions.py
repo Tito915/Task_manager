@@ -96,6 +96,18 @@ def load_users():
 def manage_permissions():
     st.header("Gerenciamento de Permissões de Usuários")
 
+    # Debug: Mostrar informações do usuário atual
+    if 'user' in st.session_state:
+        st.sidebar.write("Debug: Usuário Logado")
+        st.sidebar.json(st.session_state.user)
+    else:
+        st.sidebar.write("Debug: Nenhum usuário logado")
+
+    # Botão de Debug para Desenvolvedores
+    if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+        st.sidebar.write("Debug: Estado da Sessão")
+        st.sidebar.json(dict(st.session_state))
+
     try:
         # Carregar todos os usuários
         users = load_users()
@@ -129,26 +141,31 @@ def manage_permissions():
             if 'user_permissions' not in st.session_state:
                 st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
 
+            # Debug: Mostrar permissões atuais
+            st.sidebar.write("Debug: Permissões Atuais")
+            st.sidebar.json(st.session_state.user_permissions)
+
             # Opção para conceder todas as permissões
-            if st.checkbox("Conceder todas as permissões", key="grant_all"):
+            grant_all = st.checkbox("Conceder todas as permissões", key="grant_all")
+            if grant_all:
                 st.session_state.user_permissions = task_manager_permissions + sales_app_permissions
             
             # Mostrar checkboxes para cada permissão do Task Manager
             st.subheader("Permissões do Task Manager")
             for permission in task_manager_permissions:
-                if st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}"):
-                    if permission not in st.session_state.user_permissions:
-                        st.session_state.user_permissions.append(permission)
-                elif permission in st.session_state.user_permissions:
+                checked = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"tm_{permission}", disabled=grant_all)
+                if checked and permission not in st.session_state.user_permissions:
+                    st.session_state.user_permissions.append(permission)
+                elif not checked and permission in st.session_state.user_permissions:
                     st.session_state.user_permissions.remove(permission)
 
             # Mostrar checkboxes para cada permissão do Sales App
             st.subheader("Permissões do Sales App")
             for permission in sales_app_permissions:
-                if st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}"):
-                    if permission not in st.session_state.user_permissions:
-                        st.session_state.user_permissions.append(permission)
-                elif permission in st.session_state.user_permissions:
+                checked = st.checkbox(permission, value=permission in st.session_state.user_permissions, key=f"sa_{permission}", disabled=grant_all)
+                if checked and permission not in st.session_state.user_permissions:
+                    st.session_state.user_permissions.append(permission)
+                elif not checked and permission in st.session_state.user_permissions:
                     st.session_state.user_permissions.remove(permission)
 
             # Botão para salvar as alterações
@@ -156,12 +173,31 @@ def manage_permissions():
                 update_user_permissions(selected_user_email, st.session_state.user_permissions)
                 st.success("Permissões atualizadas com sucesso!")
 
+            # Debug: Mostrar permissões após alterações
+            st.sidebar.write("Debug: Permissões Após Alterações")
+            st.sidebar.json(st.session_state.user_permissions)
+
         else:
             st.warning("Nenhum usuário selecionado")
 
     except Exception as e:
         st.error(f"Ocorreu um erro ao gerenciar as permissões: {str(e)}")
-        print(f"Erro detalhado: {str(e)}")
+        st.sidebar.error(f"Debug: Erro detalhado - {str(e)}")
+
+# Adicione esta função no início do seu arquivo
+def show_developer_options():
+    if st.sidebar.checkbox("Mostrar Opções de Desenvolvedor"):
+        st.sidebar.write("Debug: Todas as Variáveis de Sessão")
+        st.sidebar.json(dict(st.session_state))
+
+# No final do seu arquivo, adicione:
+if __name__ == "__main__":
+    initialize_firebase()
+    if 'user' in st.session_state and can_manage_permissions(st.session_state['user']):
+        show_developer_options()  # Adicione esta linha
+        manage_permissions()
+    else:
+        st.error("Você não tem permissão para acessar esta página.")
 
 if __name__ == "__main__":
     initialize_firebase()
