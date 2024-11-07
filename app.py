@@ -97,6 +97,9 @@ def user_has_permission(user, permission):
     return has_permission
 
 def main():
+    # Inicializar o session_state
+    init_session_state()
+
     if 'user' not in st.session_state:
         login()
     else:
@@ -113,7 +116,9 @@ def main():
         # Adicionando opção para escolher entre Task Manager e Sales App
         app_choice = st.sidebar.radio("Escolha o aplicativo:", ["Task Manager", "Sales App"])
 
-        if app_choice == "Task Manager":
+        if st.session_state.page == 'user_permissions':
+            user_permissions()
+        elif app_choice == "Task Manager":
             choice = st.sidebar.selectbox("Menu do Task Manager", task_manager_menu)
 
             if choice == "Home" and user_has_permission(user, "ver_home"):
@@ -151,8 +156,9 @@ def main():
 
         # Opção de Gerenciar Permissões (disponível em ambos os apps)
         if user['funcao'] == 'Desenvolvedor':
-            if st.sidebar.button("Gerenciar Permissões"):
-                user_permissions()
+           if st.sidebar.button("Gerenciar Permissões"):
+              st.session_state.page = 'user_permissions'
+              st.experimental_rerun()
 
         if st.sidebar.button("Logout"):
             for key in list(st.session_state.keys()):

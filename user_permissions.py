@@ -113,16 +113,18 @@ def user_permissions():
             st.warning("Nenhum usuário encontrado.")
             return
 
-        # Usar st.session_state para manter o usuário selecionado
+        # Usar st.session_state para manter o usuário selecionado e suas permissões
         if 'selected_user_email' not in st.session_state:
             st.session_state.selected_user_email = users[0]['email']
+        if 'user_permissions' not in st.session_state:
+            st.session_state.user_permissions = all_permissions.get(st.session_state.selected_user_email, [])
 
         selected_user_email = st.selectbox("Selecione um usuário", 
                                            [user['email'] for user in users],
                                            index=[user['email'] for user in users].index(st.session_state.selected_user_email),
                                            key='user_select')
 
-        # Atualizar o usuário selecionado na session_state
+        # Atualizar o usuário selecionado e suas permissões na session_state
         if selected_user_email != st.session_state.selected_user_email:
             st.session_state.selected_user_email = selected_user_email
             st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
@@ -175,8 +177,8 @@ def user_permissions():
                     new_permissions = [perm for perm, checked in {**tm_permissions, **sa_permissions}.items() if checked]
                 
                 update_user_permissions(selected_user_email, new_permissions)
-                st.success("Permissões atualizadas com sucesso!")
                 st.session_state.user_permissions = new_permissions
+                st.success("Permissões atualizadas com sucesso!")
 
             # Debug: Mostrar permissões após alterações
             st.sidebar.write("Debug: Permissões Após Alterações")
