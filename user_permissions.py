@@ -126,7 +126,7 @@ def user_permissions():
         if selected_user_email != st.session_state.selected_user_email or 'user_permissions' not in st.session_state:
             st.session_state.selected_user_email = selected_user_email
             st.session_state.user_permissions = all_permissions.get(selected_user_email, [])
-            st.experimental_rerun()
+            st.rerun()  # Substituímos st.experimental_rerun() por st.rerun()
 
         selected_user = next((user for user in users if user['email'] == selected_user_email), None)
 
