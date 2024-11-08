@@ -18,7 +18,7 @@ from manage_tasks import manage_tasks
 from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
-from login import login
+from login import login, mudar_senha
 from user_permissions import user_permissions
 
 # Importações do Sales App
@@ -55,6 +55,8 @@ def init_session_state():
         st.session_state.ambiente = 'Task Manager'
     if 'navigation_key' not in st.session_state:
         st.session_state.navigation_key = 'Home'
+    if 'senha_padrao' not in st.session_state:
+        st.session_state.senha_padrao = False
 
 def home():
     home_page()
@@ -108,6 +110,13 @@ def main():
         print(f"Permissões do usuário: {get_user_permissions(user['email'])}")
 
         st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
+
+        # Verificar se o usuário precisa mudar a senha
+        if st.session_state.get('senha_padrao', False):
+            st.warning("Você precisa mudar sua senha.")
+            mudar_senha(user)
+        else:
+            st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
 
         # Separando os menus do Task Manager e do Sales App
         task_manager_menu = ["Home", "Criar Tarefa", "Gerenciar Tarefas", "Aprovar Tarefas", "Executar Tarefas", "Cadastrar Membro", "Downloads"]
@@ -166,13 +175,15 @@ def main():
             st.experimental_rerun()
 
         # Adicionar botão de debug
-        if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
-            st.sidebar.json(dict(st.session_state))
+        if user['funcao'] == 'Desenvolvedor':
+            if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+                st.sidebar.json(dict(st.session_state))
 
         # Adicionar botão para mostrar informações de debug detalhadas
-        if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
-            debug_info = collect_debug_info()
-            st.sidebar.json(debug_info)
+        if user['funcao'] == 'Desenvolvedor':
+            if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
+                debug_info = collect_debug_info()
+                st.sidebar.json(debug_info)
 
 if __name__ == "__main__":
     main()
