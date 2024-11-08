@@ -1,101 +1,181 @@
 import json
 import os
+import streamlit as st
+from firebase_admin import db
 
-# Caminho para o arquivo JSON
-USERS_FILE = 'users.json'
-
-def load_users():
+def load_users_local():
+    """Carrega usuários do arquivo JSON local."""
     try:
-        with open(USERS_FILE, 'r') as file:
+        with open('users.json', 'r') as file:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        # Retorna uma lista vazia se o arquivo não existir ou estiver vazio/corrompido
         return []
 
-def save_users(users):
-    """Salva os usuários no arquivo JSON."""
-    with open(USERS_FILE, 'w') as file:
+def save_users_local(users):
+    """Salva usuários no arquivo JSON local."""
+    with open('users.json', 'w') as file:
         json.dump(users, file, indent=4)
 
-def add_user(user):
-    """Adiciona um novo usuário e salva no arquivo JSON."""
-    if 'permissions' not in user:
-        user['permissions'] = []  # Permissões padrão vazias
-    users = load_users()
-    users.append(user)
-    save_users(users)
-
 def get_user_by_email(email):
-    users = load_users()
-    for user in users:
-        if user['email'] == email:
-            return user
-    return None
+    """
+    Busca usuário por email.
+    Prioriza busca no Firebase, com fallback para arquivo local.
+    """
+    try:
+        # Tenta buscar no Firebase
+        users_ref = db.reference('SallesApp/users')
+        users = users_ref.get()
+
+        # Debug: informações sobre a estrutura de usuários
+        st.write("Estrutura de usuários no Firebase:")
+        st.write(f"Tipo de users: {type(users)}")
+        st.write(f"Conteúdo de users: {users}")
+
+        # Verifica se é uma lista ou dicionário
+        if isinstance(users, list):
+            for user in users:
+                if user.get('email') == email:
+                    return user
+        elif isinstance(users, dict):
+            for key, user in users.items():
+                if user.get('email') == email:
+                    return user
+        
+        # Se não encontrar no Firebase, tenta no arquivo local
+        local_users = load_users_local()
+        for user in local_users:
+            if user['email'] == email:
+                return user
+        
+        return None
+
+    except Exception as e:
+        st.error(f"Erro ao buscar usuário no Firebase: {e}")
+        
+        # Fallback para busca local se Firebase falhar
+        local_users = load_users_local()
+        for user in local_users:
+            if user['email'] == email:
+                return user
+        
+        return None
 
 def update_user_password(email, new_password):
-    """Atualiza a senha de um usuário específico."""
-    users = load_users()
-    for user in users:
-        if user['email'] == email:
-            user['senha'] = new_password
-            save_users(users)
-            return True
-    return False
+    """
+    Atualiza a senha do usuário.
+    Atualiza tanto no Firebase quanto no arquivo local.
+    """
+    try:
+        # Atualiza no Firebase
+        users_ref = db.reference('SallesApp/users')
+        users = users_ref.get()
 
-def update_user(updated_user):
-    users = load_users()
-    for i, user in enumerate(users):
-        if user['email'] == updated_user['email']:
-            users[i] = updated_user
-            save_users(users)
-            return True
-    return False
+        if isinstance(users, list):
+            for i, user in enumerate(users):
+                if user.get('email') == email:
+                    users[i]['senha'] = new_password
+                    users_ref.set(users)
+                    break
+        elif isinstance(users, dict):
+            for key, user in users.items():
+                if user.get('email') == email:
+                    users_ref.child(key).update({'senha': new_password})
+                    break
 
-def user_has_permission(email, permission):
-    user = get_user_by_email(email)
-    if user and 'funcao' in user and user['funcao'] == 'Desenvolvedor':
+        # Atualiza no arquivo local
+        local_users = load_users_local()
+        for user in local_users:
+            if user['email'] == email:
+                user['senha'] = new_password
+                break
+        save_users_local(local_users)
+
         return True
-    return user and 'permissions' in user and permission in user['permissions']
 
-def delete_user(email):
-    """Remove um usuário do arquivo JSON."""
-    users = load_users()
-    users = [user for user in users if user['email'] != email]
-    save_users(users)
+    except Exception as e:
+        st.error(f"Erro ao atualizar senha: {e}")
+        return False
+
+def add_user(user):
+    """
+    Adiciona um novo usuário no Firebase e no arquivo local.
+    """
+    try:
+        # Adiciona no Firebase
+        users_ref = db.reference('SallesApp/users')
+        users = users_ref.get() or []
+        
+        if not user.get('permissions'):
+            user['permissions'] = []
+        
+        if isinstance(users, list):
+            users.append(user)
+            users_ref.set(users)
+        elif isinstance(users, dict):
+            new_key = str(len(users) + 1).zfill(3)
+            users_ref.child(new_key).set(user)
+
+        # Adiciona no arquivo local
+        local_users = load_users_local()
+        local_users.append(user)
+        save_users_local(local_users)
+
+        return True
+
+    except Exception as e:
+        st.error(f"Erro ao adicionar usuário: {e}")
+        return False
 
 def user_exists(email):
     """Verifica se um usuário com o email fornecido já existe."""
     return get_user_by_email(email) is not None
 
-# Novas funções para gerenciar permissões
+def user_has_permission(email, permission):
+    """Verifica se o usuário tem uma permissão específica."""
+    user = get_user_by_email(email)
+    
+    # Desenvolvedor tem todas as permissões
+    if user and user.get('funcao') == 'Desenvolvedor':
+        return True
+    
+    return user and 'permissions' in user and permission in user.get('permissions', [])
 
 def add_permission(email, permission):
-    """Adiciona uma permissão a um usuário específico."""
-    users = load_users()
-    for user in users:
-        if user['email'] == email:
-            if 'permissions' not in user:
-                user['permissions'] = []
-            if permission not in user['permissions']:
-                user['permissions'].append(permission)
-                save_users(users)
-                return True
-    return False
+    """Adiciona uma permissão a um usuário."""
+    try:
+        # Busca o usuário
+        users_ref = db.reference('SallesApp/users')
+        users = users_ref.get()
 
-def remove_permission(email, permission):
-    """Remove uma permissão de um usuário específico."""
-    users = load_users()
-    for user in users:
-        if user['email'] == email:
-            if 'permissions' in user and permission in user['permissions']:
-                user['permissions'].remove(permission)
-                save_users(users)
-                return True
-    return False
+        if isinstance(users, list):
+            for i, user in enumerate(users):
+                if user.get('email') == email:
+                    if 'permissions' not in user:
+                        user['permissions'] = []
+                    if permission not in user['permissions']:
+                        user['permissions'].append(permission)
+                        users_ref.set(users)
+                        # Atualiza local também
+                        local_users = load_users_local()
+                        local_users[i]['permissions'] = user['permissions']
+                        save_users_local(local_users)
+                        return True
+        elif isinstance(users, dict):
+            for key, user in users.items():
+                if user.get('email') == email:
+                    permissions = user.get('permissions', [])
+                    if permission not in permissions:
+                        permissions.append(permission)
+                        users_ref.child(key).update({'permissions': permissions})
+                        return True
+
+        return False
+
+    except Exception as e:
+        st.error(f"Erro ao adicionar permissão: {e}")
+        return False
 
 def get_user_permissions(email):
-    """Retorna a lista de permissões de um usuário específico."""
+    """Retorna a lista de permissões de um usuário."""
     user = get_user_by_email(email)
-    if user and 'permissions' in user:
-        return user['permissions']
-    return []
+    return user.get('permissions', []) if user else []
