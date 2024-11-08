@@ -14,7 +14,9 @@ def login():
         if user and user.get('senha', '') == senha:
             if senha == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
-                mudar_senha(user)
+                if mudar_senha(user):
+                    st.success("Senha alterada com sucesso! Por favor, faça login novamente.")
+                    st.rerun()
             else:
                 st.session_state.user = {
                     'email': user['email'],
@@ -29,6 +31,7 @@ def login():
 
 def mudar_senha(user):
     st.subheader("Mudar Senha")
+    senha_alterada = False
     with st.form(key='change_password_form'):
         nova_senha = st.text_input("Nova Senha", type="password")
         confirmar_senha = st.text_input("Confirmar Nova Senha", type="password")
@@ -43,20 +46,18 @@ def mudar_senha(user):
             else:
                 if update_user_password(user['email'], nova_senha):
                     st.success("Senha alterada com sucesso!")
-                    updated_user = get_user_by_email(user['email'])
-                    st.session_state.user = {
-                        'email': updated_user['email'],
-                        'nome_completo': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')),
-                        'primeiro_nome': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')).split()[0],
-                        'funcao': updated_user.get('funcao', 'Usuário')
-                    }
-                    st.rerun()
+                    senha_alterada = True
                 else:
                     st.error("Erro ao atualizar a senha. Tente novamente.")
         else:
             st.error("As senhas não coincidem. Tente novamente.")
+    
+    return senha_alterada
 
 # Função auxiliar para log seguro (se necessário para depuração)
 def log_seguro(mensagem):
     # Implemente um log seguro aqui, se necessário
     pass
+
+if __name__ == "__main__":
+    login()
