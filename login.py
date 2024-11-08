@@ -54,10 +54,5 @@ def mudar_senha(user):
     
     return senha_alterada
 
-# Função auxiliar para log seguro (se necessário para depuração)
-def log_seguro(mensagem):
-    # Implemente um log seguro aqui, se necessário
-    pass
-
 if __name__ == "__main__":
     login()

@@ -5,6 +5,19 @@ import firebase_admin
 from firebase_admin import credentials, storage
 import streamlit as st
 
+def load_users_from_firebase():
+    try:
+        blob = bucket.blob('SallesApp/users.json')
+        _, temp_local_filename = tempfile.mkstemp()
+        blob.download_to_filename(temp_local_filename)
+        with open(temp_local_filename, 'r') as file:
+            users = json.load(file)
+        os.remove(temp_local_filename)
+        return {user['id']: user for user in users}
+    except Exception as e:
+        print(f"Erro ao carregar usuários do Firebase Storage: {e}")
+        return {}
+
 def initialize_firebase():
     if not firebase_admin._apps:
         try:
@@ -39,19 +52,6 @@ except Exception as e:
     print(f"Falha ao inicializar Firebase: {str(e)}")
     bucket = None
 
-def load_users_from_firebase():
-    try:
-        blob = bucket.blob('SallesApp/users.json')
-        _, temp_local_filename = tempfile.mkstemp()
-        blob.download_to_filename(temp_local_filename)
-        with open(temp_local_filename, 'r') as file:
-            users = json.load(file)
-        os.remove(temp_local_filename)
-        return {user['id']: user for user in users}
-    except Exception as e:
-        print(f"Erro ao carregar usuários do Firebase Storage: {e}")
-        return {}
-
 def save_users_to_firebase(users):
     try:
         blob = bucket.blob('SallesApp/users.json')
@@ -68,12 +68,20 @@ def get_user_by_email(email):
 
 def update_user_password(email, new_password):
     users = load_users_from_firebase()
+    updated = False
     for user in users.values():
         if user.get('email') == email:
             user['senha'] = new_password
-            save_users_to_firebase(users)
-            return True
-    return False
+            updated = True
+            break
+    
+    if updated:
+        save_users_to_firebase(users)
+        print(f"Senha atualizada para o usuário: {email}")
+        return True
+    else:
+        print(f"Usuário não encontrado: {email}")
+        return False
 
 def add_user(user):
     users = load_users_from_firebase()
@@ -130,6 +138,10 @@ def get_user_profile_picture(user_id):
     users = load_users_from_firebase()
     user = users.get(user_id)
     return user.get('profile_picture') if user else None
+
+def reload_firebase_data():
+    global bucket
+    bucket = initialize_firebase()
 
 if __name__ == "__main__":
     email = "titodossantos@icloud.com"
