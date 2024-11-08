@@ -57,7 +57,10 @@ def load_users_from_firebase():
         with open(temp_local_filename, 'r') as file:
             users = json.load(file)
 
-        return users if users else {}
+        # Converte a lista de usuários para um dicionário
+        users_dict = {user['id']: user for user in users}
+
+        return users_dict
     except Exception as e:
         st.error(f"Erro ao carregar usuários do Firebase Storage: {e}")
         return {}
@@ -67,8 +70,11 @@ def save_users_to_firebase(users):
     try:
         blob = bucket.blob('SallesApp/users.json')
 
-        # Converte os usuários para JSON
-        users_json = json.dumps(users)
+        # Converte o dicionário de usuários de volta para uma lista
+        users_list = list(users.values())
+
+        # Converte a lista de usuários para JSON
+        users_json = json.dumps(users_list)
 
         # Faz o upload do JSON para o Storage
         blob.upload_from_string(users_json, content_type='application/json')
@@ -80,7 +86,7 @@ def save_users_to_firebase(users):
 def get_user_by_email(email):
     """Busca usuário por email no Firebase."""
     users = load_users_from_firebase()
-    for user_id, user in users.items():
+    for user in users.values():
         if user.get('email') == email:
             return user
     return None
@@ -88,7 +94,7 @@ def get_user_by_email(email):
 def update_user_password(email, new_password):
     """Atualiza a senha do usuário no Firebase."""
     users = load_users_from_firebase()
-    for user_id, user in users.items():
+    for user in users.values():
         if user.get('email') == email:
             user['senha'] = new_password
             save_users_to_firebase(users)
@@ -99,6 +105,7 @@ def add_user(user):
     """Adiciona um novo usuário no Firebase."""
     users = load_users_from_firebase()
     new_user_id = str(len(users) + 1).zfill(3)
+    user['id'] = new_user_id
     users[new_user_id] = user
     save_users_to_firebase(users)
     return True
@@ -117,7 +124,7 @@ def user_has_permission(email, permission):
 def add_permission(email, permission):
     """Adiciona uma permissão a um usuário."""
     users = load_users_from_firebase()
-    for user_id, user in users.items():
+    for user in users.values():
         if user.get('email') == email:
             if 'permissions' not in user:
                 user['permissions'] = []
@@ -154,5 +161,16 @@ def update_user_profile_picture(user_id, picture_url):
 
 def get_user_profile_picture(user_id):
     """Obtém a URL da imagem de perfil do usuário."""
-    user = load_users_from_firebase().get(user_id)
+    users = load_users_from_firebase()
+    user = users.get(user_id)
     return user.get('profile_picture') if user else None
+
+if __name__ == "__main__":
+    # Teste as funções aqui
+    email = "titodossantos@icloud.com"
+    senha = "123456"
+    user = get_user_by_email(email)
+    if user and user['senha'] == senha:
+        print(f"Login bem-sucedido para {user['nome_completo']}")
+    else:
+        print("Email ou senha incorretos.")
