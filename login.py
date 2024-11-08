@@ -11,7 +11,9 @@ def login():
 
     if submit_button:
         user = get_user_by_email(email)
-        if user and user['senha'] == senha:
+                # Comparação mais flexível
+        if user and user.get('senha', '').strip() == senha.strip():
+        
             if senha == "senha_padrao":  # Substitua "senha_padrao" pela senha padrão real
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
