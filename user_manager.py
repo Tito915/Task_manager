@@ -1,32 +1,81 @@
-import streamlit as st
-from firebase_utils import db_ref, bucket, initialize_firebase, validar_conexao
+import tempfile
+import os
 import json
+import firebase_admin
+from firebase_admin import credentials, storage
+import streamlit as st
 
-# Inicializar o Firebase
+def initialize_firebase():
+    if not firebase_admin._apps:
+        try:
+            # Tenta usar o arquivo local
+            cred_path = os.path.join(os.path.dirname(__file__), 'firebase_credentials.json')
+            
+            if os.path.exists(cred_path):
+                cred = credentials.Certificate(cred_path)
+            else:
+                # Se o arquivo não existir, tenta usar as credenciais do Streamlit secrets
+                cred_dict = st.secrets.get("FIREBASE_CREDENTIALS", None)
+                if cred_dict:
+                    # Salva as credenciais em um arquivo temporário
+                    temp_cred_path = os.path.join(os.path.dirname(__file__), 'temp_credentials.json')
+                    with open(temp_cred_path, 'w') as f:
+                        json.dump(cred_dict, f)
+                    cred = credentials.Certificate(temp_cred_path)
+                    # Remove o arquivo temporário após usar
+                    os.remove(temp_cred_path)
+                else:
+                    raise ValueError("Credenciais do Firebase não encontradas")
+
+            firebase_admin.initialize_app(cred, {
+                'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
+            })
+            print("Firebase inicializado com sucesso")
+        except Exception as e:
+            print(f"Erro ao inicializar Firebase: {str(e)}")
+            raise
+    
+    return storage.bucket()
+
+# Inicialize o bucket globalmente
 try:
-    initialize_firebase()
-    if not validar_conexao():
-        st.error("Falha na conexão com o Firebase.")
+    bucket = initialize_firebase()
 except Exception as e:
-    st.error(f"Erro ao inicializar Firebase: {str(e)}")
+    print(f"Falha ao inicializar Firebase: {str(e)}")
+    bucket = None
 
 def load_users_from_firebase():
-    """Carrega usuários do Firebase."""
+    """Carrega usuários do Firebase Storage."""
     try:
-        users_ref = db_ref.child('SallesApp/users')
-        users = users_ref.get()
+        blob = bucket.blob('SallesApp/users.json')
+
+        # Download do arquivo para um arquivo temporário
+        _, temp_local_filename = tempfile.mkstemp()
+        blob.download_to_filename(temp_local_filename)
+
+        # Lê o conteúdo do arquivo
+        with open(temp_local_filename, 'r') as file:
+            users = json.load(file)
+
         return users if users else {}
     except Exception as e:
-        st.error(f"Erro ao carregar usuários do Firebase: {e}")
+        st.error(f"Erro ao carregar usuários do Firebase Storage: {e}")
         return {}
 
 def save_users_to_firebase(users):
-    """Salva usuários no Firebase."""
+    """Salva usuários no Firebase Storage."""
     try:
-        users_ref = db_ref.child('SallesApp/users')
-        users_ref.set(users)
+        blob = bucket.blob('SallesApp/users.json')
+
+        # Converte os usuários para JSON
+        users_json = json.dumps(users)
+
+        # Faz o upload do JSON para o Storage
+        blob.upload_from_string(users_json, content_type='application/json')
+
+        st.success("Usuários salvos com sucesso no Firebase Storage.")
     except Exception as e:
-        st.error(f"Erro ao salvar usuários no Firebase: {e}")
+        st.error(f"Erro ao salvar usuários no Firebase Storage: {e}")
 
 def get_user_by_email(email):
     """Busca usuário por email no Firebase."""
@@ -83,13 +132,8 @@ def get_user_permissions(email):
     user = get_user_by_email(email)
     return user.get('permissions', []) if user else []
 
-# Funções adicionais para lidar com imagens de perfil
-
 def upload_profile_picture(user_id, image_file):
     """Faz upload da imagem de perfil para o Firebase Storage."""
-    if not bucket:
-        st.error("Firebase Storage não inicializado")
-        return None
     try:
         blob = bucket.blob(f"profile_pictures/{user_id}.jpg")
         blob.upload_from_file(image_file)
