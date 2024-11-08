@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from user_manager import load_users, add_user, save_users
+from user_manager import load_users, add_user, save_users_to_firebase
 
 def cadastrar_membro(user):
     if user['funcao'] not in ['Desenvolvedor', 'Presidente']:
@@ -70,23 +70,23 @@ def gerenciar_membros_existentes():
                     user['funcao'] = nova_funcao
                     if nova_senha:
                         user['senha'] = nova_senha
-                    save_users(users)
+                    save_users_to_firebase(users)
                     st.success("Membro atualizado com sucesso!")
                     st.rerun()
             
             with col5:
                 if st.button("Excluir", key=f"excluir_{user['id']}"):
                     users.remove(user)
-                    save_users(users)
+                    save_users_to_firebase(users)
                     st.success("Membro excluído com sucesso!")
                     st.rerun()
 
 # Atualização no arquivo user_manager.py
-def save_users(users):
+def save_users_to_firebase(users):
     with open('users.json', 'w') as file:
         json.dump(users, file, indent=4)
 
 def add_user(user):
     users = load_users()
     users.append(user)
-    save_users(users)
+    save_users_to_firebase(users)
