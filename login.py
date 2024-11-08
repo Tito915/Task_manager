@@ -1,6 +1,5 @@
 import streamlit as st
 from user_manager import get_user_by_email, update_user_password
-import json
 
 def login():
     st.header("Login")
@@ -10,27 +9,9 @@ def login():
         submit_button = st.form_submit_button("Entrar")
 
     if submit_button:
-        # Debug: mostre o email que está sendo buscado
-        st.write(f"Buscando usuário com email: {email}")
-        
         user = get_user_by_email(email)
         
-        # Debug: mostre detalhes do usuário encontrado
-        st.write("Usuário encontrado:")
-        st.write(user)
-        
-        # Debug: compare as senhas
-        st.write(f"Senha digitada: {senha}")
-        st.write(f"Senha do usuário: {user.get('senha') if user else 'Usuário não encontrado'}")
-        
-        # Comparação mais flexível e com debug
-        if user:
-            st.write("Comparando senhas:")
-            st.write(f"Digitada (strip): '{senha.strip()}'")
-            st.write(f"Armazenada (strip): '{user.get('senha', '').strip()}'")
-        
-        if user and user.get('senha', '').strip() == senha.strip():
-            # Resto do código permanece o mesmo
+        if user and user.get('senha', '') == senha:
             if senha == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
@@ -57,7 +38,7 @@ def mudar_senha(user):
         if nova_senha == confirmar_senha:
             if len(nova_senha) < 8:
                 st.error("A nova senha deve ter pelo menos 8 caracteres.")
-            elif nova_senha == "senha_padrao":
+            elif nova_senha == "123456":
                 st.error("Você não pode usar a senha padrão como sua nova senha.")
             else:
                 if update_user_password(user['email'], nova_senha):
@@ -75,4 +56,7 @@ def mudar_senha(user):
         else:
             st.error("As senhas não coincidem. Tente novamente.")
 
-# A função update_user_password pode permanecer no arquivo user_manager.py
+# Função auxiliar para log seguro (se necessário para depuração)
+def log_seguro(mensagem):
+    # Implemente um log seguro aqui, se necessário
+    pass
