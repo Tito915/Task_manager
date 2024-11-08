@@ -109,14 +109,16 @@ def main():
         print(f"Usuário logado: {user['email']}")
         print(f"Permissões do usuário: {get_user_permissions(user['email'])}")
 
-        st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
-
         # Verificar se o usuário precisa mudar a senha
         if st.session_state.get('senha_padrao', False):
             st.warning("Você precisa mudar sua senha.")
-            mudar_senha(user)
-        else:
-            st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
+            if mudar_senha(user):
+                st.success("Senha alterada com sucesso! Por favor, faça login novamente.")
+                # Limpar a sessão e forçar novo login
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                st.experimental_rerun()
+            return  # Importante: retornar aqui para evitar mostrar o resto da interface
 
         # Separando os menus do Task Manager e do Sales App
         task_manager_menu = ["Home", "Criar Tarefa", "Gerenciar Tarefas", "Aprovar Tarefas", "Executar Tarefas", "Cadastrar Membro", "Downloads"]
