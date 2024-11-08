@@ -10,15 +10,31 @@ def login():
         submit_button = st.form_submit_button("Entrar")
 
     if submit_button:
-        user = get_user_by_email(email)
-                # Comparação mais flexível
-        if user and user.get('senha', '').strip() == senha.strip():
+        # Debug: mostre o email que está sendo buscado
+        st.write(f"Buscando usuário com email: {email}")
         
-            if senha == "senha_padrao":  # Substitua "senha_padrao" pela senha padrão real
+        user = get_user_by_email(email)
+        
+        # Debug: mostre detalhes do usuário encontrado
+        st.write("Usuário encontrado:")
+        st.write(user)
+        
+        # Debug: compare as senhas
+        st.write(f"Senha digitada: {senha}")
+        st.write(f"Senha do usuário: {user.get('senha') if user else 'Usuário não encontrado'}")
+        
+        # Comparação mais flexível e com debug
+        if user:
+            st.write("Comparando senhas:")
+            st.write(f"Digitada (strip): '{senha.strip()}'")
+            st.write(f"Armazenada (strip): '{user.get('senha', '').strip()}'")
+        
+        if user and user.get('senha', '').strip() == senha.strip():
+            # Resto do código permanece o mesmo
+            if senha == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
             else:
-                # Armazene apenas as informações necessárias do usuário na sessão
                 st.session_state.user = {
                     'email': user['email'],
                     'nome_completo': user.get('nome_completo', user.get('nome', 'Nome não definido')),
