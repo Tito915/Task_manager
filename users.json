@@ -5,7 +5,7 @@
         "sobrenome": "Nafitali N Dos Santos",
         "nome_completo": "Tito Nafitali N Dos Santos",
         "email": "titodossantos@icloud.com",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Desenvolvedor"
     },
     {
@@ -14,7 +14,7 @@
         "sobrenome": "Sofia Felix Ferreira Nunes",
         "nome_completo": "Agata Sofia Felix Ferreira Nunes",
         "email": "financeiro@grupombv.com.br",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Financeiro"
     },
     {
@@ -23,7 +23,7 @@
         "sobrenome": "Sebastião",
         "nome_completo": "Peter Sebastião",
         "email": "madeireiraboavista@yahoo.com.br",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Presidente"
     },
     {
@@ -32,7 +32,7 @@
         "sobrenome": "Bernardo Lima",
         "nome_completo": "Natalia Bernardo Lima",
         "email": "mbvcobranca@gmail.com",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Financeiro"
     },
     {
@@ -41,7 +41,7 @@
         "sobrenome": "Alves",
         "nome_completo": "Junior Alves",
         "email": "junior@grupombv.com.br",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Financeiro"
     },
     {
@@ -50,7 +50,34 @@
         "sobrenome": "Maria da Silvia Pires",
         "nome_completo": "Patricia Maria da Silvia Pires",
         "email": "patricia@grupombv.com.br",
-        "senha": "123456",
+        "senha": "Mbv1996",
         "funcao": "Financeiro"
-    }
+    },
+    {
+        "id": "007",
+        "primeiro_nome": "Maria",
+        "sobrenome": "da Penha",
+        "nome_completo": "Maria da Penha",
+        "email": "maria.penha@grupombv.com.br",
+        "senha": "Mbv1996",
+        "funcao": "Vendas"
+    },
+    {
+        "id": "008",
+        "primeiro_nome": "Marcos",
+        "sobrenome": "Peixoto",
+        "nome_completo": "Marcos Peixoto Nunes",
+        "email": "marcos.peixoto@grupombv.com.br",
+        "senha": "Mbv1996",
+        "funcao": "Vendas"
+    },
+    {
+        "id": "009",
+        "primeiro_nome": "Petronio",
+        "sobrenome": "Darli da Silva",
+        "nome_completo": "Petronio Darli da Silva",
+        "email": "petronio@grupombv.com.br",
+        "senha": "Mbv1996",
+        "funcao": "Gerente_Vendas"
+    }    
 ]
