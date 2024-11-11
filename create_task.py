@@ -99,12 +99,13 @@ def create_task():
         solicitacao_nota_fiscal_tab()
 
 @st.cache_data
+@st.cache_data
 def get_members_and_departments_cached():
     members = get_members_and_departments()
     return [{
         'id': member['id'],
-        'nome_completo': member['nome'],
-        'primeiro_nome': member['nome'].split()[0],
+        'nome_completo': member['nome_completo'],  # Usando 'nome_completo' direto
+        'primeiro_nome': member['primeiro_nome'],  # Usando 'primeiro_nome' direto
         'email': member['email'],
         'funcao': member['funcao']
     } for member in members]
