@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime, timedelta
 
+
 class ValidacaoCobranca:
     @staticmethod
     def verificar_duplicidade_cobranca(df: pd.DataFrame) -> pd.DataFrame:
