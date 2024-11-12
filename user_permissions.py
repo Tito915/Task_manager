@@ -147,6 +147,10 @@ def user_permissions():
                 "ver_visao_geral", "ver_metas_vendas", "ver_controle_fiscal",
                 "ver_configuracoes", "usar_calculadora"
             ]
+            # Adicione as permissões do ambiente financeiro
+            financeiro_permissions = [
+                "ver_cobranca", "ver_validacao"
+            ]
 
             # Debug: Mostrar permissões atuais (apenas para desenvolvedores)
             if is_developer:
@@ -172,14 +176,23 @@ def user_permissions():
                                                              key=f"sa_{permission}", 
                                                              disabled=grant_all)
 
+                # Adicione as permissões do ambiente financeiro
+                st.subheader("Permissões do Ambiente Financeiro")
+                fin_permissions = {}
+                for permission in financeiro_permissions:
+                    fin_permissions[permission] = st.checkbox(permission, 
+                                                              value=permission in st.session_state.user_permissions, 
+                                                              key=f"fin_{permission}", 
+                                                              disabled=grant_all)
+
                 submitted = st.form_submit_button("Salvar Alterações")
 
             if submitted:
                 new_permissions = []
                 if grant_all:
-                    new_permissions = task_manager_permissions + sales_app_permissions
+                    new_permissions = task_manager_permissions + sales_app_permissions + financeiro_permissions
                 else:
-                    new_permissions = [perm for perm, checked in {**tm_permissions, **sa_permissions}.items() if checked]
+                    new_permissions = [perm for perm, checked in {**tm_permissions, **sa_permissions, **fin_permissions}.items() if checked]
                 
                 update_user_permissions(selected_user_email, new_permissions)
                 st.session_state.user_permissions = new_permissions
