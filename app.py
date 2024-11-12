@@ -1,31 +1,14 @@
 import streamlit as st
-# Configuração da página deve ser a primeira chamada Streamlit
-st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 import sys
 from pathlib import Path
-import importlib
-from approve_tasks import aprovar_tarefas
-from debug_tools import add_developer_options, collect_debug_info
 import os
+import importlib
+
+# Configuração da página deve ser a primeira chamada Streamlit
+st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
+
+# Adicione o diretório atual ao Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-print("Diretório atual:", os.getcwd())
-print("Conteúdo do diretório atual:", os.listdir())
-print("Python path:", sys.path)
-
-# Tente listar o conteúdo do diretório 'financeiro', se existir
-financeiro_dir = os.path.join(os.getcwd(), 'financeiro')
-if os.path.exists(financeiro_dir):
-    print("Conteúdo do diretório 'financeiro':", os.listdir(financeiro_dir))
-else:
-    print("O diretório 'financeiro' não existe no caminho esperado")
-
-# Tente listar o conteúdo do diretório 'financeiro/pages', se existir
-financeiro_pages_dir = os.path.join(financeiro_dir, 'pages')
-if os.path.exists(financeiro_pages_dir):
-    print("Conteúdo do diretório 'financeiro/pages':", os.listdir(financeiro_pages_dir))
-else:
-    print("O diretório 'financeiro/pages' não existe no caminho esperado")
 
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao, get_user_permissions
@@ -37,7 +20,8 @@ from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
 from user_permissions import user_permissions
-import Filelock
+from debug_tools import add_developer_options, collect_debug_info
+from filelock import FileLock
 
 # Importações do Sales App
 from sales_app.pages.visao_geral import main as visao_geral_main
@@ -46,12 +30,10 @@ from sales_app.pages.ctrl_fiscal import main as ctrl_fiscal_main
 from sales_app.pages.configuracoes import main as configuracoes_main
 from sales_app.pages.Calculadora import main as calculadora_main
 
-try:
-    from sales_app.pages.visao_geral import main as visao_geral_main
-    print("Importação de visao_geral bem-sucedida")
-except ImportError as e:
-    print(f"Erro ao importar visao_geral: {e}")
-    
+# Importações do ambiente financeiro
+from financeiro.pages.cobranca import main as cobranca_main
+from financeiro.pages.validacao import main as validacao_main
+
 # Configuração do caminho para o Sales App
 sales_app_path = Path(__file__).parent / 'sales_app'
 sys.path.append(str(sales_app_path))
