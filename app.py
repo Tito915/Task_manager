@@ -37,6 +37,10 @@ except ImportError as e:
 sales_app_path = Path(__file__).parent / 'sales_app'
 sys.path.append(str(sales_app_path))
 
+# Importações do ambiente financeiro
+from financeiro.pages.cobranca import main as cobranca_main
+from financeiro.pages.validacao import main as validacao_main
+
 # Inicializar Firebase
 try:
     initialize_firebase()
@@ -96,7 +100,6 @@ def user_has_permission(user, permission):
     return has_permission
 
 def main():
-    # Inicializar o session_state
     init_session_state()
 
     if 'user' not in st.session_state:
@@ -108,12 +111,13 @@ def main():
 
         st.sidebar.title(f"Bem-vindo, {user['nome_completo']}")
 
-        # Separando os menus do Task Manager e do Sales App
+        # Menus para cada ambiente
         task_manager_menu = ["Home", "Criar Tarefa", "Gerenciar Tarefas", "Aprovar Tarefas", "Executar Tarefas", "Cadastrar Membro", "Downloads"]
         sales_app_menu = ["Visão Geral", "Metas de Vendas", "Controle Fiscal", "Configurações", "Calculadora"]
+        financeiro_menu = ["Cobrança", "Validação"]
         
-        # Adicionando opção para escolher entre Task Manager e Sales App
-        app_choice = st.sidebar.radio("Escolha o aplicativo:", ["Task Manager", "Sales App"])
+        # Escolha do ambiente
+        app_choice = st.sidebar.radio("Escolha o aplicativo:", ["Task Manager", "Sales App", "Financeiro"])
 
         if st.session_state.page == 'user_permissions':
             user_permissions()
@@ -139,17 +143,15 @@ def main():
 
         elif app_choice == "Sales App":
             choice = st.sidebar.selectbox("Menu do Sales App", sales_app_menu)
+            # ... (mantenha o código existente para o Sales App)
 
-            if choice == "Visão Geral" and user_has_permission(user, "ver_visao_geral"):
-                visao_geral_main()
-            elif choice == "Metas de Vendas" and user_has_permission(user, "ver_metas_vendas"):
-                metas_vendas_main()
-            elif choice == "Controle Fiscal" and user_has_permission(user, "ver_controle_fiscal"):
-                ctrl_fiscal_main()
-            elif choice == "Configurações" and user_has_permission(user, "ver_configuracoes"):
-                configuracoes_main()
-            elif choice == "Calculadora" and user_has_permission(user, "usar_calculadora"):
-                calculadora_main()
+        elif app_choice == "Financeiro":
+            choice = st.sidebar.selectbox("Menu Financeiro", financeiro_menu)
+
+            if choice == "Cobrança" and user_has_permission(user, "ver_cobranca"):
+                cobranca_main()
+            elif choice == "Validação" and user_has_permission(user, "ver_validacao"):
+                validacao_main()
             else:
                 st.warning("Você não tem permissão para acessar esta funcionalidade.")
 
