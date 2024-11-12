@@ -1,12 +1,11 @@
 import streamlit as st
+# Configuração da página deve ser a primeira chamada Streamlit
+st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 import sys
 from pathlib import Path
 import importlib
 from approve_tasks import aprovar_tarefas
 from debug_tools import add_developer_options, collect_debug_info
-
-# Configuração da página deve ser a primeira chamada Streamlit
-st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
