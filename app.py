@@ -9,6 +9,24 @@ from debug_tools import add_developer_options, collect_debug_info
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+print("Diretório atual:", os.getcwd())
+print("Conteúdo do diretório atual:", os.listdir())
+print("Python path:", sys.path)
+
+# Tente listar o conteúdo do diretório 'financeiro', se existir
+financeiro_dir = os.path.join(os.getcwd(), 'financeiro')
+if os.path.exists(financeiro_dir):
+    print("Conteúdo do diretório 'financeiro':", os.listdir(financeiro_dir))
+else:
+    print("O diretório 'financeiro' não existe no caminho esperado")
+
+# Tente listar o conteúdo do diretório 'financeiro/pages', se existir
+financeiro_pages_dir = os.path.join(financeiro_dir, 'pages')
+if os.path.exists(financeiro_pages_dir):
+    print("Conteúdo do diretório 'financeiro/pages':", os.listdir(financeiro_pages_dir))
+else:
+    print("O diretório 'financeiro/pages' não existe no caminho esperado")
+
 # Importações locais
 from utils import load_tasks, initialize_firebase, validar_conexao, get_user_permissions
 from home_page import home_page
@@ -19,6 +37,7 @@ from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
 from login import login
 from user_permissions import user_permissions
+import Filelock
 
 # Importações do Sales App
 from sales_app.pages.visao_geral import main as visao_geral_main
