@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from user_manager import load_users, add_user, save_users
+from user_manager import load_users_from_firebase, add_user, save_users_to_firebase
 
 def cadastrar_membro(user):
     if user['funcao'] not in ['Desenvolvedor', 'Presidente']:
@@ -26,7 +26,7 @@ def cadastrar_novo_membro():
     funcao = st.selectbox("Função", ["Desenvolvedor", "Presidente", "Financeiro", "Vendas", "Gerente_Vendas"])
 
     if st.button("Cadastrar"):
-        users = load_users()
+        users = load_users_from_firebase()
         novo_usuario = {
             "id": str(len(users) + 1).zfill(3),
             "primeiro_nome": primeiro_nome,
@@ -41,7 +41,7 @@ def cadastrar_novo_membro():
 
 def gerenciar_membros_existentes():
     st.subheader("Gerenciar Membros Existentes")
-    users = load_users()
+    users = load_users_from_firebase()
     
     for user in users:
         with st.expander(f"{user['nome_completo']} - {user['funcao']}"):
@@ -70,23 +70,23 @@ def gerenciar_membros_existentes():
                     user['funcao'] = nova_funcao
                     if nova_senha:
                         user['senha'] = nova_senha
-                    save_users(users)
+                    save_users_to_firebase(users)
                     st.success("Membro atualizado com sucesso!")
                     st.rerun()
             
             with col5:
                 if st.button("Excluir", key=f"excluir_{user['id']}"):
                     users.remove(user)
-                    save_users(users)
+                    save_users_to_firebase(users)
                     st.success("Membro excluído com sucesso!")
                     st.rerun()
 
 # Atualização no arquivo user_manager.py
-def save_users(users):
+def save_users_to_firebase(users):
     with open('users.json', 'w') as file:
         json.dump(users, file, indent=4)
 
 def add_user(user):
-    users = load_users()
+    users = load_users_from_firebase()
     users.append(user)
-    save_users(users)
+    save_users_to_firebase(users)
