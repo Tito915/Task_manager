@@ -5,7 +5,7 @@ from firebase_admin import credentials, db, storage
 import json
 import os
 from datetime import datetime, timedelta
-from user_manager import load_users
+from user_manager import load_users_from_firebase
 import logging
 from filelock import FileLock
 import tempfile
@@ -225,7 +225,7 @@ def get_user_role(user):
     if isinstance(user, dict):
         return user.get('funcao', 'Usuário')
     elif isinstance(user, str):
-        users = load_users()
+        users = load_users_from_firebase()
         for u in users:
             if u['nome_completo'] == user or u['primeiro_nome'] == user:
                 return u.get('funcao', 'Usuário')
@@ -324,4 +324,3 @@ def verify_developer_password(password):
 
 # Inicialização do Firebase
 initialize_firebase()
-
