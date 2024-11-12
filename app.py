@@ -143,7 +143,19 @@ def main():
 
         elif app_choice == "Sales App":
             choice = st.sidebar.selectbox("Menu do Sales App", sales_app_menu)
-            # ... (mantenha o código existente para o Sales App)
+
+            if choice == "Visão Geral" and user_has_permission(user, "ver_visao_geral"):
+                visao_geral_main()
+            elif choice == "Metas de Vendas" and user_has_permission(user, "ver_metas_vendas"):
+                metas_vendas_main()
+            elif choice == "Controle Fiscal" and user_has_permission(user, "ver_controle_fiscal"):
+                ctrl_fiscal_main()
+            elif choice == "Configurações" and user_has_permission(user, "ver_configuracoes"):
+                configuracoes_main()
+            elif choice == "Calculadora" and user_has_permission(user, "usar_calculadora"):
+                calculadora_main()
+            else:
+                st.warning("Você não tem permissão para acessar esta funcionalidade.")
 
         elif app_choice == "Financeiro":
             choice = st.sidebar.selectbox("Menu Financeiro", financeiro_menu)
