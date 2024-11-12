@@ -4,6 +4,9 @@ from pathlib import Path
 import os
 import importlib
 
+# Adicione o diretório raiz do projeto ao Python path
+project_root = Path(__file__).parent
+sys.path.append(str(project_root))
 # Configuração da página deve ser a primeira chamada Streamlit
 st.set_page_config(page_title="Task Manager & Sales App", layout="wide")
 
