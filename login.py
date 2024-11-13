@@ -10,24 +10,14 @@ def login():
         submit_button = st.form_submit_button("Entrar")
 
     if submit_button:
-        # Debug: mostre o email que está sendo buscado
-        st.write(f"Buscando usuário com email: {email}")
-        
+       
         user = get_user_by_email(email)
-        
-        # Debug: mostre detalhes do usuário encontrado
-        st.write("Usuário encontrado:")
-        st.write(user)
-        
-        # Debug: compare as senhas
-        st.write(f"Senha digitada: {senha}")
-        st.write(f"Senha do usuário: {user.get('senha') if user else 'Usuário não encontrado'}")
+ 
         
         # Comparação mais flexível e com debug
         if user:
             st.write("Comparando senhas:")
             st.write(f"Digitada (strip): '{senha.strip()}'")
-            st.write(f"Armazenada (strip): '{user.get('senha', '').strip()}'")
         
         if user and user.get('senha', '').strip() == senha.strip():
             # Resto do código permanece o mesmo
