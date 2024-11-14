@@ -5,15 +5,30 @@ from datetime import datetime
 import os
 import firebase_admin
 from firebase_admin import credentials, storage
-import io
+from io import BytesIO
 
-# Inicialização do Firebase (certifique-se de que isso seja feito apenas uma vez)
-if not firebase_admin._apps:
-    cred = credentials.Certificate("caminho/para/seu/arquivo/de/credenciais.json")
-    firebase_admin.initialize_app(cred, {
-        'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
-    })
-
+# Inicialização do Firebase
+@st.cache_resource
+def initialize_firebase():
+    if not firebase_admin._apps:
+        try:
+            cred_dict = st.secrets["FIREBASE_CREDENTIALS"]
+            if isinstance(cred_dict, dict):
+                cred = credentials.Certificate(cred_dict)
+            elif isinstance(cred_dict, str):
+                cred = credentials.Certificate(json.loads(cred_dict))
+            else:
+                cred = credentials.Certificate(dict(cred_dict))
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://gerenciador-de-tarefas-mbv-default-rtdb.firebaseio.com/',
+                'storageBucket': 'gerenciador-de-tarefas-mbv.appspot.com'
+            })
+            print("Firebase inicializado com sucesso")
+        except Exception as e:
+            st.error(f"Erro ao inicializar Firebase: {str(e)}")
+            raise
+    return firebase_admin.get_app()
 
 # Caminhos para os arquivos JSON
 CLIENTES_FILE = os.path.join(os.path.dirname(__file__), 'clientes_cobranca.json')
@@ -39,7 +54,7 @@ def add_log(action, details, user):
     }
     logs.append(log_entry)
     save_data(logs, LOG_FILE)
-    
+
 def load_excel_from_firebase():
     bucket = storage.bucket()
     blob = bucket.blob('Financeiro/Posicao_clientes.xlsx')
@@ -47,11 +62,20 @@ def load_excel_from_firebase():
     # Download do arquivo para a memória
     excel_content = blob.download_as_bytes()
     
-    # Leitura do Excel usando pandas
-    df = pd.read_excel(io.BytesIO(excel_content))
+    # Leitura do Excel usando pandas, pulando as primeiras linhas
+    # e usando a linha 3 (índice 2) como cabeçalho
+    df = pd.read_excel(BytesIO(excel_content), header=2, skiprows=[0, 1])
+    return df
+
+def normalize_column_names(df):
+    # Normaliza os nomes das colunas: remove espaços extras e converte para minúsculas
+    df.columns = df.columns.str.strip().str.lower()
     return df
 
 def main():
+    # Inicializar o Firebase
+    initialize_firebase()
+    
     st.title("Cobrança")
 
     # Sidebar para o log
@@ -71,20 +95,34 @@ def main():
         try:
             df = load_excel_from_firebase()
             
-            # Converter a coluna 'DATA' para datetime
-            df['DATA'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
+            # Normalizar nomes das colunas
+            df = normalize_column_names(df)
             
-            # Filtrar os dados a partir de 09/07/2024
-            data_corte = pd.to_datetime('09/07/2024')
-            df_filtrado = df[df['DATA'] >= data_corte]
+            # Exibir as colunas disponíveis (para debug)
+            st.write("Colunas disponíveis:", df.columns.tolist())
             
-            # Exibir os dados filtrados
-            st.dataframe(df_filtrado)
+            # Verificar se as colunas necessárias existem
+            required_columns = ['codigo', 'cliente', 'grupo', 'endereco', 'numero']
+            missing_columns = [col for col in required_columns if col not in df.columns]
             
-            # Adicionar mais funcionalidades de análise ou operações aqui
-            
+            if missing_columns:
+                st.error(f"Colunas não encontradas: {', '.join(missing_columns)}. Verifique o arquivo Excel.")
+            else:
+                # Exibir os dados
+                st.dataframe(df)
+                
+                # Aqui você pode adicionar mais processamento ou filtragem dos dados
+                # Por exemplo, se houver uma coluna de data, você pode filtrar por ela:
+                # if 'data' in df.columns:
+                #     df['data'] = pd.to_datetime(df['data'], errors='coerce')
+                #     data_corte = pd.to_datetime('09/07/2024')
+                #     df_filtrado = df[df['data'] >= data_corte]
+                #     st.dataframe(df_filtrado)
+        
         except Exception as e:
             st.error(f"Erro ao carregar ou processar os dados: {str(e)}")
+            # Exibir informações detalhadas do erro (para debug)
+            st.exception(e)
 
     with tab2:
         st.header("Cadastro de Clientes para Cobrança")
