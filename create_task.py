@@ -430,48 +430,54 @@ def exibir_detalhes_tarefa(tarefa):
     st.write(f"Etiqueta: {tarefa.get('Etiqueta', 'Não especificada')}")
     st.write(f"Membros: {', '.join(tarefa.get('Membros', []))}")
     st.write(f"Departamento: {tarefa.get('Departamento', 'Não especificado')}")
-    
-    for i, subtarefa in tarefa.get('Task List', {}).items():
-        st.write(f"Subtarefa {i}:")
-        st.write(f"  Descrição: {subtarefa.get('descricao', 'Não especificada')}")
-        st.write(f"  Membro: {subtarefa.get('membro', 'Não especificado')}")
-        st.write(f"  Horário Limite: {subtarefa.get('horario', 'Não especificado')}")
-        st.write(f"  Exige Anexo: {'Sim' if subtarefa.get('exige_anexo') else 'Não'}")
-        st.write(f"  Dependências: {', '.join(map(str, subtarefa.get('dependencias', [])))}")
+
+    # Safely retrieve and iterate over the task list
+    task_list = tarefa.get('Task List', {})
+
+    if isinstance(task_list, dict):
+        for i, subtarefa in task_list.items():
+            st.write(f"Subtarefa {i}:")
+            st.write(f"  Descrição: {subtarefa.get('descricao', 'Não especificada')}")
+            st.write(f"  Membro: {subtarefa.get('membro', 'Não especificado')}")
+            st.write(f"  Horário Limite: {subtarefa.get('horario', 'Não especificado')}")
+            st.write(f"  Exige Anexo: {'Sim' if subtarefa.get('exige_anexo') else 'Não'}")
+            st.write(f"  Dependências: {', '.join(map(str, subtarefa.get('dependencias', [])))}")
+    else:
+        st.error("Erro: 'Task List' não é um dicionário válido.")
 
     st.write("Status de Aprovação:")
     status_aprovacao = tarefa.get('Status de Aprovação', {})
-    if isinstance(status_aprovacao, str):
-        st.write(f"  Status geral: {status_aprovacao}")
-    elif isinstance(status_aprovacao, dict):
+
+    if isinstance(status_aprovacao, dict):
         for membro, status in status_aprovacao.items():
             st.write(f"  {membro}: {status}")
     else:
         st.write("  Status de aprovação não disponível")
 
 if __name__ == "__main__":
-    # Verificar se o usuário é desenvolvedor
+    # Check if the user is a developer
     is_developer = st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor'
 
-    # Botão para ativar o modo de edição (apenas visível para desenvolvedores)
+    # Button to toggle developer edit mode, only visible to developers
     if is_developer:
         if st.sidebar.button("Ativar/Desativar Modo de Edição do Desenvolvedor"):
             st.session_state.edit_mode = not st.session_state.edit_mode
-        
+
         if st.session_state.edit_mode:
             st.sidebar.success("Modo de Edição Ativado")
             developer_edit_mode()
         else:
             st.sidebar.info("Modo de Edição Desativado")
 
-    # Aplicar tamanho de fonte
-    st.markdown(f"""
-    <style>
-        .reportview-container .main .block-container{{
-            font-size: {st.session_state.dev_settings['font_size']}px;
-        }}
-    </style>
-    """, unsafe_allow_html=True)
+    # Apply font size from developer settings
+    if 'dev_settings' in st.session_state:
+        st.markdown(f"""
+        <style>
+            .reportview-container .main .block-container{{
+                font-size: {st.session_state.dev_settings['font_size']}px;
+            }}
+        </style>
+        """, unsafe_allow_html=True)
 
     if 'user' not in st.session_state:
         st.warning("Você precisa fazer login para criar tarefas.")
