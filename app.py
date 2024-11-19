@@ -173,9 +173,15 @@ def main():
 
         # Opção de Gerenciar Permissões (disponível em ambos os apps)
         if user['funcao'] == 'Desenvolvedor':
-           if st.sidebar.button("Gerenciar Permissões"):
-              st.session_state.page = 'user_permissions'
-              st.experimental_rerun()
+            if st.sidebar.button("Gerenciar Permissões"):
+                st.session_state.page = 'user_permissions'
+                st.experimental_rerun()
+
+            # Botão para limpar o cache, visível apenas para desenvolvedores
+            if st.sidebar.button("Limpar Cache"):
+                st.cache_data.clear()
+                st.cache_resource.clear()
+                st.success("Cache limpo com sucesso!")
 
         if st.sidebar.button("Logout"):
             for key in list(st.session_state.keys()):
