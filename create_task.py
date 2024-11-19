@@ -4,6 +4,7 @@ from utils import add_task, get_members_and_departments, load_tasks, update_task
 import json
 import math
 import os
+import logging
 
 # Caminho para o arquivo de configurações
 CONFIG_FILE = 'dev_settings.json'
@@ -98,16 +99,44 @@ def create_task():
     with tab4:
         solicitacao_nota_fiscal_tab()
 
+def safe_get_member_info(members):
+    processed_members = []
+    for member in members:
+        nome = member.get('nome')
+        if nome:
+            primeiro_nome = nome.split()[0]
+        else:
+            logging.error("Member missing 'nome': %s", member)
+            primeiro_nome = 'Nome não definido'
+        processed_members.append({
+            'id': member.get('id', 'ID não definido'),
+            'nome_completo': nome or 'Nome não definido',
+            'primeiro_nome': primeiro_nome,
+            'email': member.get('email', 'Email não definido'),
+            'funcao': member.get('funcao', 'Função não definida'),
+        })
+    return processed_members
+
 @st.cache_data
 def get_members_and_departments_cached():
     members = get_members_and_departments()
-    return [{
-        'id': member.get('id', 'ID não definido'),
-        'nome_completo': member.get('nome', 'Nome não definido'),
-        'primeiro_nome': member.get('nome', 'Nome não definido').split()[0],
-        'email': member.get('email', 'Email não definido'),
-        'funcao': member.get('funcao', 'Função não definida')
-    } for member in members]
+    debug_info = []
+    for member in members:
+        info = {
+            'id': member.get('id', 'ID não definido'),
+            'nome_completo': member.get('nome', 'Nome não definido'),
+            'primeiro_nome': member.get('nome', 'Nome não definido').split()[0] if member.get('nome') else 'Nome não definido',
+            'email': member.get('email', 'Email não definido'),
+            'funcao': member.get('funcao', 'Função não definida')
+        }
+        # Logging for missing keys
+        if 'nome' not in member:
+            logging.warning(f"Missing 'nome' key in member: {member}")
+        debug_info.append(info)
+    # Optionally, display debug information in Streamlit for developers
+    if st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor':
+        st.sidebar.json(debug_info)
+    return debug_info
 
 def solicitacao_nota_fiscal_tab():
     st.header("Solicitação de nota fiscal")
