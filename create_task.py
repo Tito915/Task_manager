@@ -117,25 +117,27 @@ def safe_get_member_info(members):
         })
     return processed_members
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # Cache por 1 hora
 def get_members_and_departments_cached():
     members = get_members_and_departments()
     debug_info = []
     for member in members:
         info = {
             'id': member.get('id', 'ID não definido'),
-            'nome_completo': member.get('nome', 'Nome não definido'),
-            'primeiro_nome': member.get('nome', 'Nome não definido').split()[0] if member.get('nome') else 'Nome não definido',
+            'nome_completo': member.get('nome_completo', 'Nome completo não definido'),
+            'primeiro_nome': member.get('primeiro_nome', 'Nome não definido'),
             'email': member.get('email', 'Email não definido'),
             'funcao': member.get('funcao', 'Função não definida')
         }
-        # Logging for missing keys
-        if 'nome' not in member:
-            logging.warning(f"Missing 'nome' key in member: {member}")
+        # Logging for missing keys, ajustado para nome_completo e primeiro_nome
+        if 'primeiro_nome' not in member or 'nome_completo' not in member:
+            logging.warning(f"Dados incompletos no membro: {member}")
         debug_info.append(info)
-    # Optionally, display debug information in Streamlit for developers
+    
+    # Opcionalmente, exibir informações de debug no Streamlit para desenvolvedores
     if st.session_state.get('user', {}).get('funcao') == 'Desenvolvedor':
         st.sidebar.json(debug_info)
+    
     return debug_info
 
 def solicitacao_nota_fiscal_tab():
