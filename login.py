@@ -1,6 +1,11 @@
 import streamlit as st
 from user_manager import get_user_by_email, update_user_password
+import logging
 import json
+
+# Configuração de logging adicional
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def login():
     st.header("Login")
@@ -10,17 +15,16 @@ def login():
         submit_button = st.form_submit_button("Entrar")
 
     if submit_button:
-       
-        user = get_user_by_email(email)
- 
+        logger.debug(f"Tentativa de login com email: {email}")
         
-        # Comparação mais flexível e com debug
+        user = get_user_by_email(email)
+        
         if user:
-            st.write("Comparando senhas:")
-            st.write(f"Digitada (strip): '{senha.strip()}'")
+            logger.debug(f"Usuário encontrado: {user}")
+            logger.debug(f"Senha esperada: '{user.get('senha', '').strip()}'")
+            logger.debug(f"Senha fornecida: '{senha.strip()}'")
         
         if user and user.get('senha', '').strip() == senha.strip():
-            # Resto do código permanece o mesmo
             if senha == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
@@ -34,6 +38,7 @@ def login():
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
                 st.rerun()
         else:
+            logger.error("Email ou senha incorretos.")
             st.error("Email ou senha incorretos.")
 
 def mudar_senha(user):
@@ -65,4 +70,16 @@ def mudar_senha(user):
         else:
             st.error("As senhas não coincidem. Tente novamente.")
 
-# A função update_user_password pode permanecer no arquivo user_manager.py
+# Função de depuração
+def show_debug_info():
+    debug_info = {
+        "usuario_logado": st.session_state.get('user', 'Nenhum usuário logado'),
+        "session_state": {k: v for k, v in st.session_state.items()},
+    }
+    logger.debug("Informações de Debug:")
+    logger.debug(json.dumps(debug_info, indent=2))
+    st.json(debug_info)
+
+# Incluir a chamada para exibir informações de depuração
+if st.button("Mostrar Informações de Debug"):
+    show_debug_info()
