@@ -57,6 +57,29 @@ def initialize_firebase():
 
     return firebase_admin.get_app()
 
+def get_members_and_departments():
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob(USERS_FILE)
+        
+        if blob.exists():
+            content = blob.download_as_text()
+            users = json.loads(content)
+            
+            # Verificando e ajustando a estrutura dos dados
+            for user in users:
+                if 'nome' not in user:
+                    logger.warning(f"Membro sem nome encontrado: {user}")
+                    user['nome'] = "Nome não definido"  # Define um nome padrão se ausente
+            
+            return users
+        else:
+            logger.warning(f"Arquivo {USERS_FILE} não encontrado no Firebase Storage.")
+            return []
+    except Exception as e:
+        logger.error(f"Erro ao carregar usuários do Firebase Storage: {str(e)}")
+        return []
+
 @st.cache_data(ttl=3600)  # Cache por 1 hora
 def get_members_and_departments_cached():
     return get_members_and_departments()
