@@ -90,30 +90,21 @@ def get_user_permissions(email):
     
 def load_tasks():
     try:
-        bucket = storage.bucket()
-        blob = bucket.blob(DATA_FILE)
-        
-        if blob.exists():
-            content = blob.download_as_text()
-            tasks = json.loads(content)
-            logger.info(f"Tarefas carregadas com sucesso. Total de tarefas: {len(tasks)}")
-            return tasks
-        else:
-            logger.warning(f"Arquivo {DATA_FILE} não encontrado no Firebase Storage. Criando um novo arquivo.")
-            save_tasks([])
-            return []
+        ref = db.reference('tasks')
+        tasks = ref.get() or []
+        logger.info(f"Tarefas carregadas com sucesso. Total de tarefas: {len(tasks)}")
+        return tasks
     except Exception as e:
-        logger.error(f"Erro ao carregar tarefas do Firebase Storage: {str(e)}")
+        logger.error(f"Erro ao carregar tarefas do Firebase Realtime Database: {str(e)}")
         return []
 
 def save_tasks(tasks):
     try:
-        bucket = storage.bucket()
-        blob = bucket.blob(DATA_FILE)
-        blob.upload_from_string(json.dumps(tasks, ensure_ascii=False, indent=4), content_type='application/json')
-        logger.info(f"Tarefas salvas com sucesso no Firebase Storage. Total de tarefas: {len(tasks)}")
+        ref = db.reference('tasks')
+        ref.set(tasks)
+        logger.info(f"Tarefas salvas com sucesso no Firebase Realtime Database. Total de tarefas: {len(tasks)}")
     except Exception as e:
-        logger.error(f"Erro ao salvar tarefas no Firebase Storage: {str(e)}")
+        logger.error(f"Erro ao salvar tarefas no Firebase Realtime Database: {str(e)}")
 
 def print_tasks_file_content():
     try:
@@ -125,49 +116,40 @@ def print_tasks_file_content():
 
 def add_task(task):
     try:
-        with lock:
-            tasks = load_tasks()
-            if tasks:
-                max_id = max(t.get('id', 0) for t in tasks)
-                task_id = max_id + 1
-            else:
-                task_id = 1
-            
-            # Garantir que o criador da tarefa tenha o status "Aprovada"
-            criador = task.get("criado_por")
-            status_aprovacao = {membro: "Pendente" for membro in task.get("Membros", [])}
-            if criador:
-                status_aprovacao[criador] = "Aprovada"
-            
-            task.update({
-                "id": task_id,
-                "titulo": task.get("titulo", "Sem título"),
-                "descricao": task.get("descricao", "Sem descrição"),
-                "status_execucao": "Não Iniciada",
-                "Status de Aprovação": status_aprovacao,
-                "dependencias": task.get("dependencias", []),
-                "tempo_previsto_inicio": task.get("tempo_previsto_inicio"),
-                "tempo_real_inicio": None,
-                "tempo_previsto_fim": task.get("tempo_previsto_fim"),
-                "tempo_real_fim": None,
-                "atraso": None
-            })
-            tasks.append(task)
-            save_tasks(tasks)
+        ref = db.reference('tasks')
+        tasks = ref.get() or []  # Carregar tarefas existentes
 
-            # Verificar se a tarefa foi adicionada corretamente
-            updated_tasks = load_tasks()
-            added_task = next((t for t in updated_tasks if t['id'] == task_id), None)
-            if added_task:
-                logger.info(f"Tarefa adicionada com sucesso: {added_task}")
-            else:
-                logger.error("Erro: A tarefa não foi adicionada corretamente")
-
-        logger.info(f"Adicionada nova tarefa com ID {task_id}")
+        # Determinar o próximo 'id' disponível
+        task_id = max((t.get('id', 0) for t in tasks), default=0) + 1
+        
+        criador = task.get("criado_por")
+        status_aprovacao = {membro: "Pendente" for membro in task.get("Membros", [])}
+        if criador:
+            status_aprovacao[criador] = "Aprovada"
+        
+        task.update({
+            "id": task_id,
+            "titulo": task.get("titulo", "Sem título"),
+            "descricao": task.get("descricao", "Sem descrição"),
+            "status_execucao": "Não Iniciada",
+            "Status de Aprovação": status_aprovacao,
+            "dependencias": task.get("dependencias", []),
+            "tempo_previsto_inicio": task.get("tempo_previsto_inicio"),
+            "tempo_real_inicio": None,
+            "tempo_previsto_fim": task.get("tempo_previsto_fim"),
+            "tempo_real_fim": None,
+            "atraso": None
+        })
+        
+        tasks.append(task)
+        ref.set(tasks)  # Salvar tarefas atualizadas
+        
+        logger.info(f"Tarefa adicionada com sucesso: {task}")
         return task_id
     except Exception as e:
         logger.error(f"Erro ao adicionar tarefa: {str(e)}")
         raise
+    
 def get_members_and_departments():
     try:
         bucket = storage.bucket()
@@ -207,14 +189,16 @@ def get_task_by_id(task_id):
 
 def update_task_by_id(updated_task):
     try:
-        with lock:
-            tasks = load_tasks()
-            for i, task in enumerate(tasks):
-                if task.get('id') == updated_task.get('id'):
-                    tasks[i] = updated_task
-                    save_tasks(tasks)
-                    logger.info(f"Atualizada tarefa com ID {updated_task.get('id')}")
-                    return True
+        ref = db.reference('tasks')
+        tasks = ref.get() or []
+
+        for i, task in enumerate(tasks):
+            if task.get('id') == updated_task.get('id'):
+                tasks[i] = updated_task
+                ref.set(tasks)  # Salvar tarefas atualizadas
+                logger.info(f"Atualizada tarefa com ID {updated_task.get('id')}")
+                return True
+
         logger.warning(f"Tarefa com ID {updated_task.get('id')} não encontrada para atualização")
         return False
     except Exception as e:
@@ -249,37 +233,26 @@ def delete_task(index):
 
 def move_to_deleted_tasks(task):
     try:
-        bucket = storage.bucket()
-        blob = bucket.blob(DELETED_TASKS_FILE)
-        
-        if blob.exists():
-            content = blob.download_as_text()
-            deleted_tasks = json.loads(content)
-        else:
-            deleted_tasks = []
+        ref = db.reference('deleted_tasks')
+        deleted_tasks = ref.get() or []
         
         task['deleted_at'] = datetime.now().isoformat()
         deleted_tasks.append(task)
         
-        blob.upload_from_string(json.dumps(deleted_tasks, ensure_ascii=False, indent=4), content_type='application/json')
+        ref.set(deleted_tasks)
         logger.info(f"Tarefa movida para tarefas deletadas com sucesso.")
     except Exception as e:
         logger.error(f"Erro ao mover tarefa para tarefas deletadas: {str(e)}")
-
+        
+        
 def load_deleted_tasks():
     try:
-        bucket = storage.bucket()
-        blob = bucket.blob(DELETED_TASKS_FILE)
-        
-        if blob.exists():
-            content = blob.download_as_text()
-            deleted_tasks = json.loads(content)
-            return deleted_tasks
-        else:
-            logger.warning(f"Arquivo {DELETED_TASKS_FILE} não encontrado no Firebase Storage.")
-            return []
+        ref = db.reference('deleted_tasks')
+        deleted_tasks = ref.get() or []
+        logger.info("Tarefas deletadas carregadas com sucesso.")
+        return deleted_tasks
     except Exception as e:
-        logger.error(f"Erro ao carregar tarefas deletadas do Firebase Storage: {str(e)}")
+        logger.error(f"Erro ao carregar tarefas deletadas do Firebase Realtime Database: {str(e)}")
         return []
 
 def clear_all_tasks():
