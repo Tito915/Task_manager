@@ -60,26 +60,27 @@ def initialize_firebase():
 def get_members_and_departments():
     try:
         bucket = storage.bucket()
-        blob = bucket.blob(USERS_FILE)
+        blob = bucket.blob('SallesApp/users.json')
         
         if blob.exists():
             content = blob.download_as_text()
             users = json.loads(content)
             
-            # Verificando e ajustando a estrutura dos dados
+            # Agora verificamos as chaves corretas
             for user in users:
-                if 'nome' not in user:
-                    logger.warning(f"Membro sem nome encontrado: {user}")
-                    user['nome'] = "Nome não definido"  # Define um nome padrão se ausente
+                if 'primeiro_nome' not in user or 'nome_completo' not in user:
+                    logger.warning(f"Membro com dados incompletos encontrado: {user}")
+                    user['primeiro_nome'] = user.get('primeiro_nome', "Nome não definido")
+                    user['nome_completo'] = user.get('nome_completo', "Nome completo não definido")
             
             return users
         else:
-            logger.warning(f"Arquivo {USERS_FILE} não encontrado no Firebase Storage.")
+            logger.warning(f"Arquivo 'SallesApp/users.json' não encontrado no Firebase Storage.")
             return []
     except Exception as e:
         logger.error(f"Erro ao carregar usuários do Firebase Storage: {str(e)}")
         return []
-
+    
 @st.cache_data(ttl=3600)  # Cache por 1 hora
 def get_members_and_departments_cached():
     return get_members_and_departments()
