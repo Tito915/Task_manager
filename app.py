@@ -37,14 +37,6 @@ from sales_app.pages.Calculadora import main as calculadora_main
 from financeiro.pages.cobranca import main as cobranca_main
 from financeiro.pages.validacao import main as validacao_main
 
-# Configuração do caminho para o Sales App
-sales_app_path = Path(__file__).parent / 'sales_app'
-sys.path.append(str(sales_app_path))
-
-# Importações do ambiente financeiro
-from financeiro.pages.cobranca import main as cobranca_main
-from financeiro.pages.validacao import main as validacao_main
-
 # Inicializar Firebase
 try:
     initialize_firebase()
@@ -171,7 +163,7 @@ def main():
             else:
                 st.warning("Você não tem permissão para acessar esta funcionalidade.")
 
-        # Opção de Gerenciar Permissões (disponível em ambos os apps)
+        # Elementos de depuração e ações especiais para Desenvolvedores
         if user['funcao'] == 'Desenvolvedor':
             if st.sidebar.button("Gerenciar Permissões"):
                 st.session_state.page = 'user_permissions'
@@ -183,19 +175,19 @@ def main():
                 st.cache_resource.clear()
                 st.success("Cache limpo com sucesso!")
 
+            # Adicionar botão de debug
+            if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+                st.sidebar.json(dict(st.session_state))
+
+            # Adicionar botão para mostrar informações de debug detalhadas
+            if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
+                debug_info = collect_debug_info()
+                st.sidebar.json(debug_info)
+
         if st.sidebar.button("Logout"):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.experimental_rerun()
-
-        # Adicionar botão de debug
-        if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
-            st.sidebar.json(dict(st.session_state))
-
-        # Adicionar botão para mostrar informações de debug detalhadas
-        if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
-            debug_info = collect_debug_info()
-            st.sidebar.json(debug_info)
 
 if __name__ == "__main__":
     main()
