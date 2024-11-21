@@ -20,8 +20,6 @@ def login():
         # Debugging para visualizar a senha digitada e a senha do usuário
         if user:
             st.write("Comparando senhas:")
-            st.write(f"Senha Digitada (strip): '{senha.strip()}'")
-            st.write(f"Senha Armazenada (strip): '{user.get('senha', '').strip()}'")
 
         if user and user.get('senha', '').strip() == senha.strip():
             # Resto do código permanece o mesmo
@@ -36,7 +34,7 @@ def login():
                     'funcao': user['funcao']
                 }
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-                st.experimental_rerun()
+          
         else:
             st.error("Email ou senha incorretos.")
 
@@ -63,7 +61,6 @@ def mudar_senha(user):
                         'primeiro_nome': updated_user['primeiro_nome'],
                         'funcao': updated_user['funcao']
                     }
-                    st.experimental_rerun()
                 else:
                     st.error("Erro ao atualizar a senha. Tente novamente.")
         else:
