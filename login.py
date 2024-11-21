@@ -2,6 +2,11 @@ import streamlit as st
 from user_manager import get_user_by_email, update_user_password
 import json
 
+# Função para carregar usuários do arquivo JSON
+def carregar_usuarios():
+    with open('users.json', 'r') as f:
+        return json.load(f)
+
 def login():
     st.header("Login")
     with st.form(key='login_form'):
@@ -10,29 +15,28 @@ def login():
         submit_button = st.form_submit_button("Entrar")
 
     if submit_button:
-       
         user = get_user_by_email(email)
- 
-        
-        # Comparação mais flexível e com debug
+
+        # Debugging para visualizar a senha digitada e a senha do usuário
         if user:
             st.write("Comparando senhas:")
-            st.write(f"Digitada (strip): '{senha.strip()}'")
-        
+            st.write(f"Senha Digitada (strip): '{senha.strip()}'")
+            st.write(f"Senha Armazenada (strip): '{user.get('senha', '').strip()}'")
+
         if user and user.get('senha', '').strip() == senha.strip():
             # Resto do código permanece o mesmo
-            if senha == "123456":  # Sua senha padrão
+            if senha.strip() == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
             else:
                 st.session_state.user = {
                     'email': user['email'],
-                    'nome_completo': user.get('nome_completo', user.get('nome', 'Nome não definido')),
-                    'primeiro_nome': user.get('nome_completo', user.get('nome', 'Nome não definido')).split()[0],
-                    'funcao': user.get('funcao', 'Usuário')
+                    'nome_completo': user['nome_completo'],
+                    'primeiro_nome': user['primeiro_nome'],
+                    'funcao': user['funcao']
                 }
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-                st.rerun()
+                st.experimental_rerun()
         else:
             st.error("Email ou senha incorretos.")
 
@@ -55,14 +59,12 @@ def mudar_senha(user):
                     updated_user = get_user_by_email(user['email'])
                     st.session_state.user = {
                         'email': updated_user['email'],
-                        'nome_completo': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')),
-                        'primeiro_nome': updated_user.get('nome_completo', updated_user.get('nome', 'Nome não definido')).split()[0],
-                        'funcao': updated_user.get('funcao', 'Usuário')
+                        'nome_completo': updated_user['nome_completo'],
+                        'primeiro_nome': updated_user['primeiro_nome'],
+                        'funcao': updated_user['funcao']
                     }
-                    st.rerun()
+                    st.experimental_rerun()
                 else:
                     st.error("Erro ao atualizar a senha. Tente novamente.")
         else:
             st.error("As senhas não coincidem. Tente novamente.")
-
-# A função update_user_password pode permanecer no arquivo user_manager.py
