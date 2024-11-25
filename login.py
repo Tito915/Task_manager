@@ -2,7 +2,7 @@ import streamlit as st
 from user_manager import get_user_by_email, update_user_password
 import json
 
-# Função para carregar usuários do arquivo JSON
+# Função para carregar usuários do arquivo JSON 
 def carregar_usuarios():
     with open('users.json', 'r') as f:
         return json.load(f)
