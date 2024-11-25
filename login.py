@@ -17,12 +17,10 @@ def login():
     if submit_button:
         user = get_user_by_email(email)
 
-        # Debugging para visualizar a senha digitada e a senha do usuário
-        if user:
-            st.write("Comparando senhas:")
+        # Debugging para visualizar o usuário recuperado
+        st.write("Usuário encontrado:", user)
 
         if user and user.get('senha', '').strip() == senha.strip():
-            # Resto do código permanece o mesmo
             if senha.strip() == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
@@ -34,10 +32,9 @@ def login():
                     'funcao': user['funcao']
                 }
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-          
         else:
             st.error("Email ou senha incorretos.")
-
+            
 def mudar_senha(user):
     st.subheader("Mudar Senha")
     with st.form(key='change_password_form'):
