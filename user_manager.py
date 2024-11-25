@@ -33,7 +33,7 @@ def get_user_by_email(email):
             if user.get('email') == email:
                 return user
     except Exception as e:
-        print(f"Erro ao carregar usuários: {e}")
+      
     return None
 
 def update_user_password(email, new_password):
