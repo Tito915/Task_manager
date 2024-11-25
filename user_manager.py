@@ -28,7 +28,7 @@ def get_user_by_email(email):
     try:
         with open('users.json', 'r') as f:
             users = json.load(f)
-        print("Usuários carregados:", users)  # Para verificar se os dados são carregados corretamente
+       # Para verificar se os dados são carregados corretamente
         for user in users:
             if user.get('email') == email:
                 return user
