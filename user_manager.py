@@ -25,8 +25,16 @@ def save_users_to_firebase(users):
         print(f"Erro ao salvar usuários no arquivo local: {e}")
 
 def get_user_by_email(email):
-    users = load_users_from_firebase()
-    return next((user for user in users.values() if user.get('email') == email), None)
+    try:
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        print("Usuários carregados:", users)  # Para verificar se os dados são carregados corretamente
+        for user in users:
+            if user.get('email') == email:
+                return user
+    except Exception as e:
+        print(f"Erro ao carregar usuários: {e}")
+    return None
 
 def update_user_password(email, new_password):
     users = load_users_from_firebase()
