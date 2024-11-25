@@ -28,12 +28,12 @@ def get_user_by_email(email):
     try:
         with open('users.json', 'r') as f:
             users = json.load(f)
-       # Para verificar se os dados são carregados corretamente
+        # Removendo o print que exibia todos os usuários carregados
         for user in users:
             if user.get('email') == email:
                 return user
     except Exception as e:
-      
+        print(f"Erro ao carregar usuários: {e}")
     return None
 
 def update_user_password(email, new_password):
