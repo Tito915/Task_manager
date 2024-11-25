@@ -17,8 +17,8 @@ def login():
     if submit_button:
         user = get_user_by_email(email)
 
-        # Debugging para visualizar o usuário recuperado
-        st.write("Usuário encontrado:", user)
+        # Remova ou comente esta linha para evitar mostrar detalhes do usuário
+        # st.write("Usuário encontrado:", user)
 
         if user and user.get('senha', '').strip() == senha.strip():
             if senha.strip() == "123456":  # Sua senha padrão
@@ -34,7 +34,7 @@ def login():
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
         else:
             st.error("Email ou senha incorretos.")
-            
+
 def mudar_senha(user):
     st.subheader("Mudar Senha")
     with st.form(key='change_password_form'):
