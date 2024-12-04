@@ -146,12 +146,21 @@ def solicitacao_nota_fiscal_tab():
     # Carregar membros e departamentos (usando cache)
     membros_cadastrados = get_members_and_departments_cached()
     
-    # Criar opções de seleção usando primeiro nome e email
-    opcoes_membro = [f"{m['primeiro_nome']} ({m['email']})" for m in membros_cadastrados]
+    # Obter o usuário logado a partir do estado da sessão
+    usuario_logado = st.session_state.get('user', None)
     
-    # Criar um dicionário para mapear a opção de seleção de volta às informações completas do membro
-    mapeamento_membros = {f"{m['primeiro_nome']} ({m['email']})": m for m in membros_cadastrados}
+    if not usuario_logado:
+        st.error("Nenhum usuário logado. Por favor, faça login para continuar.")
+        return
 
+    # Informações do membro logado
+    membro_selecionado = f"{usuario_logado['nome_completo']} ({usuario_logado['email']})"
+    membro_info = next((m for m in membros_cadastrados if m['email'] == usuario_logado['email']), None)
+    
+    if not membro_info:
+        st.error("Informações do membro logado não encontradas. Verifique se o cadastro está correto.")
+        return
+    
     # Usando st.form para melhorar o desempenho
     with st.form("nota_fiscal_form"):
         col1, col2, col3 = st.columns(3)
@@ -176,7 +185,6 @@ def solicitacao_nota_fiscal_tab():
         dof_info = st.text_area("Informações do DOF") if tem_dof == "SIM" else "N/A"
 
         observacoes = st.text_area("Observações")
-        membro_selecionado = st.selectbox("Membro que Solicitou a emissão de nota", opcoes_membro)
 
         submitted = st.form_submit_button("Criar Solicitação de Nota Fiscal")
 
@@ -188,9 +196,6 @@ def solicitacao_nota_fiscal_tab():
             campos_obrigatorios.append(dof_info)
 
         if all(campos_obrigatorios):
-            # Obter informações completas do membro selecionado
-            membro_info = mapeamento_membros[membro_selecionado]
-            
             criar_tarefas_nota_fiscal(membro_info, codigo_cliente, {
                 "Número do Pedido": numero_pedido,
                 "Data de saída": data_saida.strftime('%Y-%m-%d'),
