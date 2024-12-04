@@ -2,7 +2,7 @@ import streamlit as st
 from user_manager import get_user_by_email, update_user_password
 import json
 
-# Função para carregar usuários do arquivo JSON
+# Função para carregar usuários do arquivo JSON 
 def carregar_usuarios():
     with open('users.json', 'r') as f:
         return json.load(f)
@@ -17,12 +17,10 @@ def login():
     if submit_button:
         user = get_user_by_email(email)
 
-        # Debugging para visualizar a senha digitada e a senha do usuário
-        if user:
-            st.write("Comparando senhas:")
+        # Remova ou comente esta linha para evitar mostrar detalhes do usuário
+        # st.write("Usuário encontrado:", user)
 
         if user and user.get('senha', '').strip() == senha.strip():
-            # Resto do código permanece o mesmo
             if senha.strip() == "123456":  # Sua senha padrão
                 st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
                 mudar_senha(user)
@@ -34,7 +32,6 @@ def login():
                     'funcao': user['funcao']
                 }
                 st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-          
         else:
             st.error("Email ou senha incorretos.")
 
