@@ -1,4 +1,3 @@
 firebase_credentials.json
 .streamlit/secrets.toml
-login.py
 .venv/
