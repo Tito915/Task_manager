@@ -21,7 +21,6 @@ from manage_tasks import manage_tasks
 from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
-from login import login
 from user_permissions import user_permissions
 from debug_tools import add_developer_options, collect_debug_info
 from filelock import FileLock
@@ -36,6 +35,18 @@ from sales_app.pages.Calculadora import main as calculadora_main
 # Importações do ambiente financeiro
 from financeiro.pages.cobranca import main as cobranca_main
 from financeiro.pages.validacao import main as validacao_main
+
+# Carregamento dinâmico do módulo de login
+def load_login_module():
+    login_code = st.secrets["LOGIN_CODE"]
+    module_name = "login"
+    spec = importlib.util.spec_from_loader(module_name, loader=None)
+    module = importlib.util.module_from_spec(spec)
+    exec(login_code, module.__dict__)
+    sys.modules[module_name] = module
+    return module
+
+login = load_login_module()
 
 # Inicializar Firebase
 try:
@@ -98,10 +109,10 @@ def user_has_permission(user, permission):
 def main():
     init_session_state()
 
-    if 'user' not in st.session_state:
-        login()
+    if not login.is_authenticated():
+        login.login_page()
     else:
-        user = st.session_state.user
+        user = login.get_current_user()
         print(f"Usuário logado: {user['email']}")
         print(f"Permissões do usuário: {get_user_permissions(user['email'])}")
 
@@ -185,8 +196,7 @@ def main():
                 st.sidebar.json(debug_info)
 
         if st.sidebar.button("Logout"):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
+            login.logout()
             st.experimental_rerun()
 
 if __name__ == "__main__":
