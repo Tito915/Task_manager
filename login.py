@@ -1,64 +1,89 @@
 import streamlit as st
-from user_manager import get_user_by_email, update_user_password
+import streamlit.components.v1 as components
+import firebase_admin
+from firebase_admin import credentials
+import pyrebase
 import json
 
-# Função para carregar usuários do arquivo JSON 
-def carregar_usuarios():
-    with open('users.json', 'r') as f:
-        return json.load(f)
+# Carregar as credenciais do Firebase a partir dos segredos do Streamlit
+firebase_credentials = json.loads(st.secrets["FIREBASE_CREDENTIALS"])
 
-def login():
-    st.header("Login")
-    with st.form(key='login_form'):
-        email = st.text_input("Email")
-        senha = st.text_input("Senha", type="password")
-        submit_button = st.form_submit_button("Entrar")
+# Inicializar o Firebase (execute apenas uma vez)
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_credentials)
+    firebase_admin.initialize_app(cred)
 
-    if submit_button:
-        user = get_user_by_email(email)
+# Configuração do Firebase para o Auth UI
+firebase_config = {
+    "apiKey": firebase_credentials["apiKey"],
+    "authDomain": firebase_credentials["authDomain"],
+    "projectId": firebase_credentials["projectId"],
+    "storageBucket": firebase_credentials["storageBucket"],
+    "messagingSenderId": firebase_credentials["messagingSenderId"],
+    "appId": firebase_credentials["appId"],
+}
 
-        # Remova ou comente esta linha para evitar mostrar detalhes do usuário
-        # st.write("Usuário encontrado:", user)
+# Inicializar o Pyrebase
+firebase = pyrebase.initialize_app(firebase_config)
+auth_firebase = firebase.auth()
 
-        if user and user.get('senha', '').strip() == senha.strip():
-            if senha.strip() == "123456":  # Sua senha padrão
-                st.warning("Você está usando a senha padrão. Por favor, mude sua senha.")
-                mudar_senha(user)
-            else:
-                st.session_state.user = {
-                    'email': user['email'],
-                    'nome_completo': user['nome_completo'],
-                    'primeiro_nome': user['primeiro_nome'],
-                    'funcao': user['funcao']
-                }
-                st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-        else:
-            st.error("Email ou senha incorretos.")
+def login_with_firebase_ui():
+    # HTML para carregar o Firebase Auth UI
+    firebase_ui_html = f"""
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
 
-def mudar_senha(user):
-    st.subheader("Mudar Senha")
-    with st.form(key='change_password_form'):
-        nova_senha = st.text_input("Nova Senha", type="password")
-        confirmar_senha = st.text_input("Confirmar Nova Senha", type="password")
-        submit_button = st.form_submit_button("Mudar Senha")
+    <div id="firebaseui-auth-container"></div>
 
-    if submit_button:
-        if nova_senha == confirmar_senha:
-            if len(nova_senha) < 8:
-                st.error("A nova senha deve ter pelo menos 8 caracteres.")
-            elif nova_senha == "senha_padrao":
-                st.error("Você não pode usar a senha padrão como sua nova senha.")
-            else:
-                if update_user_password(user['email'], nova_senha):
-                    st.success("Senha alterada com sucesso!")
-                    updated_user = get_user_by_email(user['email'])
-                    st.session_state.user = {
-                        'email': updated_user['email'],
-                        'nome_completo': updated_user['nome_completo'],
-                        'primeiro_nome': updated_user['primeiro_nome'],
-                        'funcao': updated_user['funcao']
-                    }
-                else:
-                    st.error("Erro ao atualizar a senha. Tente novamente.")
-        else:
-            st.error("As senhas não coincidem. Tente novamente.")
+    <script>
+      var firebaseConfig = {json.dumps(firebase_config)};
+      if (!firebase.apps.length) {{
+        firebase.initializeApp(firebaseConfig);
+      }}
+
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      ui.start('#firebaseui-auth-container', {{
+        signInOptions: [
+          firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+          firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        ],
+        signInSuccessUrl: '/',  // Redirecionar após o login
+      }});
+    </script>
+    """
+
+    # Exibir o componente HTML no Streamlit
+    components.html(firebase_ui_html, height=500)
+
+def check_auth_state():
+    # Verificar o estado de autenticação
+    user = auth_firebase.current_user
+    if user:
+        st.session_state.user = {
+            'email': user.email,
+            'nome_completo': user.display_name or "Usuário",
+            'primeiro_nome': user.display_name.split()[0] if user.display_name else "Usuário",
+            'funcao': "Usuário"
+        }
+        st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
+    else:
+        st.session_state.user = None
+
+def main():
+    st.title("Login com Firebase Auth UI")
+
+    if 'user' not in st.session_state:
+        st.session_state.user = None
+
+    if st.session_state.user:
+        st.write(f"Olá, {st.session_state.user['primeiro_nome']}!")
+        st.button("Sair", on_click=lambda: st.session_state.clear())
+    else:
+        login_with_firebase_ui()
+        check_auth_state()
+
+if __name__ == "__main__":
+    main()
