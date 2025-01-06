@@ -1,14 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import firebase_admin
-from firebase_admin import credentials
-import pyrebase
+from firebase_admin import credentials, auth
 import json
+import requests
 
 # Carregar as credenciais do Firebase a partir dos segredos do Streamlit
 firebase_credentials = json.loads(st.secrets["FIREBASE_CREDENTIALS"])
 
-# Inicializar o Firebase (execute apenas uma vez)
+# Inicializar o Firebase Admin SDK (execute apenas uma vez)
 if not firebase_admin._apps:
     cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)
@@ -22,10 +22,6 @@ firebase_config = {
     "messagingSenderId": firebase_credentials["messagingSenderId"],
     "appId": firebase_credentials["appId"],
 }
-
-# Inicializar o Pyrebase
-firebase = pyrebase.initialize_app(firebase_config)
-auth_firebase = firebase.auth()
 
 def login_with_firebase_ui():
     # HTML para carregar o Firebase Auth UI
@@ -50,7 +46,23 @@ def login_with_firebase_ui():
           firebase.auth.GoogleAuthProvider.PROVIDER_ID,
           firebase.auth.FacebookAuthProvider.PROVIDER_ID,
         ],
-        signInSuccessUrl: '/',  // Redirecionar após o login
+        callbacks: {{
+          signInSuccessWithAuthResult: function(authResult, redirectUrl) {{
+            // Enviar o token ID para o backend
+            var idToken = authResult.user.getIdToken().then(function(idToken) {{
+              fetch('/verify_token', {{
+                method: 'POST',
+                headers: {{
+                  'Content-Type': 'application/json',
+                }},
+                body: JSON.stringify({{ idToken: idToken }})
+              }}).then(function() {{
+                window.location.reload();
+              }});
+            }});
+            return false;
+          }}
+        }}
       }});
     </script>
     """
@@ -58,19 +70,25 @@ def login_with_firebase_ui():
     # Exibir o componente HTML no Streamlit
     components.html(firebase_ui_html, height=500)
 
-def check_auth_state():
-    # Verificar o estado de autenticação
-    user = auth_firebase.current_user
-    if user:
-        st.session_state.user = {
-            'email': user.email,
-            'nome_completo': user.display_name or "Usuário",
-            'primeiro_nome': user.display_name.split()[0] if user.display_name else "Usuário",
-            'funcao': "Usuário"
-        }
-        st.success(f"Bem-vindo, {st.session_state.user['primeiro_nome']}!")
-    else:
-        st.session_state.user = None
+def verify_token():
+    if 'idToken' in st.session_state:
+        try:
+            # Verify the ID token
+            decoded_token = auth.verify_id_token(st.session_state.idToken)
+            uid = decoded_token['uid']
+            user = auth.get_user(uid)
+            st.session_state.user = {
+                'email': user.email,
+                'nome_completo': user.display_name or "Usuário",
+                'primeiro_nome': user.display_name.split()[0] if user.display_name else "Usuário",
+                'funcao': "Usuário"
+            }
+            return True
+        except Exception as e:
+            st.error(f"Erro ao verificar token: {e}")
+            st.session_state.user = None
+            return False
+    return False
 
 def main():
     st.title("Login com Firebase Auth UI")
@@ -78,12 +96,20 @@ def main():
     if 'user' not in st.session_state:
         st.session_state.user = None
 
+    # Endpoint para verificar o token
+    if st.experimental_get_query_params().get("verify_token"):
+        token = st.experimental_get_query_params()["idToken"][0]
+        st.session_state.idToken = token
+        verify_token()
+        st.experimental_set_query_params()
+
     if st.session_state.user:
         st.write(f"Olá, {st.session_state.user['primeiro_nome']}!")
-        st.button("Sair", on_click=lambda: st.session_state.clear())
+        if st.button("Sair"):
+            st.session_state.clear()
+            st.experimental_rerun()
     else:
         login_with_firebase_ui()
-        check_auth_state()
 
 if __name__ == "__main__":
     main()
