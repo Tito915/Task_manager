@@ -21,6 +21,7 @@ from manage_tasks import manage_tasks
 from member_registration import cadastrar_membro
 from approve_tasks import aprovar_tarefas
 from execute_tasks import executar_tarefas, exibir_downloads
+from login import login
 from user_permissions import user_permissions
 from debug_tools import add_developer_options, collect_debug_info
 from filelock import FileLock
@@ -36,17 +37,13 @@ from sales_app.pages.Calculadora import main as calculadora_main
 from financeiro.pages.cobranca import main as cobranca_main
 from financeiro.pages.validacao import main as validacao_main
 
-# Carregamento dinâmico do módulo de login
-def load_login_module():
-    login_code = st.secrets["LOGIN_CODE"]
-    module_name = "login"
-    spec = importlib.util.spec_from_loader(module_name, loader=None)
-    module = importlib.util.module_from_spec(spec)
-    exec(login_code, module.__dict__)
-    sys.modules[module_name] = module
-    return module
+# Configuração do caminho para o Sales App
+sales_app_path = Path(__file__).parent / 'sales_app'
+sys.path.append(str(sales_app_path))
 
-login = load_login_module()
+# Importações do ambiente financeiro
+from financeiro.pages.cobranca import main as cobranca_main
+from financeiro.pages.validacao import main as validacao_main
 
 # Inicializar Firebase
 try:
@@ -109,10 +106,10 @@ def user_has_permission(user, permission):
 def main():
     init_session_state()
 
-    if not login.is_authenticated():
-        login.login_page()
+    if 'user' not in st.session_state:
+        login()
     else:
-        user = login.get_current_user()
+        user = st.session_state.user
         print(f"Usuário logado: {user['email']}")
         print(f"Permissões do usuário: {get_user_permissions(user['email'])}")
 
@@ -174,7 +171,7 @@ def main():
             else:
                 st.warning("Você não tem permissão para acessar esta funcionalidade.")
 
-        # Elementos de depuração e ações especiais para Desenvolvedores
+        # Opção de Gerenciar Permissões (disponível em ambos os apps)
         if user['funcao'] == 'Desenvolvedor':
             if st.sidebar.button("Gerenciar Permissões"):
                 st.session_state.page = 'user_permissions'
@@ -186,18 +183,19 @@ def main():
                 st.cache_resource.clear()
                 st.success("Cache limpo com sucesso!")
 
-            # Adicionar botão de debug
-            if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
-                st.sidebar.json(dict(st.session_state))
-
-            # Adicionar botão para mostrar informações de debug detalhadas
-            if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
-                debug_info = collect_debug_info()
-                st.sidebar.json(debug_info)
-
         if st.sidebar.button("Logout"):
-            login.logout()
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
             st.experimental_rerun()
+
+        # Adicionar botão de debug
+        if st.sidebar.button("Debug: Mostrar Estado da Sessão"):
+            st.sidebar.json(dict(st.session_state))
+
+        # Adicionar botão para mostrar informações de debug detalhadas
+        if st.sidebar.button("Mostrar Informações de Debug Detalhadas"):
+            debug_info = collect_debug_info()
+            st.sidebar.json(debug_info)
 
 if __name__ == "__main__":
     main()
