@@ -54,15 +54,6 @@
         "funcao": "Financeiro"
     },
     {
-        "id": "007",
-        "primeiro_nome": "Maria",
-        "sobrenome": "da Penha",
-        "nome_completo": "Maria da Penha",
-        "email": "maria.penha@grupombv.com.br",
-        "senha": "Mbv1996",
-        "funcao": "Vendas"
-    },
-    {
         "id": "008",
         "primeiro_nome": "Marcos",
         "sobrenome": "Peixoto",
